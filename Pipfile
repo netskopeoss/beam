@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+httpagentparser = "*"
+ua-parser = "*"
+user-agents = "*"
+scikit-learn = "==1.5.0"
+numpy = "*"
+pandas = "*"
+shap = "*"
+matplotlib = "*"
+ipython = "*"
+google-generativeai = "*"
+pydantic = "*"
+typing-extensions = "*"
+pytest = "*"
+asyncio = "*"
+sqlalchemy = "*"
+sqlalchemy-utils = "*"
+sqlmodel = "*"
+ruff = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"

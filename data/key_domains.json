@@ -1,0 +1,1109 @@
+[{
+  "domain": "waconafd.officeapps.live.com"
+}, {
+  "domain": "waconatm.officeapps.live.com"
+}, {
+  "domain": "vulnerability-search.europe-north1-gke.intellij.net"
+}, {
+  "domain": "edge-consumer-static.azureedge.net"
+}, {
+  "domain": "edge-mobile-static.azureedge.net"
+}, {
+  "domain": "xpaywalletcdn.azureedge.net"
+}, {
+  "domain": "secureconnect-pa.clients6.google.com"
+}, {
+  "domain": "edgeassetservice.azureedge.net"
+}, {
+  "domain": "beacons5.gvt3.com"
+}, {
+  "domain": "arc-ring.msedge.net"
+}, {
+  "domain": "dual-s-ring.msedge.net"
+}, {
+  "domain": "c-ring.msedge.net"
+}, {
+  "domain": "backend-xpress.jabra.com"
+}, {
+  "domain": "analytics-xpress.jabra.com"
+}, {
+  "domain": "crl.pki.goog"
+}, {
+  "domain": "cookieless-campaign.prd-00.retargetly.com"
+}, {
+  "domain": "rum8.perf.linkedin.com"
+}, {
+  "domain": "afdxtest.z01.azurefd.net"
+}, {
+  "domain": "wac-ring.msedge.net"
+}, {
+  "domain": "arm-ring.msedge.net"
+}, {
+  "domain": "a-ring-fallback.msedge.net"
+}, {
+  "domain": "ax-ring.msedge.net"
+}, {
+  "domain": "ipv6.msftconnecttest.com"
+}, {
+  "domain": "postrelease.com"
+}, {
+  "domain": "hierarchyapi.onenote.com"
+}, {
+  "domain": "x2.c.lencr.org"
+}, {
+  "domain": "ocsp.intel.com"
+}, {
+  "domain": "fa000000033.resources.office.net"
+}, {
+  "domain": "publickeyservice.msmt.gcp.privacysandboxservices.com"
+}, {
+  "domain": "google-ohttp-relay-query.fastly-edge.com"
+}, {
+  "domain": "edge-http.microsoft.com"
+}, {
+  "domain": "trustlist.adobe.com"
+}, {
+  "domain": "aus5.mozilla.org"
+}, {
+  "domain": "fp-afd.azurefd.us"
+}, {
+  "domain": "dmd.metaservices.microsoft.com"
+}, {
+  "domain": "aiinfrastructure.static.microsoft"
+}, {
+  "domain": "sw.symcd.com"
+}, {
+  "domain": "publickeyservice.msmt.aws.privacysandboxservices.com"
+}, {
+  "domain": "pa.openx.net"
+}, {
+  "domain": "tiles-cdn.prod.ads.prod.webservices.mozgcp.net"
+}, {
+  "domain": "firefox-settings-attachments.cdn.mozilla.net"
+}, {
+  "domain": "spocs.getpocket.com"
+}, {
+  "domain": "classify-client.services.mozilla.com"
+}, {
+  "domain": "push.services.mozilla.com"
+}, {
+  "domain": "content-signature-2.cdn.mozilla.net"
+}, {
+  "domain": "crl.microsoft.com"
+}, {
+  "domain": "ims-prod07.adobelogin.com"
+}, {
+  "domain": "ln-ring.msedge.net"
+}, {
+  "domain": "spo-ring.msedge.net"
+}, {
+  "domain": "11.tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "fp.msedge.net"
+}, {
+  "domain": "rna-v2-resource.acrobat.com"
+}, {
+  "domain": "incidents.diagnostics.office.com"
+}, {
+  "domain": "entitlement.diagnostics.office.com"
+}, {
+  "domain": "searchhighlights.bing.com"
+}, {
+  "domain": "fp-afd.azureedge.us"
+}, {
+  "domain": "static-ecst.licdn.com"
+}, {
+  "domain": "crl.sectigo.com"
+}, {
+  "domain": "4.tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "api-edge.cognitive.microsofttranslator.com"
+}, {
+  "domain": "bifrost-v10.getpostman.com"
+}, {
+  "domain": "weather.service.msn.com"
+}, {
+  "domain": "2.tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "tile-service.weather.microsoft.com"
+}, {
+  "domain": "3.tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "fledge.teads.tv"
+}, {
+  "domain": "ara.paa-reporting-advertising.amazon"
+}, {
+  "domain": "24timezones-com.webpkgcache.com"
+}, {
+  "domain": "history.google.com"
+}, {
+  "domain": "ent-api.msn.com"
+}, {
+  "domain": "ccext-static.adobecces.com"
+}, {
+  "domain": "crl.comodoca.com"
+}, {
+  "domain": "sf.symcd.com"
+}, {
+  "domain": "ctldl.windowsupdate.com"
+}, {
+  "domain": "crl.verisign.com"
+}, {
+  "domain": "google-ohttp-relay-safebrowsing.fastly-edge.com"
+}, {
+  "domain": "inference.location.live.net"
+}, {
+  "domain": "contile.services.mozilla.com"
+}, {
+  "domain": "gem.gbc.criteo.com"
+}, {
+  "domain": "ag.gbc.criteo.com"
+}, {
+  "domain": "dnacdn.net"
+}, {
+  "domain": "firefox.settings.services.mozilla.com"
+}, {
+  "domain": "beacons2.gvt2.com"
+}, {
+  "domain": "safebrowsing.google.com"
+}, {
+  "domain": "bzib.nelreports.net"
+}, {
+  "domain": "stats.adobe.com"
+}, {
+  "domain": "au.download.windowsupdate.com"
+}, {
+  "domain": "my.nalpeiron.com"
+}, {
+  "domain": "ups.blueconic.net"
+}, {
+  "domain": "cpwebassets.codepen.io"
+}, {
+  "domain": "g.bing.com"
+}, {
+  "domain": "cm.t.tailtarget.com"
+}, {
+  "domain": "bifrost-v4-global.gw.postman.com"
+}, {
+  "domain": "teams.live.com"
+}, {
+  "domain": "syncservice.protection.outlook.com"
+}, {
+  "domain": "fledge.us.criteo.com"
+}, {
+  "domain": "bifrost-https-v10.gw.postman.com"
+}, {
+  "domain": "cloud-asr.acrobat.com"
+}, {
+  "domain": "windows.msn.com"
+}, {
+  "domain": "ecn-us.dev.virtualearth.net"
+}, {
+  "domain": "f.c2r.ts.cdn.office.net"
+}, {
+  "domain": "a3.behance.net"
+}, {
+  "domain": "createpdf-asr.acrobat.com"
+}, {
+  "domain": "ntp.msn.com"
+}, {
+  "domain": "x1.c.lencr.org"
+}, {
+  "domain": "sv.symcb.com"
+}, {
+  "domain": "crl.globalsign.com"
+}, {
+  "domain": "crl.usertrust.com"
+}, {
+  "domain": "s.symcd.com"
+}, {
+  "domain": "crcldu.com"
+}, {
+  "domain": "mdec.nelreports.net"
+}, {
+  "domain": "s2.symcb.com"
+}, {
+  "domain": "beacons4.gvt2.com"
+}, {
+  "domain": "detectportal.firefox.com"
+}, {
+  "domain": "deff.nelreports.net"
+}, {
+  "domain": "resources.digital-cloud-prem.medallia.com"
+}, {
+  "domain": "statsf-tm.everesttech.net"
+}, {
+  "domain": "app.retargetly.com"
+}, {
+  "domain": "atom.warnermedia.com"
+}, {
+  "domain": "onenoteonline.nel.measure.office.net"
+}, {
+  "domain": "id-common-frontend.prod.atl-paas.net"
+}, {
+  "domain": "az15297.vo.msecnd.net"
+}, {
+  "domain": "appsitemsuggest-pa.clients6.google.com"
+}, {
+  "domain": "mmay.nelreports.net"
+}, {
+  "domain": "app.getpostman.com"
+}, {
+  "domain": "tr-tmc-fs.office.com"
+}, {
+  "domain": "wss-backup.slack.com"
+}, {
+  "domain": "dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "ae.dmxleo.com"
+}, {
+  "domain": "polarcdn-engine.com"
+}, {
+  "domain": "ox-rtb-us-west1.openx.net"
+}, {
+  "domain": "cdn.revjet.com"
+}, {
+  "domain": "k.streamrail.com"
+}, {
+  "domain": "default.bbc-reporting-api.app"
+}, {
+  "domain": "vod.cf.dmcdn.net"
+}, {
+  "domain": "p.brsrvr.com"
+}, {
+  "domain": "counter.snackly.co"
+}, {
+  "domain": "flask.nextdoor.com"
+}, {
+  "domain": "office.com"
+}, {
+  "domain": "edgeservices.bing.com"
+}, {
+  "domain": "prod-video-cms-amp-microsoft-com.akamaized.net"
+}, {
+  "domain": "ocsp.verisign.com"
+}, {
+  "domain": "p19.zdassets.com"
+}, {
+  "domain": "measurement-api.criteo.com"
+}, {
+  "domain": "brightcombid.marphezis.com"
+}, {
+  "domain": "download.windowsupdate.com"
+}, {
+  "domain": "statics.creativecdn.com"
+}, {
+  "domain": "teams.nel.measure.office.net"
+}, {
+  "domain": "eu.adventori.com"
+}, {
+  "domain": "privacyportal.cookiepro.com"
+}, {
+  "domain": "dsp.adkernel.com"
+}, {
+  "domain": "chrome.google.com"
+}, {
+  "domain": "createpdf.acrobat.com"
+}, {
+  "domain": "wordonline.nel.measure.office.net"
+}, {
+  "domain": "sb-ssl.google.com"
+}, {
+  "domain": "exo.nel.measure.office.net"
+}, {
+  "domain": "contentsync.onenote.com"
+}, {
+  "domain": "s.symcb.com"
+}, {
+  "domain": "khms1.google.com"
+}, {
+  "domain": "khms2.google.com"
+}, {
+  "domain": "khms0.google.com"
+}, {
+  "domain": "khms3.google.com"
+}, {
+  "domain": "ms-cookie-sync.presage.io"
+}, {
+  "domain": "s1.symcb.com"
+}, {
+  "domain": "sv.symcd.com"
+}, {
+  "domain": "edge-chat.facebook.com"
+}, {
+  "domain": "gateway.facebook.com"
+}, {
+  "domain": "web-chat-e2ee.facebook.com"
+}, {
+  "domain": "beacons3.gvt2.com"
+}, {
+  "domain": "msedge.b.tlu.dl.delivery.mp.microsoft.com"
+}, {
+  "domain": "ads01.groovinads.com"
+}, {
+  "domain": "api.smooch.io"
+}, {
+  "domain": "dxp.docusign.com"
+}, {
+  "domain": "cdn-image-service.lucid.app"
+}, {
+  "domain": "dsp-creative.demandbase.com"
+}, {
+  "domain": "media-us1.digital.nuance.com"
+}, {
+  "domain": "landmark3dweb.azureedge.net"
+}, {
+  "domain": "ws-eu.pusher.com"
+}, {
+  "domain": "pdc.bidswitch.net"
+}, {
+  "domain": "va.idp.liveperson.net"
+}, {
+  "domain": "widget.criteo.com"
+}, {
+  "domain": "sync.navdmp.com"
+}, {
+  "domain": "aam.a47b.com"
+}, {
+  "domain": "u-iad04.e-planning.net"
+}, {
+  "domain": "dvrtr.innovid.com"
+}, {
+  "domain": "cloudfront-labs.amazonaws.com"
+}, {
+  "domain": "az764295.vo.msecnd.net"
+}, {
+  "domain": "maps.a.forceusercontent.com"
+}, {
+  "domain": "metrics.articulate.com"
+}, {
+  "domain": "confluence-v1-4.prod.atl-paas.net"
+}, {
+  "domain": "confluence-v1-1.prod.atl-paas.net"
+}, {
+  "domain": "confluence-v1-2.prod.atl-paas.net"
+}, {
+  "domain": "confluence-v1-0.prod.atl-paas.net"
+}, {
+  "domain": "confluence-v1-3.prod.atl-paas.net"
+}, {
+  "domain": "drivesharefrontend-pa.clients6.google.com"
+}, {
+  "domain": "powerpointonline.nelsdf.measure.office.net"
+}, {
+  "domain": "tr-tmc-geo.office.com"
+}, {
+  "domain": "tr-tmc-afdmira.office.com"
+}, {
+  "domain": "usc.pptservicescast.officeapps.live.com"
+}, {
+  "domain": "upload2.fp.measure.office.com"
+}, {
+  "domain": "apps.docusign.com"
+}, {
+  "domain": "marvel-b1-cdn.bc0a.com"
+}, {
+  "domain": "services.insurads.com"
+}, {
+  "domain": "telemetry.docusign.net"
+}, {
+  "domain": "fra1-ib.adnxs.com"
+}, {
+  "domain": "fedexcorp.us-6.evergage.com"
+}, {
+  "domain": "4704202.fls.doubleclick.net"
+}, {
+  "domain": "gtm-z.zg-api.com"
+}, {
+  "domain": "t.company-target.com"
+}, {
+  "domain": "cs.zg-api.com"
+}, {
+  "domain": "e.zg-api.com"
+}, {
+  "domain": "jsapi.login.yahoo.com"
+}, {
+  "domain": "f-log-extension.grammarly.io"
+}, {
+  "domain": "apis.mail.yahoo.com"
+}, {
+  "domain": "clients5.google.com"
+}, {
+  "domain": "cc.adingo.jp"
+}, {
+  "domain": "cdn.clinch.co"
+}, {
+  "domain": "pmp.mxptint.net"
+}, {
+  "domain": "pix.spot.im"
+}, {
+  "domain": "direct-events-collector.spot.im"
+}, {
+  "domain": "publisher-assets.spot.im"
+}, {
+  "domain": "static-cdn.spot.im"
+}, {
+  "domain": "messaging.lifecycle.office.com"
+}, {
+  "domain": "d23iz4esrwkib6.cloudfront.net"
+}, {
+  "domain": "www.intel.com"
+}, {
+  "domain": "ib.adnxs-simple.com"
+}, {
+  "domain": "tasks.google.com"
+}, {
+  "domain": "c.mgid.com"
+}, {
+  "domain": "widget.freshworks.com"
+}, {
+  "domain": "avatar.canva.com"
+}, {
+  "domain": "ams3-ib.adnxs.com"
+}, {
+  "domain": "resources.digital-cloud-gov.medallia.com"
+}, {
+  "domain": "s1.adform.net"
+}, {
+  "domain": "t.richaudience.com"
+}, {
+  "domain": "static1.dmcdn.net"
+}, {
+  "domain": "amazonwebservices.d2.sc.omtrdc.net"
+}, {
+  "domain": "resources.infolinks.com"
+}, {
+  "domain": "c.bannerflow.net"
+}, {
+  "domain": "va.tawk.to"
+}, {
+  "domain": "dc.arrivalist.com"
+}, {
+  "domain": "ssp.wknd.ai"
+}, {
+  "domain": "pebed.dm-event.net"
+}, {
+  "domain": "pix.revjet.com"
+}, {
+  "domain": "us-east-1.event.prod.bidr.io"
+}, {
+  "domain": "ghent-gce-or.bidswitch.net"
+}, {
+  "domain": "media.pushlycdn.com"
+}, {
+  "domain": "track.celtra.com"
+}, {
+  "domain": "us-west-sync.bidswitch.net"
+}, {
+  "domain": "ny1-bid.adsrvr.org"
+}, {
+  "domain": "s.update.sharethru.com"
+}, {
+  "domain": "metrics.getrockerbox.com"
+}, {
+  "domain": "confluence-v1.prod.atl-paas.net"
+}, {
+  "domain": "enrichment.osi.office.net"
+}, {
+  "domain": "crl4.digicert.com"
+}, {
+  "domain": "cdn-au.onetrust.com"
+}, {
+  "domain": "cdn.whatfix.com"
+}, {
+  "domain": "web-messaging.insurads.com"
+}, {
+  "domain": "oms.dowjoneson.com"
+}, {
+  "domain": "salesforce.us-1.evergage.com"
+}, {
+  "domain": "prebid-eu.creativecdn.com"
+}, {
+  "domain": "whatfix.com"
+}, {
+  "domain": "audienceexposure.com"
+}, {
+  "domain": "www.storygize.net"
+}, {
+  "domain": "kds-pixel.kargo.com"
+}, {
+  "domain": "apps.google.com"
+}, {
+  "domain": "hb.emxdgt.com"
+}, {
+  "domain": "adobe.tt.omtrdc.net"
+}, {
+  "domain": "js.arcgis.com"
+}, {
+  "domain": "track2.securedvisit.com"
+}, {
+  "domain": "inventory.vidazoo.com"
+}, {
+  "domain": "extension.femetrics.grammarly.io"
+}, {
+  "domain": "afd-v2.hosting.portal.azure.net"
+}, {
+  "domain": "assets.jivox.com"
+}, {
+  "domain": "playercdn.jivox.com"
+}, {
+  "domain": "login-ds.dotomi.com"
+}, {
+  "domain": "as.jivox.com"
+}, {
+  "domain": "usersync.getpublica.com"
+}, {
+  "domain": "img.onesignal.com"
+}, {
+  "domain": "evs.jivox.com"
+}, {
+  "domain": "officehub.nel.measure.office.net"
+}, {
+  "domain": "go1.aniview.com"
+}, {
+  "domain": "cs.mobfox.com"
+}, {
+  "domain": "mcdp-sadc1.outbrain.com"
+}, {
+  "domain": "lyr.pubmatic.com"
+}, {
+  "domain": "img.riskified.com"
+}, {
+  "domain": "c.riskified.com"
+}, {
+  "domain": "img.3lift.com"
+}, {
+  "domain": "easylist-downloads.adblockplus.org"
+}, {
+  "domain": "desktop.postman.com"
+}, {
+  "domain": "dns.google"
+}, {
+  "domain": "clientservices.googleapis.com"
+}, {
+  "domain": "excelonline.nel.measure.office.net"
+}, {
+  "domain": "fa000000128.resources.office.net"
+}, {
+  "domain": "ecs.nel.measure.office.net"
+}, {
+  "domain": "ocsps.ssl.com"
+}, {
+  "domain": "nellie.booking.com"
+}, {
+  "domain": "ocsp.rootca1.amazontrust.com"
+}, {
+  "domain": "feedback.hubapi.com"
+}, {
+  "domain": "lens.google.com"
+}, {
+  "domain": "oneocsp.microsoft.com"
+}, {
+  "domain": "obs.segreencolumn.com"
+}, {
+  "domain": "ocsp.r2m01.amazontrust.com"
+}, {
+  "domain": "client-api.auryc.com"
+}, {
+  "domain": "by2.uservoice.com"
+}, {
+  "domain": "ocsp.r2m02.amazontrust.com"
+}, {
+  "domain": "gw.geoedge.be"
+}, {
+  "domain": "widget.uservoice.com"
+}, {
+  "domain": "pixel.zprk.io"
+}, {
+  "domain": "pxl.jivox.com"
+}, {
+  "domain": "distillery.wistia.com"
+}, {
+  "domain": "map.go.affec.tv"
+}, {
+  "domain": "s.e-planning.net"
+}, {
+  "domain": "platform.cloud.coveo.com"
+}, {
+  "domain": "vpaid.pubmatic.com"
+}, {
+  "domain": "www138.civicscience.com"
+}, {
+  "domain": "s.update.ib.adnxs.net"
+}, {
+  "domain": "pipedream.wistia.com"
+}, {
+  "domain": "t.ssl.ak.tiles.virtualearth.net"
+}, {
+  "domain": "log.pinterest.com"
+}, {
+  "domain": "rtb.primis.tech"
+}, {
+  "domain": "www.fbsbx.com"
+}, {
+  "domain": "cookie-matching.mediarithmics.com"
+}, {
+  "domain": "shftr.adnxs.net"
+}, {
+  "domain": "beacons.gcp.gvt2.com"
+}, {
+  "domain": "m.google.com"
+}, {
+  "domain": "acroipm2.adobe.com"
+}, {
+  "domain": "ds.ciscospark.com"
+}, {
+  "domain": "mobile.launchdarkly.com"
+}, {
+  "domain": "app.docusign.com"
+}, {
+  "domain": "api.fedex.com"
+}, {
+  "domain": "status.geotrust.com"
+}, {
+  "domain": "y.one.impact-ad.jp"
+}, {
+  "domain": "cdn.medallia.com"
+}, {
+  "domain": "storm.lucid.app"
+}, {
+  "domain": "tag.targeting.unrulymedia.com"
+}, {
+  "domain": "notes-pa.clients6.google.com"
+}, {
+  "domain": "nbcu.demdex.net"
+}, {
+  "domain": "reminders-pa.clients6.google.com"
+}, {
+  "domain": "images.spot.im"
+}, {
+  "domain": "fcmatch.google.com"
+}, {
+  "domain": "usr.navdmp.com"
+}, {
+  "domain": "statics.teams.cdn.live.net"
+}, {
+  "domain": "aes.us-west.3px.axp.amazon-adsystem.com"
+}, {
+  "domain": "static.yieldmo.com"
+}, {
+  "domain": "matchadsrvr.yieldmo.com"
+}, {
+  "domain": "us-east.ads.audio.thisisdax.com"
+}, {
+  "domain": "cloudusersettings-pa.clients6.google.com"
+}, {
+  "domain": "events.gw.postman.com"
+}, {
+  "domain": "tr-tmc-afd.office.com"
+}, {
+  "domain": "log.api.useinsider.com"
+}, {
+  "domain": "ssb-usw1.smartadserver.com"
+}, {
+  "domain": "go.pardot.com"
+}, {
+  "domain": "17de4c0e.akstat.io"
+}, {
+  "domain": "www.deepl.com"
+}, {
+  "domain": "nr-events.taboola.com"
+}, {
+  "domain": "amp.akamaized.net"
+}, {
+  "domain": "stats.pusher.com"
+}, {
+  "domain": "www.zillowstatic.com"
+}, {
+  "domain": "lighthouse.edoinc.com"
+}, {
+  "domain": "ncp-gw-video.media.yahoo.com"
+}, {
+  "domain": "c1.rfihub.net"
+}, {
+  "domain": "wins-p2e.sitescout.com"
+}, {
+  "domain": "event.us.lucid.app"
+}, {
+  "domain": "production.dataviz.cnn.io"
+}, {
+  "domain": "imgs.signifyd.com"
+}, {
+  "domain": "gpt.mail.yahoo.net"
+}, {
+  "domain": "cnn.bounceexchange.com"
+}, {
+  "domain": "edge.microsoft.com"
+}, {
+  "domain": "pdp-service.retargetly.com"
+}, {
+  "domain": "tag.tapad.com"
+}, {
+  "domain": "data.mail.yahoo.com"
+}, {
+  "domain": "fm.flashtalking.com"
+}, {
+  "domain": "sync-dmp.mobtrakk.com"
+}, {
+  "domain": "rtb-us-east.linkedin.com"
+}, {
+  "domain": "vae-bid.adsrvr.org"
+}, {
+  "domain": "ch-trc-events.taboola.com"
+}, {
+  "domain": "fillsign.acrobat.com"
+}, {
+  "domain": "o13855.ingest.sentry.io"
+}, {
+  "domain": "calendarsuggest.clients6.google.com"
+}, {
+  "domain": "urlp.asm.skype.com"
+}, {
+  "domain": "identity.nel.measure.office.net"
+}, {
+  "domain": "l-ring.msedge.net"
+}, {
+  "domain": "t-ring.msedge.net"
+}, {
+  "domain": "wp-log.api.useinsider.com"
+}, {
+  "domain": "yandex.ru"
+}, {
+  "domain": "cdn.arcgis.com"
+}, {
+  "domain": "ad.wsod.com"
+}, {
+  "domain": "category-public.canva.com"
+}, {
+  "domain": "openrtb.cootlogix.com"
+}, {
+  "domain": "ash.creativecdn.com"
+}, {
+  "domain": "imp-ue1-secondary.lijit.com"
+}, {
+  "domain": "t.6sc.co"
+}, {
+  "domain": "a0.awsstatic.com"
+}, {
+  "domain": "l.teads.tv"
+}, {
+  "domain": "events.api.boomtrain.com"
+}, {
+  "domain": "taboola-d.openx.net"
+}, {
+  "domain": "imp-ue1-primary.lijit.com"
+}, {
+  "domain": "ssl.connextra.com"
+}, {
+  "domain": "secure.livechatinc.com"
+}, {
+  "domain": "global.imrworldwide.com"
+}, {
+  "domain": "log.api.drift.com"
+}, {
+  "domain": "player.adtelligent.com"
+}, {
+  "domain": "streamer.finance.yahoo.com"
+}, {
+  "domain": "s.mrmserve.com"
+}, {
+  "domain": "targeting.api.drift.com"
+}, {
+  "domain": "query2.finance.yahoo.com"
+}, {
+  "domain": "analytics.audioeye.com"
+}, {
+  "domain": "tb.pbs.yahoo.com"
+}, {
+  "domain": "a.b.cdn.console.awsstatic.com"
+}, {
+  "domain": "prod.pa.cdn.uis.awsstatic.com"
+}, {
+  "domain": "rum20.perf.linkedin.com"
+}, {
+  "domain": "fdz.flashtalking.com"
+}, {
+  "domain": "a.beap.gemini.yahoo.com"
+}, {
+  "domain": "cdn.navdmp.com"
+}, {
+  "domain": "s2ssc.aniview.com"
+}, {
+  "domain": "r.skimresources.com"
+}, {
+  "domain": "pbd.yahoo.com"
+}, {
+  "domain": "cdn.eu.pendo.io"
+}, {
+  "domain": "cf.perf.linkedin.com"
+}, {
+  "domain": "data.eu.pendo.io"
+}, {
+  "domain": "rum19.perf.linkedin.com"
+}, {
+  "domain": "res.public.onecdn.static.microsoft"
+}, {
+  "domain": "static.lightning.force.com"
+}, {
+  "domain": "platform-azur.linkedin.com"
+}, {
+  "domain": "contextual-analytics.wunderkind.co"
+}, {
+  "domain": "platform-akam.linkedin.com"
+}, {
+  "domain": "b.sharethrough.com"
+}, {
+  "domain": "t.pubmatic.com"
+}, {
+  "domain": "rtr.innovid.com"
+}, {
+  "domain": "vpaid.vidoomy.com"
+}, {
+  "domain": "tungsten-service.prod.na.adsqtungsten.a9.amazon.dev"
+}, {
+  "domain": "sprig.figma.com"
+}, {
+  "domain": "s3-alpha-sig.figma.com"
+}, {
+  "domain": "clients2.googleusercontent.com"
+}, {
+  "domain": "fa000000014.resources.office.net"
+}, {
+  "domain": "validation.identrust.com"
+}, {
+  "domain": "static-assets.qualtrics.com"
+}, {
+  "domain": "stg.truvidplayer.com"
+}, {
+  "domain": "ocsp.r2m03.amazontrust.com"
+}, {
+  "domain": "rr4---sn-ntqe6nes.googlevideo.com"
+}, {
+  "domain": "rr5---sn-ntq7yns7.googlevideo.com"
+}, {
+  "domain": "client.crisp.chat"
+}, {
+  "domain": "sync.lemmatechnologies.com"
+}, {
+  "domain": "js.api.here.com"
+}, {
+  "domain": "cdn.fuseplatform.net"
+}, {
+  "domain": "font-public.canva.com"
+}, {
+  "domain": "lookaside.fbsbx.com"
+}, {
+  "domain": "at.teads.tv"
+}, {
+  "domain": "media-public.canva.com"
+}, {
+  "domain": "rum-ingest.us1.signalfx.com"
+}, {
+  "domain": "t.seedtag.com"
+}, {
+  "domain": "fast.wistia.net"
+}, {
+  "domain": "video-ads.rubiconproject.com"
+}, {
+  "domain": "ct.canva.com"
+}, {
+  "domain": "template.canva.com"
+}, {
+  "domain": "reachms.bfmio.com"
+}, {
+  "domain": "pl.connatix.com"
+}, {
+  "domain": "chunk-composing.canva.com"
+}, {
+  "domain": "videos-cloudfront-usp.jwpsrv.com"
+}, {
+  "domain": "sasinator.realestate.com.au"
+}, {
+  "domain": "ad.ipredictive.com"
+}, {
+  "domain": "x1.i.lencr.org"
+}, {
+  "domain": "r3.i.lencr.org"
+}, {
+  "domain": "pxl.connexity.net"
+}, {
+  "domain": "bats.video.yahoo.com"
+}, {
+  "domain": "media.canva.com"
+}, {
+  "domain": "video-api.yql.yahoo.com"
+}, {
+  "domain": "aswpsdkus.com"
+}, {
+  "domain": "videos.taboola.com"
+}, {
+  "domain": "opps.taboola.com"
+}, {
+  "domain": "sdk.fra-02.braze.eu"
+}, {
+  "domain": "svastx.moatads.com"
+}, {
+  "domain": "telemetry.canva.com"
+}, {
+  "domain": "cs.chocolateplatform.com"
+}, {
+  "domain": "gmail.com"
+}, {
+  "domain": "dc.ads.linkedin.com"
+}, {
+  "domain": "ad.sxp.smartclip.net"
+}, {
+  "domain": "ids.cdnwidget.com"
+}, {
+  "domain": "page.cdnbasket.net"
+}, {
+  "domain": "view.cdnbasket.net"
+}, {
+  "domain": "data.cdnbasket.net"
+}, {
+  "domain": "onesignal.com"
+}, {
+  "domain": "collect.tealiumiq.com"
+}, {
+  "domain": "grid-mercury.criteo.com"
+}, {
+  "domain": "confiant.msn.com"
+}, {
+  "domain": "polka.typekit.com"
+}, {
+  "domain": "fa000000085.resources.office.net"
+}, {
+  "domain": "lpcdn.lpsnmedia.net"
+}, {
+  "domain": "fa000000012.resources.office.net"
+}, {
+  "domain": "fa000000111.resources.office.net"
+}, {
+  "domain": "fa000000096.resources.office.net"
+}, {
+  "domain": "blobcomments-pa.clients6.google.com"
+}, {
+  "domain": "jira-frontend-bifrost.prod-east.frontend.public.atl-paas.net"
+}, {
+  "domain": "wss-primary.slack.com"
+}, {
+  "domain": "spo.nel.measure.office.net"
+}, {
+  "domain": "b.slack-edge.com"
+}, {
+  "domain": "commercial.ocsp.identrust.com"
+}, {
+  "domain": "static.site24x7rum.com"
+}, {
+  "domain": "a-fds.youborafds01.com"
+}, {
+  "domain": "accommodations.booking.com"
+}, {
+  "domain": "api.iperceptions.com"
+}, {
+  "domain": "t-cf.bstatic.com"
+}, {
+  "domain": "chromewebstore.google.com"
+}, {
+  "domain": "prg-apac.smartadserver.com"
+}, {
+  "domain": "pdmp.dcapi.dmp.3lift.com"
+}, {
+  "domain": "optimized-by.rubiconproject.com"
+}, {
+  "domain": "crl3.digicert.com"
+}, {
+  "domain": "exchange.cootlogix.com"
+}, {
+  "domain": "ghb.adtelligent.com"
+}, {
+  "domain": "collection.decibelinsight.net"
+}, {
+  "domain": "www.fastly-insights.com"
+}, {
+  "domain": "consent-pref.trustarc.com"
+}, {
+  "domain": "vid.springserve.com"
+}, {
+  "domain": "sync.sxp.smartclip.net"
+}, {
+  "domain": "tattle.api.osano.com"
+}, {
+  "domain": "embed.tawk.to"
+}, {
+  "domain": "ariane.abtasty.com"
+}, {
+  "domain": "api.usercentrics.eu"
+}, {
+  "domain": "rt.marphezis.com"
+}, {
+  "domain": "s.richaudience.com"
+}, {
+  "domain": "s.console.adtarget.com.tr"
+}, {
+  "domain": "app.usercentrics.eu"
+}, {
+  "domain": "fls.doubleclick.net"
+}, {
+  "domain": "k-us1.az.contentsquare.net"
+}, {
+  "domain": "img.s-msn.com"
+}, {
+  "domain": "metrics-fe-na1.hubspot.com"
+}, {
+  "domain": "www.tamgrt.com"
+}, {
+  "domain": "data.schemaapp.com"
+}, {
+  "domain": "sentry-next.wixpress.com"
+}, {
+  "domain": "frog.wix.com"
+}, {
+  "domain": "accounts.livechatinc.com"
+}, {
+  "domain": "try.abtasty.com"
+}, {
+  "domain": "pixel.sojern.com"
+}, {
+  "domain": "metrics.media-amazon.com"
+}, {
+  "domain": "nel.heroku.com"
+}, {
+  "domain": "xsync.iqzone.com"
+}, {
+  "domain": "siteassets.parastorage.com"
+}, {
+  "domain": "video.primis.tech"
+}, {
+  "domain": "hb.undertone.com"
+}, {
+  "domain": "performance.squarespace.com"
+}, {
+  "domain": "id.rtb.mx"
+}, {
+  "domain": "beacon.sojern.com"
+}, {
+  "domain": "data.adxcel-ec2.com"
+}, {
+  "domain": "report2.hb.brainlyads.com"
+}, {
+  "domain": "tag.wknd.ai"
+}, {
+  "domain": "yt4.ggpht.com"
+}, {
+  "domain": "csync.smartadserver.com"
+}, {
+  "domain": "pixel.everesttech.net"
+}, {
+  "domain": "dmp.adform.net"
+}, {
+  "domain": "beacons.gvt2.com"
+}, {
+  "domain": "aefd.nelreports.net"
+}, {
+  "domain": "drive.fife.usercontent.google.com"
+}, {
+  "domain": "edgeapi.slack.com"
+}]
