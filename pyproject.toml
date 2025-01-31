@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "beam"
 version = "0.1.0"
 authors = [
+    { name = "Mohanraj Ravichandran", email = "mravichandran@netskope.com" },
     { name = "Dagmawi Mulugeta", email = "dmulugeta@netskope.com" },
     { name = "Colin Estep", email = "cestep@netskope.com" }
 ]
@@ -13,22 +14,11 @@ description = "Behavioral Evaluation of Application Metrics"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "BSD-3-Clause"}
-dependencies = [
-    "asyncio",
-    "google-generativeai",
-    "httpagentparser", 
-    "ipython",
-    "matplotlib",
-    "numpy",
-    "pandas",
-    "pydantic",
-    "pytest",
-    "scikit-learn==1.5.0",
-    "shap",
-    "typing-extensions",
-    "ua-parser",
-    "user-agents"
-]
+dynamic = ["dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+optional-dependencies = {dev = { file = ["requirements-dev.txt"] }}
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

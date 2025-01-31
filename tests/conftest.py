@@ -1,5 +1,5 @@
 import sys
-from beam.utils import get_project_root
+from beam.detector.utils import get_project_root
 
 PROJECT_DIR = get_project_root()
 root_dir = PROJECT_DIR / "src" / "beam"

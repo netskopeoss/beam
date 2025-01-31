@@ -1,4 +1,3 @@
-import logging
 import logging.config
 from os import (
     path,
@@ -6,7 +5,7 @@ from os import (
     )
 from beam.mapper.datastore import DataStoreHandler
 from beam.mapper.data_sources import Application, OperatingSystem, Mapping
-from beam.utils import get_project_root
+from beam.detector.utils import get_project_root
 
 PROJECT_DIR = get_project_root()
 LOG_CONFIG = PROJECT_DIR / 'src' / 'beam' / 'logging.conf'
@@ -15,6 +14,7 @@ TEST_DB_PATH = "./test_datastore.db"
 logging.config.fileConfig(LOG_CONFIG)
 logger = logging.getLogger("test_datastore")
 
+
 def reset_db():
     """Reset the test database by deleting it.
     """
@@ -22,6 +22,7 @@ def reset_db():
     if path.exists(TEST_DB_PATH):
         logger.info("Removing the old datastore test database.")
         remove(TEST_DB_PATH)
+
 
 def test_datastore_update():
     reset_db()

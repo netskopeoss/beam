@@ -1,21 +1,16 @@
 import logging
 from typing import List
-from pydantic import ConfigDict, Field as PydanticField
-from sqlalchemy_utils import database_exists, create_database
+
+from pydantic import ConfigDict
+from pydantic import Field as PydanticField
 from sqlalchemy import Engine
-from sqlmodel import (
-    Session,
-    SQLModel,
-    select,
-    create_engine
-)
-from beam.mapper.data_sources import (
-    Application,
-    OperatingSystem,
-    Mapping
-)
+from sqlalchemy_utils import create_database, database_exists
+from sqlmodel import Session, SQLModel, create_engine, select
+
+from .data_sources import Application, Mapping, OperatingSystem
 
 logger = logging.getLogger(__name__)
+
 
 def initialize_database(engine: Engine):
     """
@@ -30,14 +25,15 @@ def initialize_database(engine: Engine):
     Raises:
         sqlalchemy.exc.SQLAlchemyError: If there is an issue creating the database.
     """
-    print("Creating the database.")
+    logger.info("Creating the database.")
     create_database(engine.url)
     # Create all of the tables
     SQLModel.metadata.create_all(engine)
 
+
 class Database(SQLModel):
-    """Class for database operations.
-    """
+    """Class for database operations."""
+
     mapping_database_path: str = PydanticField()
     logger: logging.Logger = logger
     db_session: Session = None
@@ -64,7 +60,7 @@ class Database(SQLModel):
             return self.db_session.exec(statement=query).one()
         except Exception:
             return None
-        
+
     def search_operating_systems(self, name: str) -> OperatingSystem | None:
         """
         Query the database for a particular operating system name.
@@ -84,7 +80,7 @@ class Database(SQLModel):
             return self.db_session.exec(statement=query).one()
         except Exception:
             return None
-    
+
     def search_user_agents(self, ua: str) -> Mapping | None:
         """
         Query the database for a particular user agent string and return
@@ -170,7 +166,7 @@ class Database(SQLModel):
                 mapping.operatingsystem = os
             self.db_session.merge(mapping)
             self.db_session.commit()
-    
+
     def open_database(self) -> None:
         """
         Connect to the database and create a Session object if the database
@@ -184,12 +180,12 @@ class Database(SQLModel):
         """
         sqlite_string = "sqlite:///" + self.mapping_database_path
         self.logger.info(f"Connecting to this database: {sqlite_string}")
-        #engine = create_engine(sqlite_string, echo=True)
+        # engine = create_engine(sqlite_string, echo=True)
         engine = create_engine(sqlite_string)
         if not database_exists(engine.url):
             self.logger.info("Database does not exist. Creating it now.")
             initialize_database(engine)
-        
+
         self.db_session = Session(engine)
 
     def close_database(self) -> None:
@@ -202,20 +198,23 @@ class Database(SQLModel):
         Returns:
             None
         """
-        self.db_session.close()
+        # TODO: We are closing the db too early here since lazy loaded mapping fields like application
+        #  are not fully loaded yet
+        # self.db_session.close()
+        pass
 
-class DataStoreHandler():
-    """Class to search and update the data store of mapped user agents.
-    """
+
+class DataStoreHandler:
+    """Class to search and update the data store of mapped user agents."""
+
     def __init__(self, db_path: str):
         self.hits: List[Mapping] = []
         self.misses: List[str] = []
         self.query_input: List[str] = []
         self.logger: logging.Logger = logger
         self.database: Database = Database(
-            mapping_database_path=db_path,
-            logger=self.logger
-            )
+            mapping_database_path=db_path, logger=self.logger
+        )
 
     def hits_found(self) -> bool:
         """
@@ -228,7 +227,7 @@ class DataStoreHandler():
             bool: True if hits are present, otherwise False.
         """
         return len(self.hits) > 0
-    
+
     def misses_found(self) -> bool:
         """
         Check if any misses were found during the last search.
@@ -240,7 +239,7 @@ class DataStoreHandler():
             bool: True if misses are present, otherwise False.
         """
         return len(self.misses) > 0
-    
+
     def search(self, user_agents: List[str]) -> None:
         """
         For each user agent in the provided list, query the database
