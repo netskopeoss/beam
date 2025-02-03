@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from sqlmodel import SQLModel, Field, Relationship
+
+from pydantic import BaseModel, PositiveFloat, computed_field
+from pydantic import Field as PydanticField
 from sqlalchemy import UniqueConstraint
-from pydantic import (
-    BaseModel,
-    Field as PydanticField,
-    PositiveFloat,
-    computed_field
-)
+from sqlmodel import Field, Relationship, SQLModel
 
 """
 ****************************************************
@@ -15,42 +12,40 @@ User Agent Mapper classes
 ****************************************************
 """
 
+
 class Application(SQLModel, table=True):
-    """Applications identified by the mapper.
-    """
+    """Applications identified by the mapper."""
+
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
     vendor: str
     description: str
-    user_agents: List["Mapping"] = Relationship(
-        back_populates="application"
-        )
+    user_agents: List["Mapping"] = Relationship(back_populates="application")
 
-    __table_args__ = (UniqueConstraint('name', name='uq_application_name'),)
+    __table_args__ = (UniqueConstraint("name", name="uq_application_name"),)
+
 
 class OperatingSystem(SQLModel, table=True):
-    """Operating Systems identified by the mapper.
-    """
+    """Operating Systems identified by the mapper."""
+
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    user_agents: List["Mapping"] = Relationship(
-        back_populates="operatingsystem"
-        )
+    user_agents: List["Mapping"] = Relationship(back_populates="operatingsystem")
+
 
 class Mapping(SQLModel, table=True):
     """Mapping objects that attribute a user agent string
     to an application and operating system.
     """
+
     id: Optional[int] = Field(default=None, primary_key=True)
     user_agent_string: str
     version: Optional[str]
-    application: Application = Relationship(
-        back_populates="user_agents"
-        )
+    application: Application = Relationship(back_populates="user_agents")
     app_id: int = Field(foreign_key="application.id")
     operatingsystem: Optional[OperatingSystem] = Relationship(
         back_populates="user_agents"
-        )
+    )
     os_id: Optional[int] = Field(foreign_key="operatingsystem.id")
 
     def __repr__(self):
@@ -62,10 +57,12 @@ class Mapping(SQLModel, table=True):
         """
         return f"Mapping({self.user_agent_string}, {self.app_id}, {self.os_id})"
 
+
 class DataSource(BaseModel, ABC):
     """Abstract class for Mapper Data Sources, which map user agents to
     application names.
     """
+
     query_input: List[str] = PydanticField(default=[])
     query_time: PositiveFloat = PydanticField(default=0.0)
     hits: List[Mapping] = PydanticField(default=[])
@@ -81,7 +78,7 @@ class DataSource(BaseModel, ABC):
             bool: True if there is at least one Mapping in the hits list.
         """
         return len(self.hits) > 0
-    
+
     @computed_field
     @property
     def misses_found(self) -> bool:
@@ -93,9 +90,10 @@ class DataSource(BaseModel, ABC):
         """
         return len(self.misses) > 0
 
+
 class APIDataSource(DataSource, ABC):
-    """Class for querying APIs to map user agents to their application info.
-    """
+    """Class for querying APIs to map user agents to their application info."""
+
     @abstractmethod
     def search(self) -> None:
         """

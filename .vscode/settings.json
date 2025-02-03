@@ -1,0 +1,16 @@
+{
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 30000,
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": true
+        },
+        "python.linting.lintOnSave": true,
+        "python.linting.enabled": true,
+    },
+    "pylint.enabled": true,
+    "editor.cursorBlinking": "smooth"
+}
