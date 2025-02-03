@@ -9,6 +9,11 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+data/enriched_events
+data/input_pcaps
+data/summaries
+data/zeek
+data/zeek_parsed
 develop-eggs/
 dist/
 downloads/
@@ -18,6 +23,7 @@ lib/
 lib64/
 parts/
 sdist/
+predictions/
 var/
 wheels/
 share/python-wheels/
@@ -113,6 +119,7 @@ ipython_config.py
 #   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
 #   in version control.
 #   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
+#   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
 .pdm-python
 .pdm-build/
@@ -130,6 +137,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.python-version
 env/
 venv/
 ENV/
