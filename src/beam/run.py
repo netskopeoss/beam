@@ -11,9 +11,9 @@ import enrich
 from art import tprint
 from detector import features, utils
 from detector.detect import (
+    MultiHotEncoder,
     detect_anomalous_app,
     detect_anomalous_domain,
-    MultiHotEncoder
 )
 
 warnings.filterwarnings(action="ignore")
