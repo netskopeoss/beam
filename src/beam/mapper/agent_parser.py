@@ -1,23 +1,23 @@
 import time
-from typing import Dict, List
+from typing import List
 
 import httpagentparser
 from ua_parser import user_agent_parser
 from user_agents import parse
 
-from .data_sources import APIDataSource
+from .data_sources import APIDataSource, Application, Mapping, OperatingSystem
 
 
-def map_item(user_agent: str) -> Dict:
+def map_item(user_agent: str) -> Mapping | None:
     """
-    Map a user agent string and return a dictionary with
+    Map a user agent string and return a Mapping object with
     application, version, vendor, os, and description.
 
     Args:
         user_agent (str): The user agent string to parse.
 
     Returns:
-        Dict: A dictionary containing information about the user agent, including
+        Mapping: An object containing information about the user agent, including
         application name, version, vendor, description, and OS name.
 
     Raises:
@@ -32,16 +32,7 @@ def map_item(user_agent: str) -> Dict:
     description = "unknown"
 
     if not user_agent:
-        return {
-            "user_agent": user_agent,
-            "application": {
-                "name": application,
-                "version": version,
-                "vendor": vendor,
-                "description": description,
-            },
-            "os": {"name": os},
-        }
+        return None
 
     application = str(parse(user_agent).browser.family).strip()
     version = str(parse(user_agent).browser.version_string).strip()
@@ -52,17 +43,16 @@ def map_item(user_agent: str) -> Dict:
     )
     vendor = str(parse(user_agent).device.brand).strip()
 
-    if application != "Other":
-        return {
-            "user_agent": user_agent,
-            "application": {
-                "name": application,
-                "version": version,
-                "vendor": vendor,
-                "description": description,
-            },
-            "os": {"name": os},
-        }
+    if application not in ("Other", "unknown", "Unknown Browser"):
+        app = Application(
+            name=application, version=version, vendor=vendor, description=description
+        )
+        operating_system = OperatingSystem(name=os)
+        return Mapping(
+            user_agent_string=user_agent,
+            application=app,
+            operatingsystem=operating_system,
+        )
 
     parsed = user_agent_parser.Parse(user_agent)
     application = parsed["user_agent"]["family"].strip()
@@ -79,17 +69,16 @@ def map_item(user_agent: str) -> Dict:
     version_parts = [major, minor, patch]
     os = os_family + " " + ".".join(filter(None, version_parts)).strip()
 
-    if application != "Other":
-        return {
-            "user_agent": user_agent,
-            "application": {
-                "name": application,
-                "version": version,
-                "vendor": vendor,
-                "description": description,
-            },
-            "os": {"name": os},
-        }
+    if application not in ("Other", "unknown", "Unknown Browser"):
+        app = Application(
+            name=application, version=version, vendor=vendor, description=description
+        )
+        operating_system = OperatingSystem(name=os)
+        return Mapping(
+            user_agent_string=user_agent,
+            application=app,
+            operatingsystem=operating_system,
+        )
 
     application = httpagentparser.simple_detect(user_agent)[1].strip()
     if "." in application.split(" ")[-1]:
@@ -97,18 +86,18 @@ def map_item(user_agent: str) -> Dict:
         version = application.split(" ")[-1]
     os = httpagentparser.simple_detect(user_agent)[0].strip()
 
-    result = {
-        "user_agent": user_agent,
-        "application": {
-            "name": application,
-            "version": version,
-            "vendor": vendor,
-            "description": description,
-        },
-        "os": {"name": os},
-    }
-
-    return result
+    if application not in ("Other", "unknown", "Unknown Browser"):
+        app = Application(
+            name=application, version=version, vendor=vendor, description=description
+        )
+        operating_system = OperatingSystem(name=os)
+        return Mapping(
+            user_agent_string=user_agent,
+            application=app,
+            operatingsystem=operating_system,
+        )
+    else:
+        return None
 
 
 class AgentParser(APIDataSource):
@@ -132,7 +121,6 @@ class AgentParser(APIDataSource):
         """
         query_start = time.perf_counter()
         for user_agent in self.query_input:
-            # TODO: Change this result from dict to Mapping
             parser_result = map_item(user_agent)
             if parser_result:
                 self.hits.append(parser_result)

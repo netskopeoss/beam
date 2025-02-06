@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 from detector.utils import load_json_file
-from mapper.data_sources import Mapping
 from mapper.mapper import query_user_agent_mapper
 
 
@@ -96,7 +95,7 @@ def enrich_events(
     full_ua_list = [event["useragent"] for event in events]
     unique_ua_list = list(dict.fromkeys(full_ua_list).keys())
 
-    mapper = query_user_agent_mapper(
+    hits, misses = query_user_agent_mapper(
         user_agents=unique_ua_list,
         db_path=db_path,
         llm_api_key=llm_api_key,
@@ -104,64 +103,38 @@ def enrich_events(
         logger=logger,
     )
 
-    hits = dict()
-    for mapping in mapper.hits:
-        if isinstance(mapping, dict):
-            hits[mapping["user_agent"]] = mapping["application"]["name"]
-        elif isinstance(mapping, Mapping):
-            hits[mapping.user_agent_string] = mapping.application.name
-        else:
-            logger.error("[!!] Unknown data type returned...", type(mapping))
-            exit()
-
-    mapper.save_results()
+    user_agents = [hit["user_agent_string"] for hit in hits]
 
     for event in events:
         url_endpoint = get_url_endpoint(event["domain"], event["url"])
-
-        if event["useragent"] in hits.keys():
-            application = hits[event["useragent"]]
+        if event["useragent"] in user_agents:
+            hit = next(
+                hit for hit in hits if hit["user_agent_string"] == event["useragent"]
+            )
+            event.update(
+                {
+                    "application": hit["application"],
+                    "version": hit["version"],
+                    "os": hit["operating_system"],
+                    "vendor": hit["vendor"],
+                    "description": hit["description"],
+                    "key_hostnames": check_for_key_domains(
+                        domain=event["domain"],
+                        key_domains_file_path=key_domains_file_path,
+                    ),
+                    "traffic_type": get_traffic_type(
+                        domain=event["domain"],
+                        cloud_domains_file_path=cloud_domains_file_path,
+                    ),
+                    "url_endpoint": url_endpoint,
+                    "action": event["http_method"] + " " + url_endpoint,
+                }
+            )
         else:
-            application = "unknown"
+            event["application"] = "unknown"
             logger.debug(
                 f"User Agent from event was not resolved: {event['useragent']}"
             )
-
-        event.update(
-            {
-                "application": application,
-                # TODO: Add these once the mapper is working correctly
-                # "version": (
-                #     map_result["version"]
-                #     if map_result and ("version" in map_result)
-                #     else "unknown"
-                # ),
-                # "os": (
-                #     map_result["os"]
-                #     if map_result and ("os" in map_result)
-                #     else "unknown"
-                # ),
-                # "vendor": (
-                #     map_result["vendor"]
-                #     if map_result and ("vendor" in map_result)
-                #     else "unknown"
-                # ),
-                # "description": (
-                #     map_result["description"]
-                #     if map_result and ("description" in map_result)
-                #     else ""
-                # ),
-                "key_hostnames": check_for_key_domains(
-                    domain=event["domain"], key_domains_file_path=key_domains_file_path
-                ),
-                "traffic_type": get_traffic_type(
-                    domain=event["domain"],
-                    cloud_domains_file_path=cloud_domains_file_path,
-                ),
-                "url_endpoint": url_endpoint,
-                "action": event["http_method"] + " " + url_endpoint,
-            }
-        )
     return events
 
 

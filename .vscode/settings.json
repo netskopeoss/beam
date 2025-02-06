@@ -12,5 +12,8 @@
         "python.linting.enabled": true,
     },
     "pylint.enabled": true,
-    "editor.cursorBlinking": "smooth"
+    "editor.cursorBlinking": "smooth",
+    "python.analysis.extraPaths": [
+        "./src/beam"
+    ]
 }

@@ -1,8 +1,13 @@
+""" This module contains the UserAgentMapper class and the
+query_user_agent_mapper function.
+"""
+
 import logging
 import re
-from typing import List
+from typing import Dict, List, Tuple
 
 from pydantic import ConfigDict
+from sqlalchemy.orm import Session
 
 from .agent_parser import query_agent_parser
 from .data_sources import APIDataSource, DataSource
@@ -31,9 +36,10 @@ class UserAgentMapper(DataSource):
     # Needed to allow the logger to be passed in
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def search(self) -> None:
+    def search(self, session: Session) -> None:
         """
-        Search the data sources in order (datastore, LLM, API) for the user agents.
+        Search the data sources in order (datastore, LLM, API) for the user
+        agents.
 
         Args:
             None
@@ -45,11 +51,12 @@ class UserAgentMapper(DataSource):
             None
         """
         if len(self.query_input) > 0:
-            self.search_datastore()
-            self.search_llm()
-            self.search_api()
+            with session:
+                self.search_datastore(session=session)
+                self.search_llm()
+                self.search_api()
 
-    def search_datastore(self) -> None:
+    def search_datastore(self, session: Session) -> None:
         """
         Search the datastore for the user agents in self.query_input.
         Adds any found agents to self.hits and unfound ones to self.misses.
@@ -63,23 +70,23 @@ class UserAgentMapper(DataSource):
         Raises:
             None
         """
-        self.datastore.search(user_agents=self.query_input)
+        hits, misses = self.datastore.search(
+            session=session, user_agents=self.query_input
+        )
         # Update the hits and misses lists
-        if self.datastore.hits_found:
-            self.logger.info(
-                f"Found {len(self.datastore.hits)} user agents in the datastore."
-            )
-            self.hits.extend(self.datastore.hits)
-        else:
+        if len(hits) > 0:
+            self.logger.info(f"Found {len(hits)} user agents in the datastore.")
+            self.hits.extend(hits)
+        elif len(hits) == 0:
             self.logger.info("No user agents were found in the datastore.")
-        if self.datastore.misses_found:
-            self.misses.extend(self.datastore.misses)
+
+        if len(misses) > 0:
+            self.logger.info(
+                f"Found {len(misses)} user agents missing from the datastore."
+            )
+            self.misses.extend(misses)
         else:
             self.logger.info("Nothing left to search after querying the datastore.")
-            return
-        self.logger.info(
-            f"A total of {len(self.misses)} misses exist after checking the datastore."
-        )
 
     def search_llm(self) -> None:
         """
@@ -95,40 +102,42 @@ class UserAgentMapper(DataSource):
         Raises:
             None
         """
-        if self.misses == 0:
-            self.logger.info("Skipping the LLM check because 0 misses are left.")
-            return
-        self.logger.info(
-            f"Checking LLM source {self.llm_selection} for a total of {len(self.misses)} user agents."
-        )
-        if self.llm_api_key:
-            if self.llm_selection == "Gemini":
-                self.llm = query_gemini(
-                    user_agents=self.misses,
-                    api_key=self.llm_api_key,
-                    logger=self.logger,
-                )
-        else:
-            self.logger.error("No LLM API key was provided.")
-
-        if self.llm and self.llm.hits_found:
+        if self.misses_found:
             self.logger.info(
-                f"{self.llm_selection} was able to map {len(self.llm.hits)} user agents."
+                f"Checking LLM source {self.llm_selection} for a total of {len(self.misses)} user agents."
             )
-            self.hits.extend(self.llm.hits)
-        else:
-            self.logger.info(f"{self.llm_selection} was unable to map any user agents.")
+            if self.llm_api_key:
+                if self.llm_selection == "Gemini":
+                    self.llm = query_gemini(
+                        user_agents=self.misses,
+                        api_key=self.llm_api_key,
+                        logger=self.logger,
+                    )
+            else:
+                self.logger.error("No LLM API key was provided.")
 
-        if self.llm and self.llm.misses_found:
-            # We need to reset the misses list to the new misses
-            # Some of the old misses may be hits now
-            self.misses = self.llm.misses
+            if self.llm.hits_found:
+                self.logger.info(
+                    f"{self.llm_selection} was able to map {len(self.llm.hits)} user agents."
+                )
+                self.hits.extend(self.llm.hits)
+            else:
+                self.logger.info(
+                    f"{self.llm_selection} was unable to map any user agents."
+                )
+
+            if self.llm.misses_found:
+                # We need to reset the misses list to the new misses
+                # Some of the old misses may be hits now
+                self.misses = self.llm.misses
+            else:
+                self.logger.info("Nothing left to search after querying the LLM.")
+                return
+            self.logger.info(
+                f"A total of {len(self.misses)} misses exist after checking {self.llm_selection}."
+            )
         else:
-            self.logger.info("Nothing left to search after querying the LLM.")
-            return
-        self.logger.info(
-            f"A total of {len(self.misses)} misses exist after checking {self.llm_selection}."
-        )
+            self.logger.info("Skipping the LLM check because 0 misses are left.")
 
     def search_api(self) -> None:
         """
@@ -144,30 +153,29 @@ class UserAgentMapper(DataSource):
         Raises:
             None
         """
-        if self.misses == 0:
-            self.logger.info("Skipping the API check because 0 misses are left.")
-            return
-        self.logger.info(
-            f"Checking the API for a total of {len(self.misses)} user agents."
-        )
-        self.api = query_agent_parser(self.misses)
-        if self.api.hits_found:
-            self.hits.extend(self.api.hits)
+        if self.misses_found:
+            self.logger.info(
+                f"Checking the API for a total of {len(self.misses)} user agents."
+            )
+            self.api = query_agent_parser(self.misses)
+            if self.api.hits_found:
+                self.hits.extend(self.api.hits)
 
-        if self.api.misses_found:
             # We need to reset the misses list to the new misses
             # Some of the old misses may be hits now
             self.misses = self.api.misses
+            if self.misses_found:
+                self.logger.info(
+                    f"A total of {len(self.misses)} misses exist after checking the API."
+                )
+            else:
+                self.logger.info(
+                    "All user agents were mapped after checking the API data source."
+                )
         else:
-            self.logger.info(
-                "All user agents were mapped after checking the API data source."
-            )
-            return
-        self.logger.info(
-            f"A total of {len(self.misses)} misses exist after checking the API."
-        )
+            self.logger.info("Skipping the API check because 0 misses are left.")
 
-    def save_results(self) -> None:
+    def save_results(self, session: Session) -> None:
         """
         Save the successfully mapped user agents (in self.hits) to the datastore.
 
@@ -184,7 +192,7 @@ class UserAgentMapper(DataSource):
             self.logger.info(
                 f"A total of {len(self.hits)} user agents were found. Writing those to the db."
             )
-            self.datastore.save_results(self.hits)
+            self.datastore.save_results(session=session, mappings=self.hits)
         if self.misses_found:
             self.logger.info(f"The mapper missed {len(self.misses)} user agents.")
 
@@ -195,7 +203,7 @@ def query_user_agent_mapper(
     logger: logging.Logger,
     llm_api_key: str = None,
     llm_selection: str = "Gemini",
-) -> UserAgentMapper:
+) -> Tuple[List[Dict[str, str]], List[str]]:
     """
     Query the application mapper for given user agent strings and return
     a UserAgentMapper object with the results.
@@ -223,7 +231,7 @@ def query_user_agent_mapper(
         f"A total of {len(user_agent_input)} user agents were provided to the mapper."
     )
 
-    ds = DataStoreHandler(db_path=db_path)
+    ds = DataStoreHandler(db_path=db_path, logger=logger)
 
     mapper = UserAgentMapper(
         query_input=user_agent_input,
@@ -232,7 +240,26 @@ def query_user_agent_mapper(
         logger=logger,
         datastore=ds,
     )
-    mapper.search()
 
-    # Don't save the results here, but return the mapper.
-    return mapper
+    session = mapper.datastore.database.open_database()
+
+    mapper.search(session=session)
+    mapper.save_results(session=session)
+    hits = []
+    if mapper.hits_found:
+        hits = []
+        for hit in mapper.hits:
+            if hit not in session:
+                session.add(hit)
+            hits.append(
+                {
+                    "user_agent_string": hit.user_agent_string,
+                    "application": hit.application.name,
+                    "vendor": hit.application.vendor,
+                    "version": hit.version,
+                    "description": hit.application.description,
+                    "operating_system": hit.operatingsystem.name,
+                }
+            )
+    session.close()
+    return hits, mapper.misses
