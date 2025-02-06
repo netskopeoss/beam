@@ -154,11 +154,9 @@ class Database(SQLModel):
         )
         if current_mapping:
             # The mapping was found in the database.
-            self.logger.info("Mapping already exists in the database.")
             return
         else:
             # The mapping was NOT found in the database.
-            self.logger.info("Adding a new mapping to the database.")
             # Check if the application and operating system exist in the database.
             app = self.search_applications(
                 session=session, name=mapping.application.name

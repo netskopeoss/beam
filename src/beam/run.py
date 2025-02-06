@@ -2,9 +2,11 @@ import argparse
 import glob
 import json
 import logging.config
+import time
 import warnings
 from os import environ, path
 from parser import har, zeek
+from pathlib import Path
 from typing import Tuple
 
 import enrich
@@ -15,6 +17,7 @@ from detector.detect import (
     detect_anomalous_app,
     detect_anomalous_domain,
 )
+from mapper.mapper import query_user_agent_mapper
 
 warnings.filterwarnings(action="ignore")
 
@@ -203,7 +206,66 @@ def process_input_file(file_path):
         logger.error(f"File not found: {file_path}")
 
 
-def run():
+def mass_mapping(user_agents: list, logger: logging.Logger) -> None:
+    """
+    Map a list of user agents to applications.
+
+    Args:
+        user_agents (list): A list of user agents to map.
+        logger (logging.Logger): Logger instance for capturing log messages.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
+    logger.info(f"Mapping {len(user_agents)} user agents...")
+    hits, misses = query_user_agent_mapper(
+        user_agents=user_agents,
+        db_path=str(DB_PATH),
+        logger=logger,
+        llm_api_key=GEMINI_API_KEY,
+        delay=1,
+    )
+    logger.info(f"Found {len(hits)} hits and {len(misses)} misses.")
+
+
+def run_mass_mapping(
+    user_agent_file: Path, chunk_size: int, logger: logging.Logger
+) -> None:
+    """
+    Run the mass mapping process to map user agents to applications.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
+    logger.info(f"Reading user agents from {user_agent_file}")
+
+    with open(user_agent_file, "r") as file:
+        user_agents = file.read().splitlines()
+
+    logger.info(f"Read {len(user_agents)} user agents from the file.")
+
+    for i in range(0, len(user_agents), chunk_size):
+        logger.info(f"Processing chunk starting at {i}")
+        time.sleep(2)
+
+        # Extract a slice of up to chunk_size items
+        chunk = user_agents[i : i + chunk_size]
+        # Call the function on this chunk
+        mass_mapping(user_agents=chunk, logger=logger)
+
+    logger.info("Finished the mass mapping process.")
+
+
+def run() -> None:
     """
     Run beam to find anomalous applications
 
@@ -220,6 +282,7 @@ def run():
     _m = MultiHotEncoder
     tprint("BEAM", "rand")
     parser = argparse.ArgumentParser(description="BEAM")
+
     parser.add_argument(
         "-i",
         "--input_dir",
@@ -227,11 +290,38 @@ def run():
         required=False,
         default=DATA_DIR / "input",
     )
+    parser.add_argument(
+        "-l",
+        "--log_level",
+        help="The log level to use for logging",
+        required=False,
+        default="INFO",
+    )
+    parser.add_argument(
+        "-m",
+        "--mass_mapping",
+        help="Option to map lots of user agents and just save them to the database",
+        action="store_true",
+        required=False,
+        default=False,
+    )
 
     args = vars(parser.parse_args())
-    input_paths = glob.glob(str(args["input_dir"] / "*"))
-    for input_path in input_paths:
-        process_input_file(file_path=input_path)
+    if args["mass_mapping"]:
+        logger.info("Running mass mapping process...")
+        user_agent_file = DATA_DIR / "user_agent_list.txt"
+        CHUNK_SIZE = 200
+        run_mass_mapping(
+            user_agent_file=user_agent_file,
+            chunk_size=CHUNK_SIZE,
+            logger=logger,
+        )
+        return
+    else:
+        logger.info("Running BEAM...")
+        input_paths = glob.glob(str(args["input_dir"] / "*"))
+        for input_path in input_paths:
+            process_input_file(file_path=input_path)
 
 
 if __name__ == "__main__":

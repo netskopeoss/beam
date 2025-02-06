@@ -4,6 +4,7 @@ query_user_agent_mapper function.
 
 import logging
 import re
+import time
 from typing import Dict, List, Tuple
 
 from pydantic import ConfigDict
@@ -203,6 +204,7 @@ def query_user_agent_mapper(
     logger: logging.Logger,
     llm_api_key: str = None,
     llm_selection: str = "Gemini",
+    delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
     Query the application mapper for given user agent strings and return
@@ -232,7 +234,6 @@ def query_user_agent_mapper(
     )
 
     ds = DataStoreHandler(db_path=db_path, logger=logger)
-
     mapper = UserAgentMapper(
         query_input=user_agent_input,
         llm_api_key=llm_api_key,
@@ -240,11 +241,11 @@ def query_user_agent_mapper(
         logger=logger,
         datastore=ds,
     )
-
     session = mapper.datastore.database.open_database()
 
     mapper.search(session=session)
     mapper.save_results(session=session)
+    time.sleep(delay)
     hits = []
     if mapper.hits_found:
         hits = []
