@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from pydantic import BaseModel, PositiveFloat, computed_field
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import PositiveFloat, computed_field
 from sqlalchemy import UniqueConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -65,8 +66,8 @@ class DataSource(BaseModel, ABC):
 
     query_input: List[str] = PydanticField(default=[])
     query_time: PositiveFloat = PydanticField(default=0.0)
-    hits: List[Mapping] = PydanticField(default=[])
-    misses: List[str] = PydanticField(default=[])
+    hits: List[Mapping] = []
+    misses: List[str] = []
 
     @computed_field
     @property
@@ -105,4 +106,4 @@ class APIDataSource(DataSource, ABC):
         Raises:
             NotImplementedError: If called on the base class directly.
         """
-        pass
+        raise NotImplementedError("search method must be implemented in a subclass")
