@@ -1,24 +1,6 @@
 import json
 import os
 import os.path
-from pathlib import Path
-
-
-def get_project_root() -> Path:
-    """
-    Returns the project root path.
-
-    Args:
-        None
-
-    Returns:
-        Path: The root path of the project.
-
-    Raises:
-        None
-    """
-    cmd = Path(__file__)
-    return Path([i for i in cmd.parents if i.as_uri().endswith("src")][0]).parent
 
 
 def safe_open(path: str):

@@ -2,13 +2,13 @@ import argparse
 import glob
 import json
 import logging.config
-import time
 import warnings
-from os import environ, path
+from os import path
 from parser import har, zeek
 from pathlib import Path
 from typing import Tuple
 
+import constants
 import enrich
 from art import tprint
 from detector import features, utils
@@ -17,38 +17,18 @@ from detector.detect import (
     detect_anomalous_app,
     detect_anomalous_domain,
 )
-from mapper.mapper import query_user_agent_mapper
+from mapper.mapper import run_mapping_only
 
 warnings.filterwarnings(action="ignore")
 
-PROJECT_DIR = utils.get_project_root()
-
-DATA_DIR = PROJECT_DIR / "data"
-MODEL_DIRECTORY = PROJECT_DIR / "models"
-PREDICTIONS_DIRECTORY = PROJECT_DIR / "predictions"
-
-LOG_CONFIG = PROJECT_DIR / "src" / "beam" / "logging.conf"
-DB_PATH = DATA_DIR / "mapper" / "user_agent_mapping.db"
-KEY_DOMAINS_FILE = DATA_DIR / "key_domains.json"
-CLOUD_DOMAINS_FILE = DATA_DIR / "cloud_domains.json"
-
-ZEEK_OUTPUT_PATH = DATA_DIR / "input_parsed"
-ENRICHED_EVENTS_PATH = DATA_DIR / "enriched_events"
-FEATURE_SUMMARY_OUTPUT_PATH = DATA_DIR / "summaries"
-
-COMBINED_APP_MODEL = MODEL_DIRECTORY / "supply_chain_combined_app_model.pkl"
-INDIVIDUAL_APP_MODEL = MODEL_DIRECTORY / "supply_chain_individual_app_models.pkl"
-
-COMBINED_APP_PREDICTIONS_DIR = PREDICTIONS_DIRECTORY / "anomalous_app"
-APP_PREDICTIONS_DIR = PREDICTIONS_DIRECTORY / "anomalous_domains"
-
-GEMINI_API_KEY = environ["GEMINI_API_KEY"] if "GEMINI_API_KEY" in environ else ""
-
-logging.config.fileConfig(LOG_CONFIG)
-logger = logging.getLogger("main")
+DATA_DIR = constants.DATA_DIR
+# logging.config.fileConfig(constants.LOG_CONFIG)
+# logger = logging.getLogger("main")
 
 
-def run_detection(file_name, enriched_events_path, logger) -> None:
+def run_detection(
+    file_name: str, enriched_events_path: str, logger: logging.Logger
+) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
     and applying an anomaly detection method.
@@ -73,8 +53,8 @@ def run_detection(file_name, enriched_events_path, logger) -> None:
     )
     detect_anomalous_app(
         input_path=features_output_path,
-        combined_app_model_path=COMBINED_APP_MODEL,
-        combined_app_prediction_directory=COMBINED_APP_PREDICTIONS_DIR,
+        combined_app_model_path=constants.COMBINED_APP_MODEL,
+        combined_app_prediction_directory=constants.COMBINED_APP_PREDICTIONS_DIR,
     )
 
     logger.info("Analysing domains...")
@@ -86,8 +66,8 @@ def run_detection(file_name, enriched_events_path, logger) -> None:
     )
     detect_anomalous_domain(
         input_path=features_output_path,
-        app_model_path=INDIVIDUAL_APP_MODEL,
-        app_prediction_dir=APP_PREDICTIONS_DIR,
+        app_model_path=constants.INDIVIDUAL_APP_MODEL,
+        app_prediction_dir=constants.APP_PREDICTIONS_DIR,
     )
     logger.info(f"Features output saved to: {features_output_path}")
 
@@ -109,10 +89,10 @@ def enrich_output(file_name: str, parsed_file_path, logger: logging.Logger) -> s
     """
     events = enrich.enrich_events(
         input_path=parsed_file_path,
-        db_path=str(DB_PATH),
-        cloud_domains_file_path=CLOUD_DOMAINS_FILE,
-        key_domains_file_path=KEY_DOMAINS_FILE,
-        llm_api_key=GEMINI_API_KEY,
+        db_path=str(constants.DB_PATH),
+        cloud_domains_file_path=constants.CLOUD_DOMAINS_FILE,
+        key_domains_file_path=constants.KEY_DOMAINS_FILE,
+        llm_api_key=constants.GEMINI_API_KEY,
     )
     enriched_events_path = f"{DATA_DIR}/enriched_events/{file_name}.json"
     utils.save_json_data(events, enriched_events_path)
@@ -120,7 +100,20 @@ def enrich_output(file_name: str, parsed_file_path, logger: logging.Logger) -> s
     return enriched_events_path
 
 
-def parse_har(file_path):
+def parse_har(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
+    """
+    Parse a HAR file and save the output to a JSON file.
+
+    Args:
+        file_path (Path): The path to the HAR file to be processed.
+        logger (logging.Logger): Logger instance for capturing log messages.
+
+    Returns:
+        Tuple[str, str]: A tuple containing the file name and the path to the processed HAR output JSON file.
+
+    Raises:
+        None
+    """
     logger.info(f"Processing har file: {file_path}")
     file_name = file_path.split("/")[-1].replace(".har", "")
     har_output_path = f"{DATA_DIR}/input_parsed/{file_name}.json"
@@ -131,7 +124,7 @@ def parse_har(file_path):
     return file_name, har_output_path
 
 
-def parse_pcap(file_path) -> Tuple[str, str]:
+def parse_pcap(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
     """
     Use Zeek to process a pcap file and save the output to a JSON file.
 
@@ -155,29 +148,30 @@ def parse_pcap(file_path) -> Tuple[str, str]:
     return file_name, zeek_output_path
 
 
-def parse_input_file(file_path):
+def parse_input_file(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
     """
     Processes the input network file.
-    Currently, supports har and pcap files.
+    Currently, supports HAR and PCAP files.
 
     Args:
-        file_path:
+        file_path (Path): The path to the input network file to be processed.
+        logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
-        None
+        Tuple[str, str]: A tuple containing the file name and the path to the processed output JSON file.
 
     Raises:
-        Exception
+        Exception: If the file type is not supported.
     """
     if ".har" in file_path:
-        return parse_har(file_path)
+        return parse_har(file_path=file_path, logger=logger)
     elif (".pcap" in file_path) or (".cap" in file_path):
-        return parse_pcap(file_path)
+        return parse_pcap(file_path=file_path, logger=logger)
     else:
         raise Exception("[!!] File type is not supported")
 
 
-def process_input_file(file_path):
+def process_input_file(file_path: Path, logger: logging.Logger) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
     Zeek, enrichment, and detection steps in sequence.
@@ -193,7 +187,9 @@ def process_input_file(file_path):
     """
     if path.exists(file_path):
         logger.info(f"Processing file: {file_path}")
-        file_name, parsed_file_path = parse_input_file(file_path=file_path)
+        file_name, parsed_file_path = parse_input_file(
+            file_path=file_path, logger=logger
+        )
         enriched_events_path = enrich_output(
             file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
         )
@@ -206,66 +202,7 @@ def process_input_file(file_path):
         logger.error(f"File not found: {file_path}")
 
 
-def mass_mapping(user_agents: list, logger: logging.Logger) -> None:
-    """
-    Map a list of user agents to applications.
-
-    Args:
-        user_agents (list): A list of user agents to map.
-        logger (logging.Logger): Logger instance for capturing log messages.
-
-    Returns:
-        None
-
-    Raises:
-        None
-    """
-    logger.info(f"Mapping {len(user_agents)} user agents...")
-    hits, misses = query_user_agent_mapper(
-        user_agents=user_agents,
-        db_path=str(DB_PATH),
-        logger=logger,
-        llm_api_key=GEMINI_API_KEY,
-        delay=1,
-    )
-    logger.info(f"Found {len(hits)} hits and {len(misses)} misses.")
-
-
-def run_mass_mapping(
-    user_agent_file: Path, chunk_size: int, logger: logging.Logger
-) -> None:
-    """
-    Run the mass mapping process to map user agents to applications.
-
-    Args:
-        None
-
-    Returns:
-        None
-
-    Raises:
-        None
-    """
-    logger.info(f"Reading user agents from {user_agent_file}")
-
-    with open(user_agent_file, "r") as file:
-        user_agents = file.read().splitlines()
-
-    logger.info(f"Read {len(user_agents)} user agents from the file.")
-
-    for i in range(0, len(user_agents), chunk_size):
-        logger.info(f"Processing chunk starting at {i}")
-        time.sleep(2)
-
-        # Extract a slice of up to chunk_size items
-        chunk = user_agents[i : i + chunk_size]
-        # Call the function on this chunk
-        mass_mapping(user_agents=chunk, logger=logger)
-
-    logger.info("Finished the mass mapping process.")
-
-
-def run() -> None:
+def run(logger: logging.Logger) -> None:
     """
     Run beam to find anomalous applications
 
@@ -299,30 +236,27 @@ def run() -> None:
     )
     parser.add_argument(
         "-m",
-        "--mass_mapping",
-        help="Option to map lots of user agents and just save them to the database",
-        action="store_true",
+        "--mapping_only",
+        help="Path to an input file of user agents to do mapping only.",
         required=False,
-        default=False,
     )
 
     args = vars(parser.parse_args())
-    if args["mass_mapping"]:
-        logger.info("Running mass mapping process...")
-        user_agent_file = DATA_DIR / "user_agent_list.txt"
-        CHUNK_SIZE = 200
-        run_mass_mapping(
+    logger.setLevel(args["log_level"])
+
+    if args["mapping_only"]:
+        logger.info("Running mapping only...")
+        user_agent_file = Path(args["mapping_only"])
+        chunk_size = 200
+        run_mapping_only(
             user_agent_file=user_agent_file,
-            chunk_size=CHUNK_SIZE,
+            db_path=constants.DB_PATH,
+            chunk_size=chunk_size,
             logger=logger,
         )
         return
-    else:
-        logger.info("Running BEAM...")
-        input_paths = glob.glob(str(args["input_dir"] / "*"))
-        for input_path in input_paths:
-            process_input_file(file_path=input_path)
 
-
-if __name__ == "__main__":
-    run()
+    logger.info("Running BEAM...")
+    input_paths = glob.glob(str(args["input_dir"] / "*"))
+    for input_path in input_paths:
+        process_input_file(file_path=input_path, logger=logger)

@@ -1,11 +1,9 @@
 import logging.config
 from os import environ, path, remove
 
-from beam.detector.utils import get_project_root
+from beam.constants import LOG_CONFIG
 from beam.mapper.mapper import query_user_agent_mapper
 
-PROJECT_DIR = get_project_root()
-LOG_CONFIG = PROJECT_DIR / "src" / "beam" / "logging.conf"
 TEST_DB_PATH = "./test_mapper.db"
 
 logging.config.fileConfig(LOG_CONFIG)
