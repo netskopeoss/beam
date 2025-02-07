@@ -22,8 +22,6 @@ from mapper.mapper import run_mapping_only
 warnings.filterwarnings(action="ignore")
 
 DATA_DIR = constants.DATA_DIR
-# logging.config.fileConfig(constants.LOG_CONFIG)
-# logger = logging.getLogger("main")
 
 
 def run_detection(
