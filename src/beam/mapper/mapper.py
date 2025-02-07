@@ -114,7 +114,8 @@ class UserAgentMapper(DataSource):
                         logger=self.logger,
                     )
             else:
-                self.logger.error("No LLM API key was provided.")
+                self.logger.info("No LLM API key was provided, skipping LLM check.")
+                return
 
             if self.llm.hits_found:
                 self.logger.info(
