@@ -1,12 +1,40 @@
+"""Features module"""
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
+
 import logging
 import statistics
 from collections import Counter
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 from .utils import load_json_file, save_json_data
 
 
-def get_numeric_stats(events, field):
+def get_numeric_stats(events: List, field: str) -> Dict:
     """
     Calculate key metrics for a numeric field in a set of events.
 
@@ -45,7 +73,7 @@ def get_numeric_stats(events, field):
     }
 
 
-def log_inventory():
+def log_inventory() -> None:
     """
     Placeholder function to support the ability to inventory applications running and their behavior.
     pass
@@ -68,7 +96,16 @@ def log_inventory():
     pass
 
 
-def get_sequence_map(sequences):
+def get_sequence_map(sequences: List[str]) -> Optional[Dict[str, int]]:
+    """
+    Generate a sequence map from a list of sequences.
+
+    Args:
+        sequences (List[str]): A list of sequences.
+
+    Returns:
+        Optional[Dict[str, int]]: A dictionary mapping sequences to their counts, or None if sequences is empty.
+    """
     if not sequences:
         return None
 
@@ -83,7 +120,16 @@ def get_sequence_map(sequences):
     return result
 
 
-def get_sequence_actions(actions):
+def get_sequence_actions(actions: List[str]) -> List[str]:
+    """
+    Generate a list of unique action states from a list of actions.
+
+    Args:
+        actions (List[str]): A list of actions.
+
+    Returns:
+        List[str]: A list of unique action states.
+    """
     action_states = []
     for a in actions:
         if not len(action_states) or action_states[-1] != a:
@@ -91,12 +137,33 @@ def get_sequence_actions(actions):
     return action_states
 
 
-def potential_sequence(actions) -> str:
+def potential_sequence(actions: List[str]) -> str:
+    """
+    Generate a potential sequence string from a list of actions.
+
+    Args:
+        actions (List[str]): A list of actions.
+
+    Returns:
+        str: A string representing the potential sequence of actions.
+    """
     action_states = get_sequence_actions(actions)
     return " -> ".join(list(action_states))
 
 
-def get_sequence_map_feature(sequence_map, feature):
+def get_sequence_map_feature(
+    sequence_map: Dict[str, int], feature: str
+) -> Union[int, float]:
+    """
+    Extract a specific feature from a sequence map.
+
+    Args:
+        sequence_map (Dict[str, int]): A dictionary mapping sequences to their counts.
+        feature (str): The feature to extract.
+
+    Returns:
+        Union[int, float]: The value of the specified feature.
+    """
     key_lengths = [len(k.split("->")) for k in dict(sequence_map)]
     dist = [int(sequence_map[k]) for k in dict(sequence_map)]
 
@@ -116,7 +183,7 @@ def get_sequence_map_feature(sequence_map, feature):
     return result[feature]
 
 
-def grab_application_summary(traffic_map, key):
+def grab_application_summary(traffic_map: Dict, key: str) -> Dict:
     """
     Generate a summary of application traffic based on the provided traffic map and key.
 
@@ -330,7 +397,7 @@ def grab_application_summary(traffic_map, key):
     return summary
 
 
-def aggregate_app_traffic(fields, input_path, output_path):
+def aggregate_app_traffic(fields: List[str], input_path: str, output_path: str) -> None:
     """
     Aggregate application traffic data from enriched events and save the summaries to a JSON file.
 

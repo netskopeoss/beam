@@ -1,10 +1,39 @@
+"""Detect Module"""
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
+
 import logging
 import pickle
+from typing import Any, Dict, Set, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import shap
+from numpy.typing import NDArray
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -124,13 +153,31 @@ malware_feature_columns = malware_meta_fields + [
 ]
 
 
-def load_malware_model(combined_app_model_path):
+def load_malware_model(combined_app_model_path: str) -> Any:
+    """
+    Load the malware model from the specified path.
+
+    Args:
+        combined_app_model_path (str): The path to the combined app model file.
+
+    Returns:
+        model: The loaded malware model.
+    """
     with open(combined_app_model_path, "rb") as _file:
         model = pickle.load(_file)[0]
     return model
 
 
-def load_app_models(app_model_path):
+def load_app_models(app_model_path: str) -> Tuple[Set, Dict]:
+    """
+    Load the application models from the specified path.
+
+    Args:
+        app_model_path (str): The path to the app model file.
+
+    Returns:
+        Tuple[set, dict]: A set of apps and a dictionary of models.
+    """
     with open(app_model_path, "rb") as _file:
         raw_models = pickle.load(_file)
 
@@ -150,12 +197,12 @@ class MultiHotEncoder(BaseEstimator, TransformerMixin):
     that input X has to be a `pandas.DataFrame`.
     """
 
-    def __init__(self):
-        self.mlbs = list()
+    def __init__(self) -> None:
+        self.mlbs = []
         self.n_columns = 0
-        self.categories_ = self.classes_ = list()
+        self.categories_ = self.classes_ = []
 
-    def fit(self, X: pd.DataFrame, y=None):
+    def fit(self, X: pd.DataFrame, y=None) -> BaseEstimator:
         """
         Fit the MultiHotEncoder to the data.
 
@@ -174,7 +221,7 @@ class MultiHotEncoder(BaseEstimator, TransformerMixin):
             self.n_columns += 1
         return self
 
-    def transform(self, X: pd.DataFrame):
+    def transform(self, X: pd.DataFrame) -> NDArray:
         """
         Transform the input data using the fitted MultiHotEncoder.
 
@@ -203,7 +250,16 @@ class MultiHotEncoder(BaseEstimator, TransformerMixin):
         return result
 
 
-def convert_summary_to_features(input_data):
+def convert_summary_to_features(input_data: Dict) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Convert the input summary data to features.
+
+    Args:
+        input_data (dict): The input summary data.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: The original features and the processed features.
+    """
     features_og = pd.json_normalize(input_data)
     features_og.reset_index()
     features_og = features_og[malware_feature_columns]
@@ -217,7 +273,18 @@ def convert_summary_to_features(input_data):
     return features_og, features_pd
 
 
-def convert_supply_chain_summaries_to_features(input_data):
+def convert_supply_chain_summaries_to_features(
+    input_data: Dict,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Convert the input supply chain summaries to features.
+
+    Args:
+        input_data (dict): The input supply chain summaries.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame]: The original features and the processed features.
+    """
     features_og = pd.json_normalize(input_data)
     features_og.reset_index()
     features_og = features_og[app_feature_fields]
@@ -232,18 +299,19 @@ def convert_supply_chain_summaries_to_features(input_data):
 
 
 def detect_anomalous_app(
-    input_path, combined_app_model_path, combined_app_prediction_directory
-):
+    input_path: str,
+    combined_app_model_path: str,
+    combined_app_prediction_directory: str,
+) -> None:
     """
     Detect anomalous applications in the given input data.
 
     Args:
         input_path (str): The path to the input JSON file containing the data.
+        combined_app_model_path (str): The path to the combined app model file.
+        combined_app_prediction_directory (str): The directory to save the predictions.
 
     Returns:
-        None
-
-    Raises:
         None
     """
     logger = logging.getLogger(__name__)
@@ -311,7 +379,20 @@ def detect_anomalous_app(
         )
 
 
-def detect_anomalous_domain(input_path, app_model_path, app_prediction_dir):
+def detect_anomalous_domain(
+    input_path: str, app_model_path: str, app_prediction_dir: str
+) -> None:
+    """
+    Detect anomalous domains in the given input data.
+
+    Args:
+        input_path (str): The path to the input JSON file containing the data.
+        app_model_path (str): The path to the app model file.
+        app_prediction_dir (str): The directory to save the predictions.
+
+    Returns:
+        None
+    """
     logger = logging.getLogger(__name__)
     apps, models = load_app_models(app_model_path)
     logger.info("[x] Apps found in the model: " + str(apps))
