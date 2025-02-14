@@ -350,7 +350,9 @@ class LLMDataSource(DataSource):
         for mapping in initial_hits:
             if mapping is None:
                 initial_hits.remove(mapping)
-            elif mapping and mapping.application.name in ("Unknown", "unknown", ""):
+            elif mapping and mapping.application.name in (
+                "Unknown", "unknown", ""
+                ):
                 self.misses.append(mapping.user_agent_string)
                 initial_hits.remove(mapping)
         return initial_hits

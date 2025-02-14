@@ -4,16 +4,79 @@ query_user_agent_mapper function.
 
 import logging
 import re
+import time
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from pydantic import ConfigDict
 from sqlalchemy.orm import Session
+
+from beam.constants import GEMINI_API_KEY
 
 from .agent_parser import query_agent_parser
 from .data_sources import APIDataSource, DataSource
 from .datastore import DataStoreHandler
 from .gemini import query_gemini
 from .llm import LLMDataSource
+
+
+def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> None:
+    """
+    Map a list of user agents to applications.
+
+    Args:
+        user_agents (list): A list of user agents to map.
+        logger (logging.Logger): Logger instance for capturing log messages.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
+    logger.info(f"Mapping {len(user_agents)} user agents...")
+    hits, misses = query_user_agent_mapper(
+        user_agents=user_agents,
+        db_path=str(db_path),
+        logger=logger,
+        llm_api_key=GEMINI_API_KEY,
+        delay=1,
+    )
+    logger.info(f"Found {len(hits)} hits and {len(misses)} misses.")
+
+
+def run_mapping_only(
+    user_agent_file: Path, db_path: Path, chunk_size: int, logger: logging.Logger
+) -> None:
+    """
+    Run the mass mapping process to map user agents to applications.
+
+    Args:
+        None
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
+    logger.info(f"Reading user agents from {user_agent_file}")
+
+    with open(user_agent_file, "r", encoding="utf-8") as file:
+        user_agents = file.read().splitlines()
+
+    logger.info(f"Read {len(user_agents)} user agents from the file.")
+
+    for i in range(0, len(user_agents), chunk_size):
+        logger.info(f"Processing chunk starting at {i}")
+        time.sleep(2)
+
+        # Extract a slice of up to chunk_size items
+        chunk = user_agents[i : i + chunk_size]
+        # Call the function on this chunk
+        mass_mapping(user_agents=chunk, db_path=db_path, logger=logger)
+
+    logger.info("Finished the mapping process.")
 
 
 class UserAgentMapper(DataSource):
@@ -204,6 +267,7 @@ def query_user_agent_mapper(
     logger: logging.Logger,
     llm_api_key: str = None,
     llm_selection: str = "Gemini",
+    delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
     Query the application mapper for given user agent strings and return
@@ -233,7 +297,6 @@ def query_user_agent_mapper(
     )
 
     ds = DataStoreHandler(db_path=db_path, logger=logger)
-
     mapper = UserAgentMapper(
         query_input=user_agent_input,
         llm_api_key=llm_api_key,
@@ -241,11 +304,11 @@ def query_user_agent_mapper(
         logger=logger,
         datastore=ds,
     )
-
     session = mapper.datastore.database.open_database()
 
     mapper.search(session=session)
     mapper.save_results(session=session)
+    time.sleep(delay)
     hits = []
     if mapper.hits_found:
         hits = []
