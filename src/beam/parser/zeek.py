@@ -112,8 +112,8 @@ def process_zeek_output(input_path: str) -> list:
                 domain = ""
 
             http_status = (
-                http_row.get("http_status", None)
-                if http_row.get("http_status", None)
+                http_row.get("status_code", None)
+                if http_row.get("status_code", None)
                 else None
             )
             status_msg = (
@@ -161,7 +161,7 @@ def process_zeek_output(input_path: str) -> list:
                 "domain": domain,
                 "referrer": referrer,
                 "is_referred": is_referred,
-                "url": http_row.get("uri", ""),
+                "uri": http_row.get("uri", ""),
                 "http_method": http_row.get("method", ""),
                 # 'client_http_version': http_row.get('version', ''),
                 "src_ip": http_row.get("id.orig_h", ""),

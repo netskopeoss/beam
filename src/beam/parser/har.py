@@ -6,7 +6,8 @@ import json
 import sys
 from datetime import datetime
 from typing import List
-from beam.parser.models import NetskopeTransaction
+from beam.parser.models import Transaction
+
 
 def convert_list(entries: List) -> dict:
     """
@@ -27,7 +28,7 @@ def convert_list(entries: List) -> dict:
     return output
 
 
-def parse_har_log(file_path: str) -> List[NetskopeTransaction]:
+def parse_har_log(file_path: str) -> List[Transaction]:
     """
     Parse a .har file and convert it to a list of NetskopeTransaction objects.
 
@@ -35,62 +36,76 @@ def parse_har_log(file_path: str) -> List[NetskopeTransaction]:
         file_path (str): The path to the .har file to parse.
 
     Returns:
-        List[NetskopeTransaction]: A list of ZeekLog objects parsed from the .har file.
+        List[Transaction]: A list of ZeekLog objects parsed from the .har file.
 
     Raises:
         None
     """
     entries = []
+    statuses_to_avoid = [
+        "999"  # Error
+    ]
+    methods_to_avoid = [
+        "CONNECT"
+    ]
     with open(file=file_path, mode="r", encoding="utf-8-sig") as file:
         har_data = json.load(file)
         for entry in har_data["log"]["entries"]:
-            http_request = entry["request"]
-            http_response = entry["response"]
-            req_headers = convert_list(http_request["headers"])
-            resp_headers = convert_list(entry["response"].get("headers", []))
-            data = {
-                "timestamp": str(datetime
-                    .strptime(entry["startedDateTime"]
-                    .split(".")[0], "%Y-%m-%dT%H:%M:%S")),
-                "day": "", #TODO: Figure out this later from the timestamp
-                "hour": "",#TODO: Figure out this later from the timestamp
-                "access_method": "Client",
-                "useragent": req_headers.get("User-Agent", ""),
-                "hostname": req_headers.get("Host",""),
-                "referer": "",
-                "uri_scheme": entry["request"]["url"].split(":")[0],
-                "http_method": entry["request"]["method"],
-                "http_status": str(entry["response"]["status"]),
-                "rs_status": "",
-                "ssl_ja3": "",
-                "ssl_ja3s": "",
-                "file_type": "",
-                "traffic_type": "CloudApp",
-                "client_http_version": entry["response"]["httpVersion"],
-                "srcport": "", #TODO:
-                "client_src_port": "",
-                "client_dst_port": "",
-                "client_connect_port": "",
-                "server_src_port": "",
-                "server_dst_port": "",
-                "req_content_type": req_headers.get("Content-Type", ""),
-                "resp_content_type": http_response["content"]["mimeType"],
-                "server_ssl_error": "",
-                "client_ssl_error": "",
-                "error": "",
-                "ssl_bypass": "",
-                "ssl_bypass_reason": "",
-                "ssl_fronting_error": "",
-                "time_taken_ms": str(entry["time"]),
-                "client_bytes": str(http_request["bodySize"]),
-                "server_bytes": str(http_response["content"]["size"]),
-                "file_sha256": "",
-                "file_size": "",
-                "url": entry["request"]["url"]
-            }
-            entries.append(
-                NetskopeTransaction(**data)
-            )
+            if ("request" in entry) and ("response" in entry):
+                http_request = entry["request"]
+                http_response = entry["response"]
+
+                http_status = str(http_response["status"])
+                http_method = http_request["method"]
+
+                if (http_status not in statuses_to_avoid) and (http_method not in methods_to_avoid):
+                    if ("headersSize" in http_request) and http_request["headersSize"] and (http_request["headersSize"] >= 0):
+                        req_header_size = http_request["headersSize"]
+                    else:
+                        req_header_size = len('\n'.join([e['name'] + ' ' + e['value'] for e in entry['request']['headers']]))
+
+                    if ("headersSize" in http_response) and http_response["headersSize"] and (http_response["headersSize"] >= 0):
+                        resp_header_size = http_response["headersSize"]
+                    else:
+                        resp_header_size = len('\n'.join([e['name'] + ' ' + e['value'] for e in entry['response']['headers']]))
+
+                    req_headers = convert_list(http_request.get("headers", []))
+                    resp_headers = convert_list(http_response.get("headers", []))
+                    timestamp = datetime.strptime(
+                        entry["startedDateTime"].split(".")[0].split("+")[0],
+                        "%Y-%m-%dT%H:%M:%S"
+                    ).timestamp()
+                    referer = req_headers.get('referer', '')
+                    url = http_request.get("url", "")
+                    hostname = req_headers.get("host", "").split(":")[0]
+                    try:
+                        uri = url.split(hostname)[1].split('?')[0]
+                    except Exception:
+                        uri = ''
+                    data = {
+                        "timestamp": timestamp,
+                        "useragent": req_headers.get("user-agent", ""),
+                        "hostname": hostname,
+                        "domain": hostname,
+                        "uri_scheme": http_request["url"].split(":")[0],
+                        "http_method": http_method,
+                        "http_status": http_status,
+                        "client_http_version": http_response["httpVersion"],
+                        "req_content_type": req_headers.get("content-type", "").split(';')[0],
+                        "resp_content_type": http_response["content"]["mimeType"].split(';')[0],
+                        "time_taken_ms":  int(entry["time"]),
+                        # Confirmed with Louis Wu that it is the sum of both the body and headers
+                        "client_bytes": float(http_request["bodySize"] + req_header_size),
+                        "server_bytes": float(http_response["bodySize"] + resp_header_size),
+                        "referer": referer,
+                        "referer_domain": referer.split('/')[2].strip() if len(referer.split('/')) >= 3 else '',
+                        "url": url,
+                        "uri": uri,
+                        "src_ip": entry['_clientAddress'] if '_clientAddress' in entry else 'Unknown'
+                    }
+                    entries.append(
+                        Transaction(**data)
+                    )
     return entries
 
 

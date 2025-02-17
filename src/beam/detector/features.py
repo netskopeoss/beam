@@ -116,13 +116,14 @@ def get_sequence_map_feature(sequence_map, feature):
     return result[feature]
 
 
-def grab_application_summary(traffic_map, key):
+def grab_application_summary(traffic_map, key, fields):
     """
     Generate a summary of application traffic based on the provided traffic map and key.
 
     Args:
         traffic_map (dict): A dictionary mapping application keys to lists of transaction events.
         key (str): The key identifying the application in the traffic map.
+        fields (list): The keys to aggregate the traffic over
 
     Returns:
         dict: A dictionary containing a summary of the application's traffic, including metrics
@@ -137,31 +138,18 @@ def grab_application_summary(traffic_map, key):
 
     for i, transaction in enumerate(transactions):
         if i >= 1:
-            transaction["time_interval_sec"] = (
-                transaction["timestamp"] - transactions[i - 1]["timestamp"]
-            )
+            transaction["time_interval_sec"] = (transaction["timestamp"] - transactions[i - 1]["timestamp"])
         else:
             transaction["time_interval_sec"] = 0.0
 
-        transaction["potential_sequence"] = potential_sequence(
-            [
-                transactions[i - d]["action"]
-                for d in range(sequence_window_length)
-                if (i - d) >= 0
-            ]
-        )
+        actions = [transactions[i - d]["action"] for d in range(sequence_window_length) if (i - d) >= 0]
+        transaction["potential_sequence"] = potential_sequence(actions)
 
     transaction_count = len(transactions)
-
     seq = get_sequence_map(t["potential_sequence"] for t in transactions)
-
-    distinct_domains = set(
-        t.get("domain", "") for t in transactions if t.get("domain", "")
-    )
+    distinct_domains = set(t.get("domain", "") for t in transactions if t.get("domain", ""))
     distinct_domain_count = len(distinct_domains)
-    distinct_url_count = len(
-        set(t.get("url", "") for t in transactions if t.get("domain", ""))
-    )
+    distinct_url_count = len(set(t.get("url", "") for t in transactions if t.get("url", "")))
     distinct_referrer_count = len(
         set(
             urlparse(t.get("referrer", "")).netloc
@@ -261,34 +249,26 @@ def grab_application_summary(traffic_map, key):
         * 100.0
     ) / transaction_count
 
-    key_domains = sorted(
-        list(set(h for t in transactions for h in t.get("key_hostnames", [])))
-    )
+    key_domains = sorted(list(set(h for t in transactions for h in t.get("key_hostnames", []))))
     distinct_key_domain_count = len(key_domains)
-
     range_timestamp = int(transactions[-1]["timestamp"] - transactions[0]["timestamp"])
-
     time_taken_stats = get_numeric_stats(events=transactions, field="time_taken_ms")
     client_byte_stats = get_numeric_stats(events=transactions, field="client_bytes")
     server_byte_stats = get_numeric_stats(events=transactions, field="server_bytes")
-    time_interval_sec_stats = get_numeric_stats(
-        events=transactions[1:], field="time_interval_sec"
-    )
+    time_interval_sec_stats = get_numeric_stats( events=transactions[1:], field="time_interval_sec" )
+    applications = list(set(t.get("application", "") for t in transactions if t.get("application", "")))
+    unique_actions = set(t["action"] for t in transactions if "action" in t)
+
+    if len(applications) > 1:
+        raise Exception("[!] More than one application detected for the same useragent", key)
 
     summary = {
         "key": key,
-        "domain": list(distinct_domains)[0] if distinct_domains else "",
-        "application": list(
-            set(
-                t.get("application", "")
-                for t in transactions
-                if t.get("application", "")
-            )
-        )[0],
+        "application": applications[0],
         "transactions": transaction_count,
         "refered_traffic_pct": referred_traffic_percent,
         "referer_domain_cnt": distinct_referrer_count,
-        "unique_actions": len(set(t["action"] for t in transactions if "action" in t)),
+        "unique_actions": len(unique_actions),
         "sequence_num_keys": get_sequence_map_feature(seq, "num_keys"),
         "sequence_max_key_length": get_sequence_map_feature(seq, "max_key_length"),
         "sequence_min_key_length": get_sequence_map_feature(seq, "min_key_length"),
@@ -314,7 +294,7 @@ def grab_application_summary(traffic_map, key):
         "key_hostnames": key_domains,
         "key_hostname_cnt": distinct_key_domain_count,
         "distinct_key_domain_count": distinct_key_domain_count,
-        # TODO: Add this back in to both the places
+        # TODO: Add this back
         # 'distinct_url_count': distinct_url_count,
         # 'distinct_version_count': distinct_version_count,
         # 'distinct_file_count': distinct_file_count,
@@ -323,6 +303,11 @@ def grab_application_summary(traffic_map, key):
         # 'distinct_service_count': distinct_service_count,
     }
 
+    if "domain" in fields:
+        summary.update({
+            "domain": list(distinct_domains)[0] if distinct_domains else ""
+        })
+
     summary.update(time_taken_stats)
     summary.update(client_byte_stats)
     summary.update(server_byte_stats)
@@ -330,7 +315,7 @@ def grab_application_summary(traffic_map, key):
     return summary
 
 
-def aggregate_app_traffic(fields, input_path, output_path):
+def aggregate_app_traffic(fields, input_path, output_path, min_transactions):
     """
     Aggregate application traffic data from enriched events and save the summaries to a JSON file.
 
@@ -338,6 +323,7 @@ def aggregate_app_traffic(fields, input_path, output_path):
         fields (List[str]): The field in the events to use as the application identifier.
         input_path (str): The path to the input JSON file containing enriched events.
         output_path (str): The path to the output JSON file where summaries will be saved.
+        min_transactions (int): The minimum number of transactions we need to make a judgement call.
 
     Returns:
         None
@@ -347,33 +333,26 @@ def aggregate_app_traffic(fields, input_path, output_path):
     """
     logger = logging.getLogger(__name__)
     traffic_map = dict()
-
     enriched_events = load_json_file(input_path)
-    summaries = []
-
-    # TODO: Have a config to handle invalid summaries
-    invalid_summaries = []
 
     for e in enriched_events:
-        # TODO: Handle cases where the app_field / user agent is empty - take this in as a config
+        # TODO: Handle cases where the app_field / user agent is empty
         if all(field in e for field in fields):
             field_key = " - ".join([e[field] for field in fields])
             key = f"{field_key} on {e['src_ip']}"
-
             if key in traffic_map:
                 traffic_map[key].append(e)
             else:
                 traffic_map[key] = [e]
 
     logger.info(
-        f"[x] Found a total of {len(traffic_map)} distinct values in provided event file"
+        f"[x] Found a total of {len(traffic_map)} distinct {fields} values in provided event file"
     )
 
+    summaries = []
     for key in traffic_map:
-        summary = grab_application_summary(traffic_map=traffic_map, key=key)
-
-        # TODO: Set this as a global config
-        if summary["transactions"] > 100:
+        summary = grab_application_summary(traffic_map=traffic_map, key=key, fields=fields)
+        if summary["transactions"] > min_transactions:
             summaries.append(summary)
         else:
             # TODO: Format the applications that did not have enough traffic in a nicer way

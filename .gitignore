@@ -177,7 +177,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-data
+data/app_summaries
+data/domain_summaries
+data/input_parsed
+data/pcaps
 legacy
 predictions
 test_mapper.db
