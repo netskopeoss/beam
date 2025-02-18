@@ -1,9 +1,37 @@
+"""Detector Utilities Module"""
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
+
 import json
 import os
 import os.path
+from typing import Dict, List, TextIO
 
 
-def safe_open(path: str):
+def safe_open(path: str) -> TextIO:
     """
     Open "path" for writing, creating any parent directories as needed.
 
@@ -17,15 +45,15 @@ def safe_open(path: str):
         OSError: If the file cannot be opened.
     """
     safe_create_path(path)
-    return open(path, "w")
+    return open(path, "w", encoding="utf-8")
 
 
-def save_json_data(data: dict | list, file_path: str) -> None:
+def save_json_data(data: Dict | List, file_path: str) -> None:
     """
     Save JSON contents to a file.
 
     Args:
-        data (dict | list): The data to save.
+        data (Dict | List): The data to save.
         file_path (str): The path to the file to save.
 
     Returns:
@@ -54,7 +82,7 @@ def safe_create_path(path: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 
-def load_json_file(file_path: str) -> dict:
+def load_json_file(file_path: str) -> Dict:
     """
     Load JSON contents from a file.
 
@@ -62,14 +90,14 @@ def load_json_file(file_path: str) -> dict:
         file_path (str): The path to the JSON file to load.
 
     Returns:
-        dict: The contents of the JSON file.
+        data: A dictionary containing the contents of the JSON file.
 
     Raises:
         FileNotFoundError: If the file does not exist.
         json.JSONDecodeError: If the file is not a valid JSON.
     """
 
-    with open(file_path) as _file:
+    with open(file_path, encoding="utf-8") as _file:
         data = json.load(_file)
 
     return data

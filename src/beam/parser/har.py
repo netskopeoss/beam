@@ -1,15 +1,37 @@
-"""
-Contains the code for parsing the .har files into Netskope Transaction logs format
-"""
+"""Har parsing module"""
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
 
 import json
 import sys
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 from beam.parser.models import Transaction
 
-
-def convert_list(entries: List) -> dict:
+def convert_list(entries: List) -> Dict:
     """
     Convert a list of header entries to a dictionary.
 
@@ -17,7 +39,7 @@ def convert_list(entries: List) -> dict:
         entries (List): A list of header entries, each containing 'name' and 'value' keys.
 
     Returns:
-        dict: A dictionary with header names as keys and their corresponding values.
+        output: A dictionary with header names as keys and their corresponding values.
 
     Raises:
         None

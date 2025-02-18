@@ -1,3 +1,30 @@
+"""Enrich Module"""
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
+
 import logging
 import re
 import string
@@ -8,31 +35,44 @@ from mapper.mapper import query_user_agent_mapper
 
 def load_cloud_app_domains(cloud_domains_file_path: str) -> List[str]:
     """
-    Helper function to load known cloud domains
+    Helper function to load known cloud domains.
 
-    :return:
+    Args:
+        cloud_domains_file_path (str): The path to the file containing cloud domains.
+
+    Returns:
+        List[str]: A list of cloud domains.
     """
+    
     cloud_domains = [d["domain"] for d in load_json_file(cloud_domains_file_path)]
     return cloud_domains
 
 
 def load_key_domains(key_domains_file_path) -> List[str]:
     """
-    Helper function to load key domains
+    Helper function to load key domains.
 
-    :return:
+    Args:
+        key_domains_file_path (str): The path to the file containing key domains.
+
+    Returns:
+        List[str]: A list of key domains.
     """
+    
     key_domains = [d["domain"] for d in load_json_file(key_domains_file_path)]
     return key_domains
 
 
 def check_for_key_domains(domain: str, key_domains_file_path) -> List[str]:
     """
-    Checks to see if any of the relevant hostnames have been contacted
+    Checks to see if any of the relevant hostnames have been contacted.
 
-    :param domain:
-    :param key_domains_file_path:
-    :return:
+    Args:
+        domain (str): The domain to check.
+        key_domains_file_path (str): The path to the file containing key domains.
+
+    Returns:
+        List[str]: A list of key domains that match the given domain.
     """
     if not domain:
         return []
@@ -42,11 +82,14 @@ def check_for_key_domains(domain: str, key_domains_file_path) -> List[str]:
 
 def get_traffic_type(domain: str, cloud_domains_file_path) -> None | str:
     """
-    Assign a cloud / non_cloud label based on the domain provider
+    Assign a cloud / non_cloud label based on the domain provider.
 
-    :param domain:
-    :param cloud_domains_file_path:
-    :return:
+    Args:
+        domain (str): The domain to check.
+        cloud_domains_file_path (str): The path to the file containing cloud domains.
+
+    Returns:
+        None | str: "cloud" if the domain is a known cloud domain, "non_cloud" otherwise, or None if the domain is empty.
     """
     if not domain:
         return None
@@ -58,11 +101,16 @@ def get_traffic_type(domain: str, cloud_domains_file_path) -> None | str:
         return traffic_type
 
 
-def get_url_endpoint(domain, url):
+def get_url_endpoint(domain: str, url: str) -> str:
     """
+    Construct the URL endpoint from the domain and URL.
 
-    :param domain:
-    :param url:
+    Args:
+        domain (str): The domain of the URL.
+        url (str): The full URL.
+
+    Returns:
+        str: The constructed URL endpoint.
     """
     new_url = "/".join(url.split("?")[0].split("/")[:4])
     return f"{domain}{new_url}"
@@ -101,19 +149,23 @@ def valid_useragent_string(useragent):
 
 def enrich_events(
     input_path: str,
-    db_path,
-    cloud_domains_file_path,
-    key_domains_file_path,
-    llm_api_key,
+    db_path: str,
+    cloud_domains_file_path: str,
+    key_domains_file_path: str,
+    llm_api_key: str,
 ) -> dict:
     """
-    Take in a parsed zeek json file and enrich it with application information.
+    Take in a parsed Zeek JSON file and enrich it with application information.
 
-    :param input_path:
-    :param db_path:
-    :param cloud_domains_file_path:
-    :param key_domains_file_path:
-    :return:
+    Args:
+        input_path (str): The path to the input JSON file.
+        db_path (str): The path to the database file.
+        cloud_domains_file_path (str): The path to the file containing cloud domains.
+        key_domains_file_path (str): The path to the file containing key domains.
+        llm_api_key (str): The API key for the language model.
+
+    Returns:
+        dict: The enriched events.
     """
     logger = logging.getLogger(__name__)
     logger.info(f"Enriching file {input_path}")
