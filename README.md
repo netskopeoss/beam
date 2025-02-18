@@ -1,5 +1,6 @@
-# Netskope BEAM
+![BEAM image](https://github.com/netskopeoss/beam/blob/a9c3ed1873cd0773d3337dd77a89a193f305b1a1/BEAM.png)
 
+# Netskope BEAM
 Behavioral Evaluation of Application Metrics (BEAM) is a Python library for detecting supply chain compromises by analyzing network traffic.
 
 ## Usage
