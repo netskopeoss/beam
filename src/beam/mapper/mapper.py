@@ -1,6 +1,32 @@
-""" This module contains the UserAgentMapper class and the
+"""Mapper Module
+This module contains the UserAgentMapper class and the
 query_user_agent_mapper function.
 """
+
+# Copyright 2025 Netskope, Inc.
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
+# following conditions are met:
+
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
+# disclaimer.
+
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
+# disclaimer in the documentation and/or other materials provided with the distribution.
+
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
+# products derived from this software without specific prior written permission.
+
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Authors:
+# - Colin Estep
+# - Dagmawi Mulugeta
 
 import logging
 import re
@@ -270,8 +296,7 @@ def query_user_agent_mapper(
     delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
-    Query the application mapper for given user agent strings and return
-    a UserAgentMapper object with the results.
+    Query the application mapper for given user agent strings and return the results.
 
     Args:
         user_agents (List[str]): A list of user agents to be mapped.
@@ -282,7 +307,8 @@ def query_user_agent_mapper(
         llm_selection (str, optional): The LLM to use. Defaults to "Gemini".
 
     Returns:
-        UserAgentMapper: An instance of UserAgentMapper containing the mapping results.
+        Hits: Dictionary of mapped user agents
+        Misses: List of user agents that were not mapped successfully.
 
     Raises:
         None
