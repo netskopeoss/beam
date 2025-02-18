@@ -2,16 +2,22 @@
 
 Behavioral Evaluation of Application Metrics (BEAM) is a Python library for detecting supply chain compromises by analyzing network traffic.
 
-## Installation
+## Usage
+### Prequisites
+1. Install Zeek (formerly known as Bro) locally, using the instructions available [here](https://docs.zeek.org/en/current/install.html).
 
-Sync the BEAM repo, and then run:
+2. Clone the BEAM repo:
+```bash
+git clone git@github.com:netskopeoss/beam.git
+```
+### Install and run BEAM
+1. Install via pip from the directory where you cloned the repo:
 
 ```bash
 pip install -e .
 ```
 
-## Usage
-Navigate to `beam/src` and run:
+2. Navigate to `beam/src` and run:
 
 ```bash
 python beam
