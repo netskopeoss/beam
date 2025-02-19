@@ -36,16 +36,11 @@ from typing import Tuple
 
 from art import tprint
 
+from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import (
-    MultiHotEncoder,
-    detect_anomalous_app,
-    detect_anomalous_domain,
-)
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
-
-from . import constants
 
 warnings.filterwarnings(action="ignore")
 
@@ -70,35 +65,37 @@ def run_detection(
     Raises:
         None
     """
-    logger.info("Analysing applications...")
-    features_output_path = f"{DATA_DIR}/summaries/{file_name}.json"
-    features.aggregate_app_traffic(
-        fields=["useragent"],  # TODO: Make this app field configurable
-        input_path=enriched_events_path,
-        output_path=features_output_path,
-    )
-    detect_anomalous_app(
-        input_path=features_output_path,
-        combined_app_model_path=constants.COMBINED_APP_MODEL,
-        combined_app_prediction_directory=constants.COMBINED_APP_PREDICTIONS_DIR,
-    )
+    # logger.info("Analysing applications...")
+    # features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
+    # features.aggregate_app_traffic(
+    #     fields=["useragent"],
+    #     input_path=enriched_events_path,
+    #     output_path=features_output_path,
+    #     min_transactions=constants.MIN_APP_TRANSACTIONS
+    # )
+    # detect_anomalous_app(
+    #     input_path=features_output_path,
+    #     app_model_path=constants.APP_MODEL,
+    #     app_prediction_directory=constants.APP_PREDICTIONS_DIR,
+    # )
 
     logger.info("Analysing domains...")
-    features_output_path = f"{DATA_DIR}/supply_chain_summaries/{file_name}.json"
+    features_output_path = f"{DATA_DIR}/domain_summaries/{file_name}.json"
     features.aggregate_app_traffic(
         fields=["application", "domain"],
         input_path=enriched_events_path,
         output_path=features_output_path,
+        min_transactions=constants.MIN_DOMAIN_TRANSACTION,
     )
     detect_anomalous_domain(
         input_path=features_output_path,
-        app_model_path=constants.INDIVIDUAL_APP_MODEL,
-        app_prediction_dir=constants.APP_PREDICTIONS_DIR,
+        domain_model_path=constants.DOMAIN_MODEL,
+        app_prediction_dir=constants.DOMAIN_PREDICTIONS_DIR,
     )
     logger.info(f"Features output saved to: {features_output_path}")
 
 
-def enrich_output(file_name: str, parsed_file_path, logger: logging.Logger) -> str:
+def enrich_events(file_name: str, parsed_file_path, logger: logging.Logger) -> str:
     """
     Enrich Zeek output and save the enriched data to a new JSON file.
 
@@ -126,7 +123,7 @@ def enrich_output(file_name: str, parsed_file_path, logger: logging.Logger) -> s
     return enriched_events_path
 
 
-def parse_har(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
+def parse_har(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     """
     Parse a HAR file and save the output to a JSON file.
 
@@ -150,7 +147,7 @@ def parse_har(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
     return file_name, har_output_path
 
 
-def parse_pcap(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
+def parse_pcap(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     """
     Use Zeek to process a pcap file and save the output to a JSON file.
 
@@ -174,7 +171,7 @@ def parse_pcap(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
     return file_name, zeek_output_path
 
 
-def parse_input_file(file_path: Path, logger: logging.Logger) -> Tuple[str, str]:
+def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     """
     Processes the input network file.
     Currently, supports HAR and PCAP files.
@@ -197,13 +194,14 @@ def parse_input_file(file_path: Path, logger: logging.Logger) -> Tuple[str, str]
         raise Exception("[!!] File type is not supported")
 
 
-def process_input_file(file_path: Path, logger: logging.Logger) -> None:
+def process_input_file(file_path: str, logger: logging.Logger) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
     Zeek, enrichment, and detection steps in sequence.
 
     Args:
         file_path:
+        logger:
 
     Returns:
         None
@@ -216,7 +214,7 @@ def process_input_file(file_path: Path, logger: logging.Logger) -> None:
         file_name, parsed_file_path = parse_input_file(
             file_path=file_path, logger=logger
         )
-        enriched_events_path = enrich_output(
+        enriched_events_path = enrich_events(
             file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
         )
         run_detection(
@@ -233,7 +231,7 @@ def run(logger: logging.Logger) -> None:
     Run beam to find anomalous applications
 
     Args:
-        None
+        logger
 
     Returns:
         None
@@ -281,8 +279,8 @@ def run(logger: logging.Logger) -> None:
             logger=logger,
         )
         return
-
-    logger.info("Running BEAM...")
-    input_paths = glob.glob(str(args["input_dir"] / "*"))
-    for input_path in input_paths:
-        process_input_file(file_path=input_path, logger=logger)
+    else:
+        logger.info("Running BEAM...")
+        input_paths = glob.glob(str(args["input_dir"] / "*"))
+        for input_path in input_paths:
+            process_input_file(file_path=input_path, logger=logger)

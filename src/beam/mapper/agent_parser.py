@@ -32,7 +32,7 @@ import httpagentparser
 from ua_parser import user_agent_parser
 from user_agents import parse
 
-from .data_sources import APIDataSource, Application, Mapping, OperatingSystem
+from beam.mapper.data_sources import APIDataSource, Application, Mapping, OperatingSystem
 
 
 def map_item(user_agent: str) -> Mapping | None:

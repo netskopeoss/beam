@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-from .data_sources import DataSource, Mapping
+from beam.mapper.data_sources import DataSource, Mapping
 
 """Constants that define the limits of what can be requested from an LLM in
 each request. These are just defaults in case nothing specific is defined

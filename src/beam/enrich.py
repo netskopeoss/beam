@@ -26,10 +26,12 @@
 # - Dagmawi Mulugeta
 
 import logging
-from typing import List
+import re
+import string
+from typing import List, Optional
 
-from detector.utils import load_json_file
-from mapper.mapper import query_user_agent_mapper
+from beam.detector.utils import load_json_file
+from beam.mapper.mapper import query_user_agent_mapper
 
 
 def load_cloud_app_domains(cloud_domains_file_path: str) -> List[str]:
@@ -42,7 +44,6 @@ def load_cloud_app_domains(cloud_domains_file_path: str) -> List[str]:
     Returns:
         List[str]: A list of cloud domains.
     """
-    # TODO: Update this domain list with more cloud domains
 
     cloud_domains = [d["domain"] for d in load_json_file(cloud_domains_file_path)]
     return cloud_domains
@@ -58,7 +59,6 @@ def load_key_domains(key_domains_file_path) -> List[str]:
     Returns:
         List[str]: A list of key domains.
     """
-    # TODO: Update this domain list with more key domains
 
     key_domains = [d["domain"] for d in load_json_file(key_domains_file_path)]
     return key_domains
@@ -117,6 +117,50 @@ def get_url_endpoint(domain: str, url: str) -> str:
     return f"{domain}{new_url}"
 
 
+def valid_useragent_string(useragent: str) -> Optional[str]:
+    """
+    Validate and filter out problematic user agent strings.
+
+    Args:
+        useragent (str): The user agent string to validate.
+
+    Returns:
+        Optional[str]: The validated user agent string, or None if it is considered problematic.
+    """
+    if not useragent:
+        return None
+
+    if re.match(r"^[\\S]*[\\*\\@\\$].*", useragent):
+        return None
+
+    if all(c in string.digits for c in useragent):
+        return None
+
+    if useragent in ("-", ".-", "-.", "-.-"):
+        return None
+
+    if useragent[0] == "{" and useragent[-1] == "}" and len(useragent) == 38:
+        return None
+
+    invalid_phrases = [
+        "JPNET",
+        "google-cloud-sdk gcloud",
+        "gcloud/",
+        "Visual Component",
+        "ECAgent/",
+        "ruxit/",
+        "RuxitSynthetic",
+        "NGL Client/",
+        ";PID=",
+        "Zimbra-ZCO",
+    ]
+
+    if any(p in useragent for p in invalid_phrases):
+        return None
+
+    return useragent
+
+
 def enrich_events(
     input_path: str,
     db_path: str,
@@ -140,7 +184,11 @@ def enrich_events(
     logger = logging.getLogger(__name__)
     logger.info(f"Enriching file {input_path}")
     events = load_json_file(input_path)
-    full_ua_list = [event["useragent"] for event in events]
+    full_ua_list = [
+        event["useragent"]
+        for event in events
+        if valid_useragent_string(event["useragent"])
+    ]
     unique_ua_list = list(dict.fromkeys(full_ua_list).keys())
 
     hits, misses = query_user_agent_mapper(
@@ -150,11 +198,9 @@ def enrich_events(
         llm_selection="Gemini",
         logger=logger,
     )
-
     user_agents = [hit["user_agent_string"] for hit in hits]
 
     for event in events:
-        url_endpoint = get_url_endpoint(event["domain"], event["url"])
         if event["useragent"] in user_agents:
             hit = next(
                 hit for hit in hits if hit["user_agent_string"] == event["useragent"]
@@ -166,25 +212,34 @@ def enrich_events(
                     "os": hit["operating_system"],
                     "vendor": hit["vendor"],
                     "description": hit["description"],
-                    "key_hostnames": check_for_key_domains(
-                        domain=event["domain"],
-                        key_domains_file_path=key_domains_file_path,
-                    ),
-                    "traffic_type": get_traffic_type(
-                        domain=event["domain"],
-                        cloud_domains_file_path=cloud_domains_file_path,
-                    ),
-                    "url_endpoint": url_endpoint,
-                    "action": event["http_method"] + " " + url_endpoint,
                 }
             )
         else:
-            event["application"] = "unknown"
+            event.update(
+                {
+                    "application": "unknown",
+                    "version": "unknown",
+                    "os": "unknown",
+                    "vendor": "unknown",
+                    "description": "unknown",
+                }
+            )
             logger.debug(
                 f"User Agent from event was not resolved: {event['useragent']}"
             )
+        uri = (event["uri"] if "uri" in event else event["url"]).split("?")[0]
+        url_endpoint = get_url_endpoint(event["domain"], uri)
+        event.update(
+            {
+                "key_hostnames": check_for_key_domains(
+                    domain=event["domain"], key_domains_file_path=key_domains_file_path
+                ),
+                "traffic_type": get_traffic_type(
+                    domain=event["domain"],
+                    cloud_domains_file_path=cloud_domains_file_path,
+                ),
+                "url_endpoint": url_endpoint,
+                "action": (event["http_method"] + " " + url_endpoint).strip(),
+            }
+        )
     return events
-
-
-if __name__ == "__main__":
-    pass
