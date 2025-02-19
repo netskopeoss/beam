@@ -23,6 +23,10 @@ pip install -e .
 ```bash
 python beam
 ```
+## Output from BEAM
+1. The conclusion made from the provided PCAP or HAR files will be shown in the console with an associated probability of compromise.
+
+2. For additional information, check the directories under `beam/predictions` for [SHAP plots](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html). You will find SHAP image files, which reflect what features were used to determine the conclusion.
 
 ## Contributing
 
