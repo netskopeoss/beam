@@ -40,7 +40,7 @@ from sqlalchemy.orm import Session
 from beam.constants import GEMINI_API_KEY
 
 from .agent_parser import query_agent_parser
-from .data_sources import APIDataSource, DataSource
+from beam.mapper.data_sources import APIDataSource, DataSource
 from .datastore import DataStoreHandler
 from .gemini import query_gemini
 from .llm import LLMDataSource

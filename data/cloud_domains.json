@@ -1,2001 +1,2001 @@
 [{
-  "domain": "u.clarity.ms"
+  "domain": "data.eb.us1.thousandeyes.com"
 }, {
-  "domain": "s.clarity.ms"
+  "domain": "c1.eb.us1.thousandeyes.com"
 }, {
-  "domain": "excel-telemetry.officeapps.live.com"
+  "domain": "config.duetdisplay.com"
 }, {
-  "domain": "excel.officeapps.live.com"
+  "domain": "rdp.duetdisplay.com"
 }, {
-  "domain": "www.youtube.com"
+  "domain": "endpointcentral-agent6.manageengine.com"
 }, {
-  "domain": "cdn.walkme.com"
+  "domain": "au.bootstrap.endpoint.ingress.rapid7.com"
 }, {
-  "domain": "common.online.office.com"
+  "domain": "osce14.icrc.trendmicro.com"
 }, {
-  "domain": "meet.google.com"
+  "domain": "roaming.osi.office365.us"
 }, {
-  "domain": "roaming.officeapps.live.com"
+  "domain": "logs.eu-west-1.amazonaws.com"
 }, {
-  "domain": "powerpoint.officeapps.live.com"
+  "domain": "www.bandk.co.uk"
 }, {
-  "domain": "word-telemetry.officeapps.live.com"
+  "domain": "jp-col-ext.nelo.navercorp.com"
 }, {
-  "domain": "login.live.com"
+  "domain": "devicemanagementforwindows.googleapis.com"
 }, {
-  "domain": "www.google-analytics.com"
+  "domain": "au.api.endpoint.ingress.rapid7.com"
 }, {
-  "domain": "monitoring.clients6.google.com"
+  "domain": "production-us-west-2-screen-recording-bucket.s3.us-west-2.amazonaws.com"
 }, {
-  "domain": "encrypted-tbn0.gstatic.com"
+  "domain": "salesforce.com"
 }, {
-  "domain": "fonts.gstatic.com"
+  "domain": "api.vault.netvoyage.com"
 }, {
-  "domain": "dataservice.protection.outlook.com"
+  "domain": "gsm1789752710xt.blob.core.windows.net"
 }, {
-  "domain": "owl.officeapps.live.com"
+  "domain": "assets.printix.net"
 }, {
-  "domain": "word-edit.officeapps.live.com"
+  "domain": "gsm265134562xt.blob.core.windows.net"
 }, {
-  "domain": "doh.xfinity.com"
+  "domain": "gsm4279307829xt.blob.core.windows.net"
 }, {
-  "domain": "encrypted-tbn2.gstatic.com"
+  "domain": "gsm2171886102xt.blob.core.windows.net"
 }, {
-  "domain": "waconafd.officeapps.live.com"
+  "domain": "api-ap2.xbc.trendmicro.com"
 }, {
-  "domain": "waconatm.officeapps.live.com"
+  "domain": "amedeloitte-my.sharepoint.com"
 }, {
-  "domain": "atm-fp-direct.office.com"
+  "domain": "gsm854876844xt.blob.core.windows.net"
 }, {
-  "domain": "api-appsee.service-now.com"
+  "domain": "cloud.malwarebytes.com"
 }, {
-  "domain": "nexus.officeapps.live.com"
+  "domain": "osce14-jp-census.trendmicro.com"
 }, {
-  "domain": "pptsgs.officeapps.live.com"
+  "domain": "gsm160684789xt.blob.core.windows.net"
 }, {
-  "domain": "mrodevicemgr.officeapps.live.com"
+  "domain": "websocket.app.pdq.com"
 }, {
-  "domain": "autodiscover-s.outlook.com"
+  "domain": "avupdate.fireeye.com"
 }, {
-  "domain": "storage.googleapis.com"
+  "domain": "plugin.capitaliq.com"
 }, {
-  "domain": "word-view.officeapps.live.com"
+  "domain": "agt.samanage.com"
 }, {
-  "domain": "encrypted-tbn3.gstatic.com"
+  "domain": "telefonicacorp-my.sharepoint.com"
 }, {
-  "domain": "encrypted-tbn1.gstatic.com"
+  "domain": "gsm1343836868xt.blob.core.windows.net"
 }, {
-  "domain": "config.extension.grammarly.com"
+  "domain": "images-cdn.kahoot.it"
 }, {
-  "domain": "aax-us-iad.amazon.com"
+  "domain": "gsm58534142xt.blob.core.windows.net"
 }, {
-  "domain": "collabrtc.officeapps.live.com"
+  "domain": "jll2.sharepoint.com"
 }, {
-  "domain": "sockjs.pusher.com"
+  "domain": "assets-cdn.kahoot.it"
 }, {
-  "domain": "d.la1-core2.sfdc-lywfpd.salesforceliveagent.com"
+  "domain": "xlogr-ec1.xdr.trendmicro.com"
 }, {
-  "domain": "capi.grammarly.com"
+  "domain": "www.klepierre.com"
 }, {
-  "domain": "kinesis.us-east-1.amazonaws.com"
+  "domain": "gsm265364929xt.blob.core.windows.net"
 }, {
-  "domain": "sentry.io"
+  "domain": "ntwois.us.uniflowonline.com"
 }, {
-  "domain": "plugins.jetbrains.com"
+  "domain": "go.microsoft.com"
 }, {
-  "domain": "photos.fife.usercontent.google.com"
+  "domain": "api.printix.net"
 }, {
-  "domain": "tasks.office.com"
+  "domain": "login.microsoftonline.us"
 }, {
-  "domain": "247preview.foxnews.com"
+  "domain": "auth.printix.net"
 }, {
-  "domain": "treatment.grammarly.com"
+  "domain": "outlook.office365.us"
 }, {
-  "domain": "usc.pptservicescast.officeapps.live.com"
+  "domain": "alice.worksmobile.com"
 }, {
-  "domain": "o1025743.ingest.sentry.io"
+  "domain": "rt.teramind.co"
 }, {
-  "domain": "d.la3-core2.sfdc-lywfpd.salesforceliveagent.com"
+  "domain": "9nki28cu03.execute-api.us-west-2.amazonaws.com"
 }, {
-  "domain": "r.miro.com"
+  "domain": "usmanualemergencymode.azurewebsites.net"
 }, {
-  "domain": "downloads.marketplace.jetbrains.com"
+  "domain": "files-api-k.wbx2.com"
 }, {
-  "domain": "mobile.launchdarkly.com"
+  "domain": "prod-mediate-events.applovin.com"
 }, {
-  "domain": "ims-prod06.adobelogin.com"
+  "domain": "ios-api-2.duolingo.com"
 }, {
-  "domain": "shared.officeapps.live.com"
+  "domain": "gb1-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "d.la1-core1.sfdc-8tgtt5.salesforceliveagent.com"
+  "domain": "websocket.proxyendpoint.printix.net"
 }, {
-  "domain": "www.bestbuy.com"
+  "domain": "gb2-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "video.google.com"
+  "domain": "data.cylance.com"
 }, {
-  "domain": "www2.deepl.com"
+  "domain": "api-ap3.xbc.trendmicro.com"
 }, {
-  "domain": "rpt.cedexis.com"
+  "domain": "st-relay-v3-univ-srs-win-3701-g3.api.splashtop.com"
 }, {
-  "domain": "content.api.news"
+  "domain": "qagpublic.qg1.apps.qualys.com"
 }, {
-  "domain": "ssl.cdn-redfin.com"
+  "domain": "jll2-my.sharepoint.com"
 }, {
-  "domain": "p19.zdusercontent.com"
+  "domain": "services.cloudimanage.com"
 }, {
-  "domain": "auth.grammarly.com"
+  "domain": "proxy.enterprise.githubcopilot.com"
 }, {
-  "domain": "www.realtor.com"
+  "domain": "qagpublic.qg4.apps.qualys.com"
 }, {
-  "domain": "logging.diagnostics.office.com"
+  "domain": "dma.bittitan.com"
 }, {
-  "domain": "www.ikea.com"
+  "domain": "apcdeloitte-my.sharepoint.com"
 }, {
-  "domain": "completion.amazon.com"
+  "domain": "clients5.google.com"
 }, {
-  "domain": "d.la4-c2-ia5.salesforceliveagent.com"
+  "domain": "eu.api.endpoint.ingress.rapid7.com"
 }, {
-  "domain": "d.la3-c1-ia4.salesforceliveagent.com"
+  "domain": "kandji-prd-public.s3.amazonaws.com"
 }, {
-  "domain": "o168728.ingest.sentry.io"
+  "domain": "gcc-usaz-4-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "ajax.googleapis.com"
+  "domain": "amedeloitte.sharepoint.com"
 }, {
-  "domain": "api.nuget.org"
+  "domain": "download-accl.zoho.in"
 }, {
-  "domain": "d.la1-core1.sfdc-lywfpd.salesforceliveagent.com"
+  "domain": "s.youtube.com"
 }, {
-  "domain": "aax-us-east-retail-direct.amazon.com"
+  "domain": "eu.bootstrap.endpoint.ingress.rapid7.com"
 }, {
-  "domain": "www.redfin.com"
+  "domain": "gcc-usaz-3-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "fpc.msedge.net"
+  "domain": "qagpublic.qg2.apps.qualys.com"
 }, {
-  "domain": "use.typekit.net"
+  "domain": "gccmod.ecs.office.com"
 }, {
-  "domain": "concursolutionsusdatacenter.112.2o7.net"
+  "domain": "gcc-usaz-1-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "download.jetbrains.com"
+  "domain": "xlogr-ue1.xdr.trendmicro.com"
 }, {
-  "domain": "download-cdn.jetbrains.com"
+  "domain": "telemetry.enterprise.githubcopilot.com"
 }, {
-  "domain": "www.southwest.com"
+  "domain": "i-au.xink.io"
 }, {
-  "domain": "dowjones.hb.omtrdc.net"
+  "domain": "cloudimanage.com"
 }, {
-  "domain": "account.docusign.com"
+  "domain": "gcc-ustx-4-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "s.deepl.com"
+  "domain": "gcc-usaz-2-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "visio.officeapps.live.com"
+  "domain": "gcc-usaz-0-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "na01.safelinks.protection.outlook.com"
+  "domain": "gcc-ustx-0-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "ax-ring.msedge.net"
+  "domain": "api.enterprise.githubcopilot.com"
 }, {
-  "domain": "arm-ring.msedge.net"
+  "domain": "us.jra.services.jamfcloud.com"
 }, {
-  "domain": "t-ring-fdv2.msedge.net"
+  "domain": "gcc-ustx-5-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "wac-ring.msedge.net"
+  "domain": "gcc-ustx-2-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "arc-ring.msedge.net"
+  "domain": "logdb.pcpf.panasonic.com"
 }, {
-  "domain": "scontent-mia3-1.xx.fbcdn.net"
+  "domain": "clicks.socialchorus.com"
 }, {
-  "domain": "spo-ring.msedge.net"
+  "domain": "work.workplace.com"
 }, {
-  "domain": "a-ring-fallback.msedge.net"
+  "domain": "gcc-ustx-1-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "www.amazon.in"
+  "domain": "canadacentral0-0.pushnp.svc.ms"
 }, {
-  "domain": "www.jetbrains.com"
+  "domain": "gcc-ustx-3-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "l-ring.msedge.net"
+  "domain": "firestore.googleapis.com"
 }, {
-  "domain": "aws.smartsheet.com"
+  "domain": "can-cosmic.loki.delve.office.com"
 }, {
-  "domain": "teams-ring.msedge.net"
+  "domain": "graph.workplace.com"
 }, {
-  "domain": "outlook.office365.com"
+  "domain": "api-eu1.xbc.trendmicro.com"
 }, {
-  "domain": "ssl.gstatic.com"
+  "domain": "gcc-usaz-5-t.trouter.gcc.teams.microsoft.com"
 }, {
-  "domain": "substrate.office.com"
+  "domain": "drivefrontend-pa.googleapis.com"
 }, {
-  "domain": "clients4.google.com"
+  "domain": "gsm1783243726xt.blob.core.windows.net"
 }, {
-  "domain": "clients6.google.com"
+  "domain": "gsm1644822987xt.blob.core.windows.net"
 }, {
-  "domain": "ecs.office.com"
+  "domain": "canadaeast0-0.pushnp.svc.ms"
 }, {
-  "domain": "nam.loki.delve.office.com"
+  "domain": "dumpster.console.gotoresolve.com"
 }, {
-  "domain": "www.gstatic.com"
+  "domain": "noam.presence.teams.microsoft.com"
 }, {
-  "domain": "2.realtime.services.box.net"
-}, {
-  "domain": "i.ytimg.com"
-}, {
-  "domain": "maps.googleapis.com"
-}, {
-  "domain": "attachments.office.net"
-}, {
-  "domain": "loki.delve.office.com"
-}, {
-  "domain": "upload.fp.measure.office.com"
-}, {
-  "domain": "webshell.suite.office.com"
-}, {
-  "domain": "oneclient.sfx.ms"
-}, {
-  "domain": "searchhighlights.bing.com"
-}, {
-  "domain": "www.googletagmanager.com"
-}, {
-  "domain": "ec.walkme.com"
-}, {
-  "domain": "r4.res.office365.com"
-}, {
-  "domain": "csi.gstatic.com"
-}, {
-  "domain": "us-east-1.console.aws.amazon.com"
-}, {
-  "domain": "ocsp.digicert.com"
-}, {
-  "domain": "github.com"
-}, {
-  "domain": "crl3.digicert.com"
-}, {
-  "domain": "content.powerapps.com"
-}, {
-  "domain": "gnar.grammarly.com"
-}, {
-  "domain": "fonts.googleapis.com"
-}, {
-  "domain": "acdc-direct.office.com"
-}, {
-  "domain": "officecdn.microsoft.com"
-}, {
-  "domain": "graph-next.fp.measure.office.com"
-}, {
-  "domain": "avatars.githubusercontent.com"
-}, {
-  "domain": "apis.google.com"
-}, {
-  "domain": "api.amplitude.com"
-}, {
-  "domain": "www.amazon.com"
-}, {
-  "domain": "images-na.ssl-images-amazon.com"
-}, {
-  "domain": "messaging.engagement.office.com"
-}, {
-  "domain": "dev.azure.com"
-}, {
-  "domain": "api.virtru.com"
-}, {
-  "domain": "unagi.amazon.com"
-}, {
-  "domain": "svc.eu01.miro.com"
-}, {
-  "domain": "scontent-sjc3-1.xx.fbcdn.net"
-}, {
-  "domain": "augloop.office.com"
-}, {
-  "domain": "papi.walkme.com"
-}, {
-  "domain": "portal.azure.com"
-}, {
-  "domain": "fp.msedge.net"
-}, {
-  "domain": "unagi-na.amazon.com"
-}, {
-  "domain": "msgstore.www.notion.so"
-}, {
-  "domain": "config.fp.measure.office.com"
-}, {
-  "domain": "authenticator.pingone.com"
-}, {
-  "domain": "mirostatic.com"
-}, {
-  "domain": "bitbucket.org"
-}, {
-  "domain": "t.wayfair.com"
-}, {
-  "domain": "imasdk.googleapis.com"
-}, {
-  "domain": "phd.aws.amazon.com"
-}, {
-  "domain": "dpm.demdex.net"
-}, {
-  "domain": "apps.docusign.com"
-}, {
-  "domain": "southcentralus1-0.pushnp.svc.ms"
-}, {
-  "domain": "southcentralus1-1.pushnp.svc.ms"
-}, {
-  "domain": "playerserver.walkme.com"
-}, {
-  "domain": "app.powerbi.com"
-}, {
-  "domain": "edge-auth.api.brightcove.com"
-}, {
-  "domain": "www.google.ca"
-}, {
-  "domain": "pdx-col.eum-appdynamics.com"
-}, {
-  "domain": "copilot-telemetry.githubusercontent.com"
-}, {
-  "domain": "d.la2-c1-ia4.salesforceliveagent.com"
-}, {
-  "domain": "tr-ooc-acdc.office.com"
-}, {
-  "domain": "v1.pinimg.com"
-}, {
-  "domain": "tr-ooc-atm.office.com"
-}, {
-  "domain": "www.google.co.uk"
-}, {
-  "domain": "video-akpcw-cdn-spotify-com.akamaized.net"
-}, {
-  "domain": "mail-attachment.googleusercontent.com"
-}, {
-  "domain": "client-log.box.com"
-}, {
-  "domain": "aan.amazon.com"
-}, {
-  "domain": "thor.aesir.office.com"
-}, {
-  "domain": "incidents.diagnostics.office.com"
-}, {
-  "domain": "global.console.aws.amazon.com"
-}, {
-  "domain": "v.redd.it"
-}, {
-  "domain": "ci6.googleusercontent.com"
-}, {
-  "domain": "www.office.com"
-}, {
-  "domain": "static2.sharepointonline.com"
-}, {
-  "domain": "na2.docusign.net"
-}, {
-  "domain": "www.ups.com"
-}, {
-  "domain": "entitlement.diagnostics.office.com"
-}, {
-  "domain": "images-eu.ssl-images-amazon.com"
-}, {
-  "domain": "www.googlecloudcommunity.com"
-}, {
-  "domain": "telemetry.docusign.net"
-}, {
-  "domain": "snap.licdn.com"
-}, {
-  "domain": "tr-ooc-acdcatm.office.com"
-}, {
-  "domain": "notes-pa.clients6.google.com"
-}, {
-  "domain": "api-sr.amplitude.com"
-}, {
-  "domain": "driveactivity.clients6.google.com"
-}, {
-  "domain": "downloads.dell.com"
-}, {
-  "domain": "beacon.walmart.com"
-}, {
-  "domain": "scontent-ord5-2.xx.fbcdn.net"
-}, {
-  "domain": "www.etsy.com"
-}, {
-  "domain": "syncservice.protection.outlook.com"
-}, {
-  "domain": "aadcdn.msauthimages.net"
-}, {
-  "domain": "video-private-assets.canva.com"
-}, {
-  "domain": "tr-ofc-afdwac.office.com"
-}, {
-  "domain": "lo.v.liveperson.net"
-}, {
-  "domain": "tr-ofc-atm.office.com"
-}, {
-  "domain": "storm.lucid.app"
-}, {
-  "domain": "s-ring.msedge.net"
-}, {
-  "domain": "reminders-pa.clients6.google.com"
-}, {
-  "domain": "mcdp-chidc2.outbrain.com"
-}, {
-  "domain": "fast.trychameleon.com"
-}, {
-  "domain": "tr-ofc-mira.office.com"
-}, {
-  "domain": "tr-ofc-fs.office.com"
-}, {
-  "domain": "www.temu.com"
-}, {
-  "domain": "upload2.fp.measure.office.com"
-}, {
-  "domain": "messaging.lifecycle.office.com"
-}, {
-  "domain": "k-ring.msedge.net"
-}, {
-  "domain": "a-ring.msedge.net"
-}, {
-  "domain": "www.att.com"
-}, {
-  "domain": "scontent-atl3-1.xx.fbcdn.net"
-}, {
-  "domain": "dellupdater.dell.com"
-}, {
-  "domain": "ln-ring.msedge.net"
-}, {
-  "domain": "c-ring.msedge.net"
-}, {
-  "domain": "t-ring.msedge.net"
-}, {
-  "domain": "www.dailymail.co.uk"
-}, {
-  "domain": "b-ring.msedge.net"
-}, {
-  "domain": "scontent-lga3-1.xx.fbcdn.net"
-}, {
-  "domain": "static-ecst.licdn.com"
-}, {
-  "domain": "scontent-ord5-1.xx.fbcdn.net"
-}, {
-  "domain": "dual-s-ring.msedge.net"
-}, {
-  "domain": "support.office.com"
-}, {
-  "domain": "taskassist-pa.clients6.google.com"
-}, {
-  "domain": "assets.msn.com"
-}, {
-  "domain": "www.google.com"
-}, {
-  "domain": "col.eum-appdynamics.com"
-}, {
-  "domain": "ci3.googleusercontent.com"
-}, {
-  "domain": "img-s-msn-com.akamaized.net"
-}, {
-  "domain": "lh7-us.googleusercontent.com"
-}, {
-  "domain": "update.googleapis.com"
-}, {
-  "domain": "drive-thirdparty.googleusercontent.com"
-}, {
-  "domain": "lh5.googleusercontent.com"
-}, {
-  "domain": "fls-na.amazon.com"
-}, {
-  "domain": "southcentralus1-mediap.svc.ms"
-}, {
-  "domain": "sockjs-mt1.pusher.com"
-}, {
-  "domain": "edgeservices.bing.com"
-}, {
-  "domain": "cdn.optimizely.com"
-}, {
-  "domain": "api.segment.io"
-}, {
-  "domain": "bam-cell.nr-data.net"
-}, {
-  "domain": "ow1.res.office365.com"
-}, {
-  "domain": "static.licdn.com"
-}, {
-  "domain": "www.yammer.com"
-}, {
-  "domain": "app.hubspot.com"
-}, {
-  "domain": "va.v.liveperson.net"
-}, {
-  "domain": "in.appcenter.ms"
-}, {
-  "domain": "assets.adobedtm.com"
-}, {
-  "domain": "web.yammer.com"
-}, {
-  "domain": "r.lr-ingest.com"
-}, {
-  "domain": "metrics.brightcove.com"
-}, {
-  "domain": "static.whatsapp.net"
-}, {
-  "domain": "heapanalytics.com"
-}, {
-  "domain": "lh6.googleusercontent.com"
-}, {
-  "domain": "cdn.pendo.io"
-}, {
-  "domain": "lh4.googleusercontent.com"
-}, {
-  "domain": "gov-bam.nr-data.net"
-}, {
-  "domain": "forms.office.com"
-}, {
-  "domain": "telemetry.cell-0.us-east-1.prod.tangerinebox.console.aws.a2z.com"
-}, {
-  "domain": "photos.zillowstatic.com"
-}, {
-  "domain": "calendarsuggest.clients6.google.com"
-}, {
-  "domain": "cs.zg-api.com"
-}, {
-  "domain": "marketplace.anyclip.com"
-}, {
-  "domain": "maps.gstatic.com"
-}, {
-  "domain": "static.hotjar.com"
-}, {
-  "domain": "dms.licdn.com"
-}, {
-  "domain": "res.public.onecdn.static.microsoft"
-}, {
-  "domain": "api.twitter.com"
-}, {
-  "domain": "nleditor.osi.office.net"
-}, {
-  "domain": "js.monitor.azure.com"
-}, {
-  "domain": "clients2.googleusercontent.com"
-}, {
-  "domain": "logx.optimizely.com"
-}, {
-  "domain": "static.lightning.force.com"
-}, {
-  "domain": "a.b.cdn.console.awsstatic.com"
-}, {
-  "domain": "crl4.digicert.com"
-}, {
-  "domain": "esp-eu.aptrinsic.com"
-}, {
-  "domain": "cdn.fluidpreview.office.net"
-}, {
-  "domain": "www.coursera.org"
-}, {
-  "domain": "ecn.dev.virtualearth.net"
-}, {
-  "domain": "la-trc-events.taboola.com"
-}, {
-  "domain": "desktop.docker.com"
-}, {
-  "domain": "www.airbnb.com"
-}, {
-  "domain": "cdn.segment.com"
-}, {
-  "domain": "ecn-us.dev.virtualearth.net"
-}, {
-  "domain": "maps.a.forceusercontent.com"
-}, {
-  "domain": "region1.analytics.google.com"
-}, {
-  "domain": "ch-trc-events.taboola.com"
-}, {
-  "domain": "windows.msn.com"
-}, {
-  "domain": "events.gw.postman.com"
-}, {
-  "domain": "s3.amazonaws.com"
-}, {
-  "domain": "ingesteu.quantummetric.com"
-}, {
-  "domain": "qa.telemetry.tableausoftware.com"
-}, {
-  "domain": "scontent-iad3-1.xx.fbcdn.net"
-}, {
-  "domain": "airtable.com"
-}, {
-  "domain": "aax-us-east.amazon-adsystem.com"
-}, {
-  "domain": "rtbc-ue1.doubleverify.com"
-}, {
-  "domain": "api2.amplitude.com"
-}, {
-  "domain": "tpsc-video-ue.doubleverify.com"
-}, {
-  "domain": "weather.service.msn.com"
-}, {
-  "domain": "9073629.fls.doubleclick.net"
-}, {
-  "domain": "scontent-iad3-2.xx.fbcdn.net"
-}, {
-  "domain": "ssl.google-analytics.com"
-}, {
-  "domain": "static.chasecdn.com"
-}, {
-  "domain": "i.ebayimg.com"
-}, {
-  "domain": "vtrk.doubleverify.com"
-}, {
-  "domain": "http-intake.logs.datadoghq.com"
-}, {
-  "domain": "platform.linkedin.com"
-}, {
-  "domain": "au-script.dotmetrics.net"
-}, {
-  "domain": "events.bouncex.net"
-}, {
-  "domain": "drivesharefrontend-pa.clients6.google.com"
-}, {
-  "domain": "eastus1-1.pushnp.svc.ms"
-}, {
-  "domain": "fresnel.vimeocdn.com"
-}, {
-  "domain": "eastus1-0.pushnp.svc.ms"
-}, {
-  "domain": "app.mural.co"
-}, {
-  "domain": "vfq2nsli1v76fglgdl9puq0cd.litix.io"
-}, {
-  "domain": "rum-http-intake.logs.datadoghq.com"
-}, {
-  "domain": "fledge.us.criteo.com"
-}, {
-  "domain": "www.zillow.com"
-}, {
-  "domain": "csm.us.criteo.net"
-}, {
-  "domain": "dev.virtualearth.net"
-}, {
-  "domain": "ae.mmstat.com"
-}, {
-  "domain": "www.udemy.com"
-}, {
-  "domain": "pebed.dm-event.net"
-}, {
-  "domain": "www.zillowstatic.com"
-}, {
-  "domain": "www.foxnews.com"
-}, {
-  "domain": "script.hotjar.com"
-}, {
-  "domain": "sheets.clients6.google.com"
-}, {
-  "domain": "ping.looker.com"
-}, {
-  "domain": "c03.s3.indeed.com"
-}, {
-  "domain": "q.quora.com"
-}, {
-  "domain": "augmentation.osi.office.net"
-}, {
-  "domain": "www.citrix.com"
-}, {
-  "domain": "www.ebay.com"
-}, {
-  "domain": "cfl.dropboxstatic.com"
-}, {
-  "domain": "a57.foxnews.com"
-}, {
-  "domain": "webc2s.pubgw.yahoo.com"
-}, {
-  "domain": "document-storage.lucid.app"
-}, {
-  "domain": "document-export.canva.com"
-}, {
-  "domain": "rtb-us-east.linkedin.com"
-}, {
-  "domain": "tungsten-service.prod.na.adsqtungsten.a9.amazon.dev"
-}, {
-  "domain": "www.qualtrics.com"
-}, {
-  "domain": "crta.dailymail.co.uk"
-}, {
-  "domain": "www.ibm.com"
-}, {
-  "domain": "custom.cvent.com"
-}, {
-  "domain": "docucdn-a.akamaihd.net"
-}, {
-  "domain": "help.sap.com"
-}, {
-  "domain": "cdn-image-service.lucid.app"
-}, {
-  "domain": "udc.yahoo.com"
-}, {
-  "domain": "imgs.signifyd.com"
-}, {
-  "domain": "signaler-pa.clients6.google.com"
-}, {
-  "domain": "peoplestack-pa.clients6.google.com"
-}, {
-  "domain": "waa-pa.clients6.google.com"
-}, {
-  "domain": "espresso-pa.clients6.google.com"
-}, {
-  "domain": "www.linkedin.com"
-}, {
-  "domain": "addons-pa.clients6.google.com"
-}, {
-  "domain": "accounts.google.com"
-}, {
-  "domain": "console.cloud.google.com"
-}, {
-  "domain": "browser.events.data.msn.com"
-}, {
-  "domain": "storage.live.com"
-}, {
-  "domain": "static.xx.fbcdn.net"
-}, {
-  "domain": "people-pa.clients6.google.com"
-}, {
-  "domain": "data.pendo.io"
-}, {
-  "domain": "cloudconsole-pa.clients6.google.com"
-}, {
-  "domain": "peoplestackwebexperiments-pa.clients6.google.com"
-}, {
-  "domain": "clientservices.googleapis.com"
-}, {
-  "domain": "srtb.msn.com"
-}, {
-  "domain": "drivefrontend-pa.clients6.google.com"
-}, {
-  "domain": "api.us1.exponea.com"
-}, {
-  "domain": "app.smartsheet.com"
-}, {
-  "domain": "esp.aptrinsic.com"
-}, {
-  "domain": "syndication.twitter.com"
-}, {
-  "domain": "api.box.com"
-}, {
-  "domain": "api.atlassian.com"
-}, {
-  "domain": "media.licdn.com"
-}, {
-  "domain": "app.pendo.io"
-}, {
-  "domain": "rs.fullstory.com"
-}, {
-  "domain": "cdn-global.configcat.com"
-}, {
-  "domain": "px.ads.linkedin.com"
-}, {
-  "domain": "eastus1-mediap.svc.ms"
-}, {
-  "domain": "us-api.asm.skype.com"
-}, {
-  "domain": "yt3.ggpht.com"
-}, {
-  "domain": "ib.adnxs.com"
-}, {
-  "domain": "api.msn.com"
-}, {
-  "domain": "ntp.msn.com"
-}, {
-  "domain": "us-east-1.prod.pr.analytics.console.aws.a2z.com"
-}, {
-  "domain": "ingest.quantummetric.com"
-}, {
-  "domain": "rum.browser-intake-datadoghq.com"
-}, {
-  "domain": "web.whatsapp.com"
-}, {
-  "domain": "scontent.xx.fbcdn.net"
-}, {
-  "domain": "arc.msn.com"
-}, {
-  "domain": "contentsync.onenote.com"
-}, {
-  "domain": "calendar-pa.clients6.google.com"
-}, {
-  "domain": "cloudusersettings-pa.clients6.google.com"
-}, {
-  "domain": "colab.research.google.com"
-}, {
-  "domain": "team.atlassian.com"
-}, {
-  "domain": "miro.com"
-}, {
-  "domain": "tpsc-ue1.doubleverify.com"
-}, {
-  "domain": "ent-api.msn.com"
-}, {
-  "domain": "www.redditstatic.com"
-}, {
-  "domain": "siteintercept.qualtrics.com"
-}, {
-  "domain": "xp.atlassian.com"
-}, {
-  "domain": "stats.g.doubleclick.net"
-}, {
-  "domain": "ogads-pa.clients6.google.com"
-}, {
-  "domain": "data-feed.flightradar24.com"
-}, {
-  "domain": "outlook.cloud.microsoft"
-}, {
-  "domain": "gum.criteo.com"
-}, {
-  "domain": "teams.cloud.microsoft"
-}, {
-  "domain": "mail.yahoo.com"
-}, {
-  "domain": "fundingchoicesmessages.google.com"
-}, {
-  "domain": "dt.adsafeprotected.com"
-}, {
-  "domain": "cdn.vsassets.io"
-}, {
-  "domain": "api.media.atlassian.com"
-}, {
-  "domain": "www.msn.com"
-}, {
-  "domain": "gitlab.com"
-}, {
-  "domain": "c.msn.com"
-}, {
-  "domain": "whatfix.com"
-}, {
-  "domain": "telemetry.canva.com"
-}, {
-  "domain": "tpsc-uw1.doubleverify.com"
-}, {
-  "domain": "media2.giphy.com"
-}, {
-  "domain": "media3.giphy.com"
-}, {
-  "domain": "o55978.ingest.sentry.io"
-}, {
-  "domain": "c.bing.com"
-}, {
-  "domain": "prod-streaming-video-msn-com.akamaized.net"
-}, {
-  "domain": "media0.giphy.com"
-}, {
-  "domain": "media4.giphy.com"
-}, {
-  "domain": "cdn.whatfix.com"
-}, {
-  "domain": "www.instagram.com"
-}, {
-  "domain": "media1.giphy.com"
-}, {
-  "domain": "www.notion.so"
-}, {
-  "domain": "clients2.google.com"
-}, {
-  "domain": "scone-pa.clients6.google.com"
-}, {
-  "domain": "tasks-pa.clients6.google.com"
-}, {
-  "domain": "wss-primary.slack.com"
-}, {
-  "domain": "connect.facebook.net"
-}, {
-  "domain": "a.sfdcstatic.com"
-}, {
-  "domain": "media.canva.com"
-}, {
-  "domain": "events.newsroom.bi"
-}, {
-  "domain": "cdnjs.cloudflare.com"
-}, {
-  "domain": "api-js.mixpanel.com"
-}, {
-  "domain": "data.eu.pendo.io"
-}, {
-  "domain": "geo.yahoo.com"
-}, {
-  "domain": "mail-ads.google.com"
-}, {
-  "domain": "g.bing.com"
-}, {
-  "domain": "bifrost-https-v10.gw.postman.com"
-}, {
-  "domain": "analytics.twitter.com"
-}, {
-  "domain": "exp.notion.so"
-}, {
-  "domain": "secure.adnxs.com"
-}, {
-  "domain": "www.wrike.com"
-}, {
-  "domain": "www.nytimes.com"
-}, {
-  "domain": "www.united.com"
-}, {
-  "domain": "tse2.mm.bing.net"
-}, {
-  "domain": "basemaps.arcgis.com"
-}, {
-  "domain": "browser-intake-datadoghq.com"
-}, {
-  "domain": "tse4.mm.bing.net"
-}, {
-  "domain": "tse3.mm.bing.net"
-}, {
-  "domain": "geolocation.onetrust.com"
-}, {
-  "domain": "api.mixpanel.com"
-}, {
-  "domain": "script.crazyegg.com"
-}, {
-  "domain": "crl.verisign.com"
-}, {
-  "domain": "static.canva.com"
-}, {
-  "domain": "cdn.forms.office.net"
-}, {
-  "domain": "confluence-v1-1.prod.atl-paas.net"
-}, {
-  "domain": "apps.powerapps.com"
-}, {
-  "domain": "media-public.canva.com"
-}, {
-  "domain": "upload.wikimedia.org"
-}, {
-  "domain": "confluence-v1-3.prod.atl-paas.net"
-}, {
-  "domain": "static.foxnews.com"
-}, {
-  "domain": "confluence-v1-4.prod.atl-paas.net"
-}, {
-  "domain": "www.onenote.com"
-}, {
-  "domain": "imageproxy.us.criteo.net"
-}, {
-  "domain": "confluence-v1-2.prod.atl-paas.net"
-}, {
-  "domain": "tags.tiqcdn.com"
-}, {
-  "domain": "confluence-v1-0.prod.atl-paas.net"
-}, {
-  "domain": "static.cloud.coveo.com"
-}, {
-  "domain": "statics.teams.cdn.live.net"
-}, {
-  "domain": "h.online-metrix.net"
-}, {
-  "domain": "blobcomments-pa.clients6.google.com"
-}, {
-  "domain": "ssc.33across.com"
-}, {
-  "domain": "en.wikipedia.org"
-}, {
-  "domain": "rtb-us-west.linkedin.com"
-}, {
-  "domain": "i.dailymail.co.uk"
-}, {
-  "domain": "s.innovid.com"
-}, {
-  "domain": "data.privacy.ensighten.com"
-}, {
-  "domain": "res.cloudinary.com"
-}, {
-  "domain": "sb-ssl.google.com"
-}, {
-  "domain": "dl.boxcloud.com"
-}, {
-  "domain": "template.canva.com"
-}, {
-  "domain": "api.accuweather.com"
-}, {
-  "domain": "www.vrbo.com"
-}, {
-  "domain": "styles.redditmedia.com"
-}, {
-  "domain": "ei.monday.com"
-}, {
-  "domain": "chunk-composing.canva.com"
-}, {
-  "domain": "i.etsystatic.com"
-}, {
-  "domain": "async-px.dynamicyield.com"
-}, {
-  "domain": "a0.muscache.com"
-}, {
-  "domain": "ssp.disqus.com"
-}, {
-  "domain": "www.ubereats.com"
-}, {
-  "domain": "files.acrobat.com"
-}, {
-  "domain": "id.atlassian.com"
-}, {
-  "domain": "nexus.ensighten.com"
-}, {
-  "domain": "www.dianomi.com"
-}, {
-  "domain": "cdn.medallia.com"
-}, {
-  "domain": "js.arcgis.com"
-}, {
-  "domain": "cdn.jsdelivr.net"
-}, {
-  "domain": "cdn.oaistatic.com"
-}, {
-  "domain": "cdn3.forter.com"
-}, {
-  "domain": "appsgrowthpromo-pa.clients6.google.com"
-}, {
-  "domain": "cdn-2.matterport.com"
-}, {
-  "domain": "events.getpostman.com"
-}, {
-  "domain": "logs.browser-intake-datadoghq.com"
-}, {
-  "domain": "prd.jwpltx.com"
-}, {
-  "domain": "use.fontawesome.com"
-}, {
-  "domain": "cdn.onenote.net"
-}, {
-  "domain": "incoming.telemetry.mozilla.org"
-}, {
-  "domain": "font-public.canva.com"
-}, {
-  "domain": "a.et.nytimes.com"
-}, {
-  "domain": "services.arcgisonline.com"
-}, {
-  "domain": "simage4.pubmatic.com"
-}, {
-  "domain": "avatars.slack-edge.com"
-}, {
-  "domain": "t.indeed.com"
-}, {
-  "domain": "www.washingtonpost.com"
-}, {
-  "domain": "eum-orange-saas.instana.io"
-}, {
-  "domain": "rtbc-uw1.doubleverify.com"
-}, {
-  "domain": "trends.revcontent.com"
-}, {
-  "domain": "www.ft.com"
-}, {
-  "domain": "www.aa.com"
-}, {
-  "domain": "match.prod.bidr.io"
-}, {
-  "domain": "x.dlx.addthis.com"
-}, {
-  "domain": "c.travel-assets.com"
-}, {
-  "domain": "track4.aniview.com"
-}, {
-  "domain": "images.outbrainimg.com"
-}, {
-  "domain": "cdn-icons-png.flaticon.com"
-}, {
-  "domain": "wsjstream.wsj.net"
-}, {
-  "domain": "sp.vtex.com"
-}, {
-  "domain": "mcdp-sadc1.outbrain.com"
-}, {
-  "domain": "rl.quantummetric.com"
-}, {
-  "domain": "js.api.here.com"
-}, {
-  "domain": "videos-cloudfront-usp.jwpsrv.com"
-}, {
-  "domain": "api.feedback.us.pendo.io"
-}, {
-  "domain": "c.pub.network"
-}, {
-  "domain": "images.trvl-media.com"
-}, {
-  "domain": "www.wsj.com"
-}, {
-  "domain": "edge.fullstory.com"
-}, {
-  "domain": "cdn.contentful.com"
-}, {
-  "domain": "s2ssc.aniview.com"
-}, {
-  "domain": "mb.moatads.com"
-}, {
-  "domain": "static-cdn.spot.im"
-}, {
-  "domain": "network.bazaarvoice.com"
-}, {
-  "domain": "tracking.crazyegg.com"
-}, {
-  "domain": "fedex.digital.nuance.com"
-}, {
-  "domain": "clients.config.office.net"
-}, {
-  "domain": "lastpass.com"
-}, {
-  "domain": "c.clicktale.net"
-}, {
-  "domain": "rum-ingest.us1.signalfx.com"
-}, {
-  "domain": "session-replay.browser-intake-datadoghq.com"
-}, {
-  "domain": "mc.yandex.ru"
-}, {
-  "domain": "event.getblue.io"
-}, {
-  "domain": "c21lg-d.media.net"
-}, {
-  "domain": "www.bloomberg.com"
-}, {
-  "domain": "vidstat.taboola.com"
-}, {
-  "domain": "static01.nyt.com"
-}, {
-  "domain": "elb.the-ozone-project.com"
-}, {
-  "domain": "buy.tinypass.com"
-}, {
-  "domain": "www.delta.com"
-}, {
-  "domain": "pips.taboola.com"
-}, {
-  "domain": "cat.us5.us.criteo.com"
-}, {
-  "domain": "server.arcgisonline.com"
-}, {
-  "domain": "widget.intercom.io"
-}, {
-  "domain": "cdn0.forter.com"
-}, {
-  "domain": "t.pubmatic.com"
-}, {
-  "domain": "ocsp.comodoca.com"
-}, {
-  "domain": "w3-reporting.reddit.com"
-}, {
-  "domain": "ophan.theguardian.com"
-}, {
-  "domain": "api-cdn.yotpo.com"
-}, {
-  "domain": "img-prod-cms-rt-microsoft-com.akamaized.net"
-}, {
-  "domain": "www.indeed.com"
-}, {
-  "domain": "jssdks.mparticle.com"
-}, {
-  "domain": "www.whatsapp.com"
-}, {
-  "domain": "appsitemsuggest-pa.clients6.google.com"
-}, {
-  "domain": "ct.canva.com"
-}, {
-  "domain": "ads.us.criteo.com"
-}, {
-  "domain": "merchantpool1.linkedin.com"
-}, {
-  "domain": "chat.google.com"
-}, {
-  "domain": "docs.google.com"
-}, {
-  "domain": "mail.google.com"
-}, {
-  "domain": "bam.nr-data.net"
-}, {
-  "domain": "www.bing.com"
-}, {
-  "domain": "th.bing.com"
-}, {
-  "domain": "pagead2.googlesyndication.com"
+  "domain": "image.e-news.bmo.com"
 }, {
   "domain": "edgeapi.slack.com"
 }, {
-  "domain": "business.bing.com"
+  "domain": "qcweb.bcdtravel.com"
 }, {
-  "domain": "sdk.split.io"
+  "domain": "login.epm.cyberark.com"
 }, {
-  "domain": "drive.google.com"
+  "domain": "assets.ubiquity.co.nz"
 }, {
-  "domain": "googleads.g.doubleclick.net"
+  "domain": "updates.imanage.work"
 }, {
-  "domain": "a.slack-edge.com"
+  "domain": "discovery-us.freshservice.com"
 }, {
-  "domain": "calendar.google.com"
+  "domain": "pico.eset.com"
 }, {
-  "domain": "www.facebook.com"
+  "domain": "hapi.teamviewer.com"
 }, {
-  "domain": "slack.com"
+  "domain": "ens.rest.gti.trellix.com"
 }, {
-  "domain": "cloud.google.com"
+  "domain": "brazilsouth0-0.pushnp.svc.ms"
 }, {
-  "domain": "r.bing.com"
+  "domain": "www.hfw.com"
 }, {
-  "domain": "analytics.google.com"
+  "domain": "gbr-cosmic.loki.delve.office.com"
 }, {
-  "domain": "m.media-amazon.com"
+  "domain": "data.eb.us2.thousandeyes.com"
 }, {
-  "domain": "pubads.g.doubleclick.net"
+  "domain": "mobilemaps.googleapis.com"
 }, {
-  "domain": "m.google.com"
+  "domain": "c1.eb.us2.thousandeyes.com"
 }, {
-  "domain": "lh3.google.com"
+  "domain": "upload.box.com"
 }, {
-  "domain": "contacts.google.com"
+  "domain": "data.eb.eu1.thousandeyes.com"
 }, {
-  "domain": "files.slack.com"
+  "domain": "slackb.com"
 }, {
-  "domain": "ca.slack-edge.com"
+  "domain": "gz0.googleusercontent.com"
 }, {
-  "domain": "securepubads.g.doubleclick.net"
+  "domain": "analytics.krisp.ai"
 }, {
-  "domain": "clients3.google.com"
+  "domain": "c1.eb.eu1.thousandeyes.com"
 }, {
-  "domain": "lookerstudio.google.com"
+  "domain": "images.socialchorus.com"
 }, {
-  "domain": "bat.bing.com"
+  "domain": "dumpster.console.gotoassist.com"
 }, {
-  "domain": "documents.lucid.app"
+  "domain": "packagecloud.io"
+}, {
+  "domain": "us.bootstrap.endpoint.ingress.rapid7.com"
+}, {
+  "domain": "youtubei.googleapis.com"
+}, {
+  "domain": "www.virustotal.com"
+}, {
+  "domain": "centralindia0-0.pushnp.svc.ms"
+}, {
+  "domain": "peoplestack-pa.googleapis.com"
+}, {
+  "domain": "docs.microsoft.com"
+}, {
+  "domain": "marriottintl.my.salesforce.com"
+}, {
+  "domain": "sqs.us-east-1.amazonaws.com"
+}, {
+  "domain": "portal.sso.us-east-1.amazonaws.com"
+}, {
+  "domain": "centralindia1-mediap.svc.ms"
+}, {
+  "domain": "dynamodb.us-east-1.amazonaws.com"
+}, {
+  "domain": "t-au.xink.io"
+}, {
+  "domain": "app.pritunl.com"
+}, {
+  "domain": "japaneast0-0.pushnp.svc.ms"
+}, {
+  "domain": "japaneast0-3.pushnp.svc.ms"
+}, {
+  "domain": "www.microsoft.com"
+}, {
+  "domain": "japaneast0-2.pushnp.svc.ms"
+}, {
+  "domain": "japaneast0-1.pushnp.svc.ms"
+}, {
+  "domain": "logfiles.zoom.us"
+}, {
+  "domain": "gms.ahnlab.com"
+}, {
+  "domain": "uksouth0-0.pushnp.svc.ms"
+}, {
+  "domain": "ssm.us-east-1.amazonaws.com"
+}, {
+  "domain": "bigquery.googleapis.com"
+}, {
+  "domain": "inbox.google.com"
+}, {
+  "domain": "st2-v3-dc.splashtop.com"
+}, {
+  "domain": "api-us1.xbc.trendmicro.com"
+}, {
+  "domain": "esp-desktop.aptrinsic.com"
+}, {
+  "domain": "t61mgb5rmg.execute-api.us-east-1.amazonaws.com"
+}, {
+  "domain": "mail-attachment.googleusercontent.com"
+}, {
+  "domain": "japaneast1-mediap.svc.ms"
+}, {
+  "domain": "version.hybrid.api.here.com"
+}, {
+  "domain": "qagpublic.qg3.apps.qualys.com"
+}, {
+  "domain": "amcore-ens.rest.gti.trellix.com"
+}, {
+  "domain": "content.ivanti.com"
+}, {
+  "domain": "b-trouter-govaz.trouter.gov.teams.microsoft.us"
+}, {
+  "domain": "firebaseremoteconfigrealtime.googleapis.com"
+}, {
+  "domain": "api-india.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "s3-use1-epx-d-f1ev1-telemetry-dropbox.s3.amazonaws.com"
+}, {
+  "domain": "st-relay-v3-univ-srs-win-3724-g3.api.splashtop.com"
+}, {
+  "domain": "files.jra.services.jamfcloud.com"
+}, {
+  "domain": "st-v3-univ-srs-win-3724-g3.api.splashtop.com"
+}, {
+  "domain": "logs.us-east-1.amazonaws.com"
+}, {
+  "domain": "notifications-pa.googleapis.com"
+}, {
+  "domain": "a-trouter-govtx.trouter.gov.teams.microsoft.us"
+}, {
+  "domain": "oauthaccountmanager.googleapis.com"
+}, {
+  "domain": "cm-email-assets.s3.amazonaws.com"
+}, {
+  "domain": "b-trouter-govtx.trouter.gov.teams.microsoft.us"
+}, {
+  "domain": "a-trouter-govaz.trouter.gov.teams.microsoft.us"
+}, {
+  "domain": "www.zoom.com"
+}, {
+  "domain": "us.api.endpoint.ingress.rapid7.com"
+}, {
+  "domain": "login.mimecast.com"
+}, {
+  "domain": "components.factset.com"
+}, {
+  "domain": "resource-download.proofpoint.com"
+}, {
+  "domain": "fourseasons-fsho-images.s3.amazonaws.com"
+}, {
+  "domain": "pubsub.pubnub.com"
+}, {
+  "domain": "i-eu.xink.io"
+}, {
+  "domain": "lima-tpgateway3.factset.com"
+}, {
+  "domain": "www.mathworks.com"
+}, {
+  "domain": "crl.sectigo.com"
+}, {
+  "domain": "eu.knowbe4.com"
+}, {
+  "domain": "szshort.weixin.qq.com"
+}, {
+  "domain": "lima-tpgateway2.factset.com"
+}, {
+  "domain": "lyra-a.wbx2.com"
+}, {
+  "domain": "update.eset.com"
+}, {
+  "domain": "extshort.weixin.qq.com"
+}, {
+  "domain": "console.automox.com"
+}, {
+  "domain": "szextshort.weixin.qq.com"
+}, {
+  "domain": "support-connector-service.manage.trendmicro.com"
+}, {
+  "domain": "ai-in.wps.com"
+}, {
+  "domain": "otp.factset.com"
+}, {
+  "domain": "short.weixin.qq.com"
+}, {
+  "domain": "app.datadoghq.com"
+}, {
+  "domain": "in-drive.wps.com"
+}, {
+  "domain": "api.giphy.com"
+}, {
+  "domain": "in-account.wps.com"
+}, {
+  "domain": "datbit.rest.gti.trellix.com"
+}, {
+  "domain": "rtt.automox.com"
+}, {
+  "domain": "basemaps.arcgis.com"
+}, {
+  "domain": "cidian.youdao.com"
+}, {
+  "domain": "szminorshort.weixin.qq.com"
+}, {
+  "domain": "connect-ulastm.bentley.com"
+}, {
+  "domain": "minorshort.weixin.qq.com"
+}, {
+  "domain": "dispatcher.factset.com"
+}, {
+  "domain": "skyscraper.autodesk.com"
+}, {
+  "domain": "dynamodb.us-west-2.amazonaws.com"
+}, {
+  "domain": "api.automox.com"
+}, {
+  "domain": "westus31-mediap.svc.ms"
+}, {
+  "domain": "api.snyk.io"
+}, {
+  "domain": "tile.openstreetmap.org"
+}, {
+  "domain": "dl.acronis.com"
+}, {
+  "domain": "australiaeast0-0.pushnp.svc.ms"
+}, {
+  "domain": "services.arcgisonline.com"
+}, {
+  "domain": "gew4-spclient.spotify.com"
+}, {
+  "domain": "prod.telemetry.tableausoftware.com"
+}, {
+  "domain": "cdn.uci.officeapps.live.com"
+}, {
+  "domain": "dict.youdao.com"
+}, {
+  "domain": "stream.launchdarkly.com"
+}, {
+  "domain": "ark.zoom.us"
+}, {
+  "domain": "cdn.f5.com"
+}, {
+  "domain": "patchdb.manageengine.com"
+}, {
+  "domain": "api.prod.package-search.services.jetbrains.com"
+}, {
+  "domain": "dl.boxcloud.com"
+}, {
+  "domain": "westeurope1-mediap.svc.ms"
+}, {
+  "domain": "files-api-a.wbx2.com"
+}, {
+  "domain": "www.citrix.com"
+}, {
+  "domain": "oidc.us-east-1.amazonaws.com"
+}, {
+  "domain": "apc-cosmic.loki.delve.office.com"
+}, {
+  "domain": "hpia.hpcloud.hp.com"
+}, {
+  "domain": "northeurope0-2.pushnp.svc.ms"
+}, {
+  "domain": "kinesis.us-west-2.amazonaws.com"
+}, {
+  "domain": "northeurope0-1.pushnp.svc.ms"
 }, {
   "domain": "www.canva.com"
 }, {
-  "domain": "www.figma.com"
+  "domain": "s3.ap-southeast-2.amazonaws.com"
 }, {
-  "domain": "analytics.tiktok.com"
+  "domain": "northeurope0-0.pushnp.svc.ms"
 }, {
-  "domain": "app.slack.com"
+  "domain": "eur-cosmic.loki.delve.office.com"
 }, {
-  "domain": "outlook.live.com"
+  "domain": "cloud.uipath.com"
 }, {
-  "domain": "ad.doubleclick.net"
+  "domain": "gcs-eu-00002.content-storage-upload.googleapis.com"
 }, {
-  "domain": "td.doubleclick.net"
+  "domain": "www.arcgis.com"
 }, {
-  "domain": "flag.lab.amplitude.com"
+  "domain": "storage-thumbnails.bananatag.com"
 }, {
-  "domain": "bidder.criteo.com"
+  "domain": "accounts.cloud.com"
 }, {
-  "domain": "hbopenbid.pubmatic.com"
+  "domain": "northeurope1-mediap.svc.ms"
 }, {
-  "domain": "kh.google.com"
+  "domain": "westeurope0-2.pushnp.svc.ms"
 }, {
-  "domain": "x.trvdp.com"
+  "domain": "data.eb.thousandeyes.com"
 }, {
-  "domain": "yt4.ggpht.com"
+  "domain": "westeurope0-1.pushnp.svc.ms"
 }, {
-  "domain": "emoji.slack-edge.com"
+  "domain": "westeurope0-0.pushnp.svc.ms"
 }, {
-  "domain": "tr.snapchat.com"
+  "domain": "asana-user-private-us-east-1.s3.amazonaws.com"
 }, {
-  "domain": "ct.pinterest.com"
+  "domain": "gwevents.checkpoint.com"
 }, {
-  "domain": "btlr.sharethrough.com"
+  "domain": "package-search.services.jetbrains.com"
 }, {
-  "domain": "ogs.google.com"
+  "domain": "dl.teamviewer.com"
 }, {
-  "domain": "prebid-server.rubiconproject.com"
+  "domain": "datarouter.ol.epicgames.com"
 }, {
-  "domain": "px.moatads.com"
+  "domain": "www.office.com"
 }, {
-  "domain": "sb.scorecardresearch.com"
+  "domain": "c1.eb.thousandeyes.com"
 }, {
-  "domain": "udc-neb.kampyle.com"
+  "domain": "desktop.gonitro.com"
 }, {
-  "domain": "c.go-mpulse.net"
+  "domain": "149.154.167.223"
 }, {
-  "domain": "sites.google.com"
+  "domain": "gae2-spclient.spotify.com"
 }, {
-  "domain": "video.twimg.com"
+  "domain": "us-prod.asyncgw.teams.microsoft.com"
 }, {
-  "domain": "prg.smartadserver.com"
+  "domain": "xmppapi.zoom.us"
 }, {
-  "domain": "maps.google.com"
+  "domain": "s3.ca-central-1.amazonaws.com"
 }, {
-  "domain": "twitter.com"
+  "domain": "presence.teams.microsoft.com"
 }, {
-  "domain": "cf.bstatic.com"
+  "domain": "contactservice.zoom.us"
 }, {
-  "domain": "users.lucid.app"
+  "domain": "www3.zoom.us"
 }, {
-  "domain": "media.tenor.com"
+  "domain": "directory-search-k.wbx2.com"
 }, {
-  "domain": "tr6.snapchat.com"
+  "domain": "www.speedtest.net"
 }, {
-  "domain": "match.sharethrough.com"
+  "domain": "m.google.com"
 }, {
-  "domain": "a.nel.cloudflare.com"
+  "domain": "account.box.com"
 }, {
-  "domain": "htlb.casalemedia.com"
+  "domain": "149.154.167.50"
 }, {
-  "domain": "aax.amazon-adsystem.com"
+  "domain": "edge.icloud-content.com"
 }, {
-  "domain": "live.primis.tech"
+  "domain": "cloudconfig.jetbrains.com"
 }, {
-  "domain": "cdn.cookielaw.org"
+  "domain": "usersub-k.wbx2.com"
 }, {
-  "domain": "fastlane.rubiconproject.com"
+  "domain": "apheleia-k.wbx2.com"
 }, {
-  "domain": "ade.googlesyndication.com"
+  "domain": "149.154.167.151"
 }, {
-  "domain": "t.ssl.ak.dynamic.tiles.virtualearth.net"
+  "domain": "gew1-spclient.spotify.com"
 }, {
-  "domain": "dns.google"
+  "domain": "149.154.175.100"
 }, {
-  "domain": "www.googleadservices.com"
+  "domain": "productregsvc.wacom.com"
 }, {
-  "domain": "cdn.shopify.com"
+  "domain": "us.telemetry.zoom.us"
 }, {
-  "domain": "static.zdassets.com"
+  "domain": "gcs-eu-00002.content-storage-download.googleapis.com"
 }, {
-  "domain": "api.permutive.com"
+  "domain": "api.box.com"
 }, {
-  "domain": "scontent.cdninstagram.com"
+  "domain": "meeting-container-k.wbx2.com"
 }, {
-  "domain": "nym1-ib.adnxs.com"
+  "domain": "conv-k.wbx2.com"
 }, {
-  "domain": "static-assets.lucidchart.com"
+  "domain": "ipinfo.io"
 }, {
-  "domain": "ping.chartbeat.net"
+  "domain": "appconfig-svc.s3.us-west-2.amazonaws.com"
 }, {
-  "domain": "confluence-v1.prod.atl-paas.net"
+  "domain": "guc3-spclient.spotify.com"
 }, {
-  "domain": "ads.yieldmo.com"
+  "domain": "conv-a.wbx2.com"
 }, {
-  "domain": "rtb.openx.net"
+  "domain": "149.154.175.54"
 }, {
-  "domain": "translate.google.com"
+  "domain": "gcos.adobe.io"
 }, {
-  "domain": "default.exp-tas.com"
+  "domain": "149.154.175.53"
 }, {
-  "domain": "rtb-csync.smartadserver.com"
+  "domain": "graph.windows.net"
 }, {
-  "domain": "pbs.twimg.com"
+  "domain": "latm-noam.flightproxy.teams.microsoft.com"
 }, {
-  "domain": "cdn.flashtalking.com"
+  "domain": "www.nuget.org"
 }, {
-  "domain": "chat.openai.com"
+  "domain": "gue1-spclient.spotify.com"
 }, {
-  "domain": "eb2.3lift.com"
+  "domain": "149.154.175.55"
 }, {
-  "domain": "b.6sc.co"
+  "domain": "149.154.167.51"
 }, {
-  "domain": "i.pinimg.com"
+  "domain": "149.154.175.50"
 }, {
-  "domain": "trc.taboola.com"
+  "domain": "index-cdn.jetbrains.com"
 }, {
-  "domain": "tlx.3lift.com"
+  "domain": "southcentralus1-mediap.svc.ms"
 }, {
-  "domain": "prebid.media.net"
+  "domain": "drafts-a.wbx2.com"
 }, {
-  "domain": "ads.pubmatic.com"
+  "domain": "inference.codeium.com"
 }, {
-  "domain": "drive.fife.usercontent.google.com"
+  "domain": "reminder-a.wbx2.com"
 }, {
-  "domain": "clients1.google.com"
+  "domain": "training.knowbe4.com"
 }, {
-  "domain": "tpc.googlesyndication.com"
+  "domain": "pus6-collabhubrtcsc.officeapps.live.com"
 }, {
-  "domain": "github.githubassets.com"
+  "domain": "nam-cosmic.loki.delve.office.com"
 }, {
-  "domain": "metrics-fe-na1.hubspot.com"
+  "domain": "i.xink.io"
 }, {
-  "domain": "prebid.cootlogix.com"
+  "domain": "149.154.167.222"
 }, {
-  "domain": "match.adsrvr.org"
+  "domain": "chat.google.com"
 }, {
-  "domain": "script.google.com"
+  "domain": "download.teamviewer.com"
 }, {
-  "domain": "iceberg.lucid.app"
+  "domain": "janus-a.wbx2.com"
 }, {
-  "domain": "resources.digital-cloud.medallia.com"
+  "domain": "apheleia-a.wbx2.com"
 }, {
-  "domain": "www.reddit.com"
+  "domain": "usersub-a.wbx2.com"
 }, {
-  "domain": "static.ads-twitter.com"
+  "domain": "repo.maven.apache.org"
 }, {
-  "domain": "cdn.taboola.com"
+  "domain": "rss.msn.com"
 }, {
-  "domain": "pixel.tapad.com"
+  "domain": "play.googleapis.com"
 }, {
-  "domain": "ssp-sync.criteo.com"
+  "domain": "sadownload.mcafee.com"
 }, {
-  "domain": "g2.gumgum.com"
+  "domain": "bam.nr-data.net"
 }, {
-  "domain": "trello.com"
+  "domain": "doh.cox.net"
 }, {
-  "domain": "s.amazon-adsystem.com"
+  "domain": "streetviewpixels-pa.googleapis.com"
 }, {
-  "domain": "cdn.doubleverify.com"
+  "domain": "ovs-shopwindow-server.wps.com"
 }, {
-  "domain": "www.expedia.com"
+  "domain": "locus-b.wbx2.com"
 }, {
-  "domain": "images.taboola.com"
+  "domain": "gitlab.com"
 }, {
-  "domain": "tps.doubleverify.com"
+  "domain": "pagead2.googlesyndication.com"
 }, {
-  "domain": "r.clarity.ms"
+  "domain": "api.silica-prod01.io.lens.poly.com"
 }, {
-  "domain": "cm.g.doubleclick.net"
+  "domain": "pkgs.dev.azure.com"
 }, {
-  "domain": "sync.outbrain.com"
+  "domain": "eastus0-2.pushnp.svc.ms"
 }, {
-  "domain": "www.fedex.com"
+  "domain": "southcentralus0-3.pushnp.svc.ms"
 }, {
-  "domain": "dash-enc-c.udemycdn.com"
+  "domain": "locus-k.wbx2.com"
 }, {
-  "domain": "consent.trustarc.com"
+  "domain": "eastus0-3.pushnp.svc.ms"
 }, {
-  "domain": "abs.twimg.com"
+  "domain": "southcentralus0-0.pushnp.svc.ms"
 }, {
-  "domain": "cas.avalon.perfdrive.com"
+  "domain": "southcentralus0-1.pushnp.svc.ms"
 }, {
-  "domain": "s3-alpha-sig.figma.com"
+  "domain": "southcentralus0-2.pushnp.svc.ms"
 }, {
-  "domain": "s.seedtag.com"
+  "domain": "nws.zoom.us"
 }, {
-  "domain": "dis.criteo.com"
+  "domain": "p19.zdusercontent.com"
 }, {
-  "domain": "unpkg.com"
+  "domain": "eastus0-0.pushnp.svc.ms"
 }, {
-  "domain": "ab.chatgpt.com"
+  "domain": "server.codeium.com"
 }, {
-  "domain": "www.booking.com"
+  "domain": "eastus0-1.pushnp.svc.ms"
 }, {
-  "domain": "chatgpt.com"
-}, {
-  "domain": "id5-sync.com"
-}, {
-  "domain": "image8.pubmatic.com"
-}, {
-  "domain": "dai.google.com"
-}, {
-  "domain": "prebid.a-mo.net"
-}, {
-  "domain": "a.tribalfusion.com"
-}, {
-  "domain": "measurement-api.criteo.com"
-}, {
-  "domain": "onetag-sys.com"
-}, {
-  "domain": "photos.google.com"
-}, {
-  "domain": "ap.lijit.com"
-}, {
-  "domain": "a1.api.bbc.co.uk"
-}, {
-  "domain": "t.co"
-}, {
-  "domain": "www.pinterest.com"
-}, {
-  "domain": "global.telemetry.insights.video.a2z.com"
-}, {
-  "domain": "simage2.pubmatic.com"
-}, {
-  "domain": "tse1.mm.bing.net"
-}, {
-  "domain": "shb.richaudience.com"
-}, {
-  "domain": "t.ssl.ak.tiles.virtualearth.net"
-}, {
-  "domain": "static.cdninstagram.com"
-}, {
-  "domain": "ssc-cms.33across.com"
-}, {
-  "domain": "i5.walmartimages.com"
-}, {
-  "domain": "pbs.nextmillmedia.com"
-}, {
-  "domain": "track.hubspot.com"
-}, {
-  "domain": "x.bidswitch.net"
-}, {
-  "domain": "b1sync.zemanta.com"
-}, {
-  "domain": "ssbsync.smartadserver.com"
-}, {
-  "domain": "static.doubleclick.net"
-}, {
-  "domain": "pixel.adsafeprotected.com"
-}, {
-  "domain": "contextual.media.net"
-}, {
-  "domain": "targeting.unrulymedia.com"
-}, {
-  "domain": "www.clarity.ms"
-}, {
-  "domain": "ocsp.sectigo.com"
-}, {
-  "domain": "dev.visualwebsiteoptimizer.com"
-}, {
-  "domain": "adservice.google.com"
-}, {
-  "domain": "secure.gravatar.com"
-}, {
-  "domain": "api.lab.amplitude.com"
-}, {
-  "domain": "trc-events.taboola.com"
-}, {
-  "domain": "platform.twitter.com"
-}, {
-  "domain": "servedby.flashtalking.com"
-}, {
-  "domain": "bam.eu01.nr-data.net"
-}, {
-  "domain": "sslwidget.criteo.com"
-}, {
-  "domain": "stat.flashtalking.com"
-}, {
-  "domain": "img.kwcdn.com"
-}, {
-  "domain": "us.creativecdn.com"
-}, {
-  "domain": "api.btloader.com"
-}, {
-  "domain": "s.yimg.com"
-}, {
-  "domain": "s.pinimg.com"
-}, {
-  "domain": "um.simpli.fi"
-}, {
-  "domain": "ads.stickyadstv.com"
-}, {
-  "domain": "api-2-0.spot.im"
-}, {
-  "domain": "z.clarity.ms"
-}, {
-  "domain": "w3-reporting-nel.reddit.com"
-}, {
-  "domain": "track1.aniview.com"
-}, {
-  "domain": "choices.trustarc.com"
-}, {
-  "domain": "www2.bing.com"
-}, {
-  "domain": "alb.reddit.com"
-}, {
-  "domain": "challenges.cloudflare.com"
-}, {
-  "domain": "frog.wix.com"
-}, {
-  "domain": "edge.adobedc.net"
-}, {
-  "domain": "sync.taboola.com"
-}, {
-  "domain": "api-edge.cognitive.microsofttranslator.com"
+  "domain": "api-aust.flightproxy.teams.microsoft.com"
 }, {
   "domain": "api.mapbox.com"
 }, {
-  "domain": "prebid.smilewanted.com"
+  "domain": "api.atlassian.com"
 }, {
-  "domain": "x.clarity.ms"
+  "domain": "api.bitbucket.org"
 }, {
-  "domain": "csm.us5.us.criteo.net"
+  "domain": "doh-01.spectrum.com"
 }, {
-  "domain": "admin.google.com"
+  "domain": "doh-02.spectrum.com"
 }, {
-  "domain": "st.pubmatic.com"
+  "domain": "unleash.codeium.com"
 }, {
-  "domain": "pixel-sync.sitescout.com"
+  "domain": "eastus1-mediap.svc.ms"
 }, {
-  "domain": "t.clarity.ms"
+  "domain": "in.grammarly.com"
 }, {
-  "domain": "b.sharethrough.com"
+  "domain": "cdn.vsassets.io"
 }, {
-  "domain": "cdn.sstatic.net"
+  "domain": "149.154.167.92"
 }, {
-  "domain": "sync.srv.stackadapt.com"
+  "domain": "assets.cloud.techsmith.com"
 }, {
-  "domain": "auth.split.io"
+  "domain": "gcs-us-00002.content-storage-download.googleapis.com"
 }, {
-  "domain": "insight.adsrvr.org"
+  "domain": "calendar-a.wbx2.com"
 }, {
-  "domain": "p.clarity.ms"
+  "domain": "s3.eu-west-1.amazonaws.com"
 }, {
-  "domain": "v.clarity.ms"
+  "domain": "res-1.cdn.office.net"
 }, {
-  "domain": "apex.go.sonobi.com"
+  "domain": "149.154.167.91"
 }, {
-  "domain": "a.teads.tv"
+  "domain": "firebaselogging-pa.googleapis.com"
 }, {
-  "domain": "e3.adpushup.com"
+  "domain": "pub-ent-auea-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sync.1rx.io"
+  "domain": "raindrop-a.wbx2.com"
 }, {
-  "domain": "cdn.ampproject.org"
+  "domain": "pub-ent-ince-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "lax1-ib.adnxs.com"
+  "domain": "www.yammer.com"
 }, {
-  "domain": "c.amazon-adsystem.com"
+  "domain": "bitbucket.org"
 }, {
-  "domain": "apps.bazaarvoice.com"
+  "domain": "dev.azure.com"
 }, {
-  "domain": "d.adroll.com"
+  "domain": "pub-ent-ince-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "image6.pubmatic.com"
+  "domain": "pub-ent-auea-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "www.dropbox.com"
+  "domain": "pub-ent-ince-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "workspace.google.com"
+  "domain": "eucattachment.freshdesk.com"
 }, {
-  "domain": "network-a.bazaarvoice.com"
+  "domain": "pub-ent-ince-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "cdn01.boxcdn.net"
+  "domain": "pub-ent-ince-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ag.innovid.com"
+  "domain": "pub-ent-auea-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "grid.bidswitch.net"
+  "domain": "management.azure.com"
 }, {
-  "domain": "enduser.adsrvr.org"
+  "domain": "pub-ent-ince-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "capi.connatix.com"
+  "domain": "app.smartsheet.com"
 }, {
-  "domain": "static.tacdn.com"
+  "domain": "pub-ent-jpea-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ad-delivery.net"
+  "domain": "csp.microsoft.com"
 }, {
-  "domain": "ups.analytics.yahoo.com"
+  "domain": "dl-debug.dropbox.com"
 }, {
-  "domain": "ad-events.flashtalking.com"
+  "domain": "pub-ent-jpea-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "services.bingapis.com"
+  "domain": "pub-ent-auea-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "mv.outbrain.com"
+  "domain": "pub-ent-jpea-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "video.primis.tech"
+  "domain": "pub-ent-auea-00-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "www.gravatar.com"
+  "domain": "pub-ent-auea-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "slack-imgs.com"
+  "domain": "pub-ent-jpea-03-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "usersync.gumgum.com"
+  "domain": "pub-ent-jpwe-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "protected-by.clarium.io"
+  "domain": "pub-ent-jpwe-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ae01.alicdn.com"
+  "domain": "pub-ent-auea-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "idsync.rlcdn.com"
+  "domain": "pub-ent-krce-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "pixel.rubiconproject.com"
+  "domain": "pub-ent-jpwe-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "static.criteo.net"
+  "domain": "pub-ent-jpwe-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "rtb0.doubleverify.com"
+  "domain": "pub-ent-auea-02-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "w.clarity.ms"
+  "domain": "pub-ent-jpwe-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "image2.pubmatic.com"
+  "domain": "pub-ent-auea-03-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ichef.bbci.co.uk"
+  "domain": "pub-ent-jpea-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "cdn.jwplayer.com"
+  "domain": "ipagave.azurewebsites.net"
 }, {
-  "domain": "s0.2mdn.net"
+  "domain": "pub-ent-jpwe-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sydney.bing.com"
+  "domain": "pub-ent-krce-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "api.livechatinc.com"
+  "domain": "pub-ent-ince-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "resources.digital-cloud-west.medallia.com"
+  "domain": "googleads.g.doubleclick.net"
 }, {
-  "domain": "us-u.openx.net"
+  "domain": "pub-ent-auea-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "widgets.outbrain.com"
+  "domain": "sync.opera.com"
 }, {
-  "domain": "trkn.us"
+  "domain": "photos.adobe.io"
 }, {
-  "domain": "platform-lookaside.fbsbx.com"
+  "domain": "pub-ent-ince-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sessions.bugsnag.com"
+  "domain": "asyncim.zoom.us"
 }, {
-  "domain": "c2shb.pubgw.yahoo.com"
+  "domain": "pub-ent-jpea-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ads.servenobid.com"
+  "domain": "pub-ent-jpwe-02-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "pbjs.e-planning.net"
+  "domain": "pub-ent-krce-02-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "cdntestfeedback.adpushup.com"
+  "domain": "pub-ent-krce-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "hblg.media.net"
+  "domain": "pub-ent-jpea-02-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "spl.zeotap.com"
+  "domain": "pub-ent-jpwe-03-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "stags.bluekai.com"
+  "domain": "pub-ent-jpwe-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sync-t1.taboola.com"
+  "domain": "pub-ent-jpwe-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "lucid.app"
+  "domain": "assets-eur.mkt.dynamics.com"
 }, {
-  "domain": "sync.go.sonobi.com"
+  "domain": "pub-ent-krce-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "bid.g.doubleclick.net"
+  "domain": "people.googleapis.com"
 }, {
-  "domain": "world.ces.microsoftcloud.com"
+  "domain": "pub-ent-krce-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "pr-bh.ybp.yahoo.com"
+  "domain": "pub-ent-ince-02-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sp.analytics.yahoo.com"
+  "domain": "pub-ent-jpea-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "nebula-cdn.kampyle.com"
+  "domain": "pub-ent-ince-03-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "image4.pubmatic.com"
+  "domain": "pub-ent-krce-03-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ssum-sec.casalemedia.com"
+  "domain": "pub-ent-krce-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "krk2.kargo.com"
+  "domain": "proxy.business.githubcopilot.com"
 }, {
-  "domain": "trace.mediago.io"
+  "domain": "pub-ent-krce-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "beacon.taboola.com"
+  "domain": "trouter2-azsc-euno-1-a.trouter.teams.microsoft.com"
 }, {
-  "domain": "ocsp.globalsign.com"
+  "domain": "t.yesware.com"
 }, {
-  "domain": "c.4dex.io"
+  "domain": "pub-ent-jpea-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "c.contentsquare.net"
+  "domain": "searchapp.zoom.us"
 }, {
-  "domain": "pub.doubleverify.com"
+  "domain": "pub-ent-jpea-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "hb.yellowblue.io"
+  "domain": "pub-ent-krce-00-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "events-ssc.33across.com"
+  "domain": "pub-ent-krce-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "sync.richaudience.com"
+  "domain": "oauth2.googleapis.com"
 }, {
-  "domain": "id.hadron.ad.gt"
+  "domain": "pub-ent-euwe-14-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ocsp2.globalsign.com"
+  "domain": "pheecws.foxit.com"
 }, {
-  "domain": "images.archive-digger.com"
+  "domain": "pub-ent-dewc-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "in.treasuredata.com"
+  "domain": "pub-ent-euwe-18-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "usr.undertone.com"
+  "domain": "pub-ent-dewc-13-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "static.files.bbci.co.uk"
+  "domain": "pub-ent-euno-13-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "edge-chat.facebook.com"
+  "domain": "pub-ent-dewc-12-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "app.box.com"
+  "domain": "pub-ent-dewc-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "de.tynt.com"
+  "domain": "appsforoffice.microsoft.com"
 }, {
-  "domain": "abs-0.twimg.com"
+  "domain": "browser.pipe.aria.microsoft.com"
 }, {
-  "domain": "hls-c.udemycdn.com"
+  "domain": "pub-ent-euno-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "groups.google.com"
+  "domain": "pub-ent-euwe-08-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "e.dlx.addthis.com"
+  "domain": "pub-ent-euwe-11-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "u.openx.net"
+  "domain": "pub-ent-euno-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "display.bidder.taboola.com"
+  "domain": "pub-ent-uswe-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "learn.microsoft.com"
+}, {
+  "domain": "telemetry.business.githubcopilot.com"
+}, {
+  "domain": "pub-ent-dewc-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "teams.events.data.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "api.business.githubcopilot.com"
+}, {
+  "domain": "pub-ent-euwe-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-19-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "developer.api.autodesk.com"
+}, {
+  "domain": "pub-ent-euwe-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-17-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "westeuroper-notifyp.svc.ms"
+}, {
+  "domain": "pub-ent-uswe-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-00-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-00-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-00-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-18-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-00-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usce-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "cdn.sanity.io"
+}, {
+  "domain": "client.teamviewer.com"
+}, {
+  "domain": "pub-ent-usea2-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usce-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-18-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "149.154.167.41"
+}, {
+  "domain": "pub-ent-sece-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "api.articulate.com"
+}, {
+  "domain": "pub-ent-usnc-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-17-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "static.deepl.com"
+}, {
+  "domain": "pub-ent-usea2-18-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-18-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "kinesis.us-east-1.amazonaws.com"
+}, {
+  "domain": "pub-ent-ussc-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euno-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-14-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-12-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "agave.myanalytics.cdn.office.net"
+}, {
+  "domain": "pub-ent-ussc-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-13-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-plce-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-01-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "api.taboola.com"
+}, {
+  "domain": "pub-ent-usea-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-17-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea2-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-05-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-10-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-dewc-07-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-ussc-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "api.genuine.autodesk.com"
+}, {
+  "domain": "attester.gateway.icloud.com"
+}, {
+  "domain": "pub-ent-usea-17-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usnc-17-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-euwe-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-09-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "zoom.us"
+}, {
+  "domain": "pub-ent-uswe-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-04-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "update.code.visualstudio.com"
+}, {
+  "domain": "pub-ent-usea-02-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-usea-11-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-uswe-16-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "lightstep.kaizen.nvidia.com"
+}, {
+  "domain": "pub-ent-usea-03-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "settings-service-a.wbx2.com"
+}, {
+  "domain": "pub-ent-uswe-06-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pau2-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "rte.svc.www.evernote.com"
+}, {
+  "domain": "pub-ent-ussc-15-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "pub-ent-sece-08-t.trouter.teams.microsoft.com"
+}, {
+  "domain": "r3-api.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "apidata.googleusercontent.com"
+}, {
+  "domain": "pub-ent-ussc-05-t.trouter.teams.microsoft.com"
 }, {
   "domain": "mt0.google.com"
 }, {
-  "domain": "btloader.com"
+  "domain": "pub-ent-usea-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "google.com"
+  "domain": "pub-ent-usea-13-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "report2.hb.brainlyads.com"
+  "domain": "pub-ent-sece-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "api.hubspot.com"
+  "domain": "pub-ent-sece-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "c1.adform.net"
+  "domain": "pub-ent-sece-04-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "prebid.adnxs.com"
+  "domain": "uci.edog.cdn.office.net"
 }, {
-  "domain": "googleads4.g.doubleclick.net"
+  "domain": "pub-ent-usea-18-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "pixel.quantserve.com"
+  "domain": "pub-ent-uswe-10-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "rtb.primis.tech"
+  "domain": "ping.citrix.com"
 }, {
-  "domain": "accounts.livechatinc.com"
+  "domain": "media1.giphy.com"
 }, {
-  "domain": "dynamic-media-cdn.tripadvisor.com"
+  "domain": "pub-ent-uswe-11-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "t.adx.opera.com"
+  "domain": "pub-ent-uswe-09-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "ce.lijit.com"
+  "domain": "pub-ent-sece-05-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "www.marriott.com"
+  "domain": "pub-ent-uswe-17-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "visitor.omnitagjs.com"
+  "domain": "pub-ent-sece-07-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "bh.contextweb.com"
+  "domain": "pub-ent-uswe-01-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "static.figma.com"
+  "domain": "media3.giphy.com"
 }, {
-  "domain": "streaming.split.io"
+  "domain": "jabraxpressonlineprdstor.blob.core.windows.net"
 }, {
-  "domain": "track.celtra.com"
+  "domain": "pub-ent-sece-06-t.trouter.teams.microsoft.com"
 }, {
-  "domain": "m.adnxs.com"
+  "domain": "media4.giphy.com"
 }, {
-  "domain": "sync-criteo.ads.yieldmo.com"
+  "domain": "roaming-eu.officeapps.live.com"
 }, {
-  "domain": "bing.com"
+  "domain": "arc-emea.msn.com"
 }, {
-  "domain": "marketplace.canva.com"
+  "domain": "media2.giphy.com"
 }, {
-  "domain": "www.bingapis.com"
+  "domain": "khmdb.google.com"
 }, {
-  "domain": "i.liadm.com"
+  "domain": "media0.giphy.com"
 }, {
-  "domain": "unified.adsafeprotected.com"
+  "domain": "app.asana.com"
 }, {
-  "domain": "ad.360yield.com"
+  "domain": "earth.googleusercontent.com"
 }, {
-  "domain": "live.rezync.com"
+  "domain": "shepherd.ff.avast.com"
 }, {
-  "domain": "notify.bugsnag.com"
+  "domain": "kh.google.com"
 }, {
-  "domain": "cs.media.net"
+  "domain": "api.evernote.com"
 }, {
-  "domain": "uk-script.dotmetrics.net"
+  "domain": "events.launchdarkly.com"
 }, {
-  "domain": "static.klaviyo.com"
+  "domain": "client-log.box.com"
 }, {
-  "domain": "creativecdn.com"
+  "domain": "acp-ss-ew1.adobe.io"
 }, {
-  "domain": "tags.srv.stackadapt.com"
+  "domain": "connectivitycheck.gstatic.com"
 }, {
-  "domain": "ps.eyeota.net"
+  "domain": "gcs-us-00003.content-storage-download.googleapis.com"
 }, {
-  "domain": "mp.4dex.io"
+  "domain": "t1.ssl.ak.tiles.virtualearth.net"
 }, {
-  "domain": "img.riskified.com"
+  "domain": "api.pinterest.com"
 }, {
-  "domain": "s.tribalfusion.com"
+  "domain": "scontent.xx.fbcdn.net"
 }, {
-  "domain": "ml314.com"
+  "domain": "res.cdn.office.net"
 }, {
-  "domain": "gist-queue-consumer-api.cloud.gist.build"
+  "domain": "content.govdelivery.com"
 }, {
-  "domain": "api.sprig.com"
+  "domain": "pbr1-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "bid.contextweb.com"
+  "domain": "t2.ssl.ak.tiles.virtualearth.net"
 }, {
-  "domain": "y.clarity.ms"
+  "domain": "aadcdn.msauth.net"
 }, {
-  "domain": "www.recaptcha.net"
+  "domain": "www2.deepl.com"
 }, {
-  "domain": "static.hsappstatic.net"
+  "domain": "directory-search-r.wbx2.com"
 }, {
-  "domain": "hbx.media.net"
+  "domain": "abtest-api.wps.com"
 }, {
-  "domain": "ids.ad.gt"
+  "domain": "appdownload.deepl.com"
 }, {
-  "domain": "ara.paa-reporting-advertising.amazon"
+  "domain": "cdn07.boxcdn.net"
 }, {
-  "domain": "p11.techlab-cdn.com"
+  "domain": "params.wps.com"
 }, {
-  "domain": "i.stack.imgur.com"
+  "domain": "pypi.org"
 }, {
-  "domain": "cs.admanmedia.com"
+  "domain": "ocsp.sectigo.com"
 }, {
-  "domain": "sync.inmobi.com"
+  "domain": "s3.us-east-1.amazonaws.com"
 }, {
-  "domain": "aax-eu.amazon-adsystem.com"
+  "domain": "weather.partners.msn.com"
 }, {
-  "domain": "www.samsung.com"
+  "domain": "www.evernote.com"
 }, {
-  "domain": "s-static.innovid.com"
+  "domain": "locus-a.wbx2.com"
 }, {
-  "domain": "accommodations.booking.com"
+  "domain": "avatar-a.wbx2.com"
 }, {
-  "domain": "monorail-edge.shopifysvc.com"
+  "domain": "download.amd.com"
 }, {
-  "domain": "brain.foresee.com"
+  "domain": "account.jetbrains.com"
 }, {
-  "domain": "medium.com"
+  "domain": "directory-search-a.wbx2.com"
 }, {
-  "domain": "tr.outbrain.com"
+  "domain": "encryption-a.wbx2.com"
 }, {
-  "domain": "images.ctfassets.net"
+  "domain": "pin1-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "api.userway.org"
+  "domain": "weather.service.msn.com"
 }, {
-  "domain": "stackoverflow.com"
+  "domain": "platform-cs-jpn3.adobe.io"
 }, {
-  "domain": "b99.yahoo.co.jp"
+  "domain": "sentry.io"
 }, {
-  "domain": "mab.chartbeat.com"
+  "domain": "calendar-r.wbx2.com"
 }, {
-  "domain": "assets.bwbx.io"
+  "domain": "s3-eu-west-1.amazonaws.com"
 }, {
-  "domain": "csync.loopme.me"
+  "domain": "wdm-a.wbx2.com"
 }, {
-  "domain": "s3-alpha.figma.com"
+  "domain": "custom.cvent.com"
 }, {
-  "domain": "storage.cloud.google.com"
+  "domain": "login5.spotify.com"
 }, {
-  "domain": "prebid-a.rubiconproject.com"
+  "domain": "graph.facebook.com"
 }, {
-  "domain": "d9.flashtalking.com"
+  "domain": "calendar.google.com"
 }, {
-  "domain": "app.link"
+  "domain": "doh.xfinity.com"
 }, {
-  "domain": "dnacdn.net"
+  "domain": "meeting-container-a.wbx2.com"
 }, {
-  "domain": "event.lucid.app"
+  "domain": "uci.cdn.office.net"
 }, {
-  "domain": "embed-cloudfront.wistia.com"
+  "domain": "usersub-r.wbx2.com"
 }, {
-  "domain": "rt.marphezis.com"
+  "domain": "raindrop-r.wbx2.com"
 }, {
-  "domain": "p1.parsely.com"
+  "domain": "statics.teams.cdn.office.net"
 }, {
-  "domain": "aa.agkn.com"
+  "domain": "apheleia-r.wbx2.com"
 }, {
-  "domain": "ow.pubmatic.com"
+  "domain": "settings-service-r.wbx2.com"
 }, {
-  "domain": "static.adsafeprotected.com"
+  "domain": "ncc.avast.com"
 }, {
-  "domain": "www.tripadvisor.com"
+  "domain": "acp-ss-an1.adobe.io"
 }, {
-  "domain": "cds.taboola.com"
+  "domain": "apresolve.spotify.com"
 }, {
-  "domain": "trace.popin.cc"
+  "domain": "locus-r.wbx2.com"
 }, {
-  "domain": "p.yotpo.com"
+  "domain": "slack.com"
 }, {
-  "domain": "comcluster.cxense.com"
+  "domain": "maps.googleapis.com"
 }, {
-  "domain": "www.hotels.com"
+  "domain": "spclient.wg.spotify.com"
 }, {
-  "domain": "cf-hls-media.sndcdn.com"
+  "domain": "proxy.individual.githubcopilot.com"
 }, {
-  "domain": "ws.zoominfo.com"
+  "domain": "resources.jetbrains.com"
 }, {
-  "domain": "connect-cdn.atl-paas.net"
+  "domain": "conv-r.wbx2.com"
 }, {
-  "domain": "api.bazaarvoice.com"
+  "domain": "firehose.us-east-1.amazonaws.com"
 }, {
-  "domain": "cdn77.api.userway.org"
+  "domain": "eastus2r-notifyp.svc.ms"
 }, {
-  "domain": "ka-p.fontawesome.com"
+  "domain": "www2.ati.com"
 }, {
-  "domain": "sc-static.net"
+  "domain": "pus3-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "api2.branch.io"
+  "domain": "optimizationguide-pa.googleapis.com"
 }, {
-  "domain": "libs.outbrain.com"
+  "domain": "desktop.docker.com"
 }, {
-  "domain": "i1.sndcdn.com"
+  "domain": "pus2-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "platform.cloud.coveo.com"
+  "domain": "officecdn.microsoft.com"
 }, {
-  "domain": "myaccount.google.com"
+  "domain": "southcentralusr-notifyp.svc.ms"
 }, {
-  "domain": "miro.medium.com"
+  "domain": "mask-api.icloud.com"
 }, {
-  "domain": "onedrive.live.com"
+  "domain": "api.naea1.uds.lenovo.com"
 }, {
-  "domain": "c.clarity.ms"
+  "domain": "dc.services.visualstudio.com"
 }, {
-  "domain": "cdn-client.medium.com"
+  "domain": "pus7-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "cdn11.bigcommerce.com"
+  "domain": "www.youtube.com"
 }, {
-  "domain": "t.teads.tv"
+  "domain": "nsa.nalpeiron.com"
 }, {
-  "domain": "pippio.com"
+  "domain": "avatar-prod-us-east-2.webexcontent.com"
 }, {
-  "domain": "1x1.a-mo.net"
+  "domain": "pfr1-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "preview.redd.it"
+  "domain": "puk1-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "gem.gbc.criteo.com"
+  "domain": "pus4-collabhubrtc.officeapps.live.com"
 }, {
-  "domain": "ag.gbc.criteo.com"
+  "domain": "peu3-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "support.microsoft.com"
+}, {
+  "domain": "sdkbackend.jabra.com"
+}, {
+  "domain": "login.windows.net"
+}, {
+  "domain": "media.sailthru.com"
+}, {
+  "domain": "events.gfe.nvidia.com"
+}, {
+  "domain": "statics.teams.microsoft.com"
+}, {
+  "domain": "download-cdn.jetbrains.com"
+}, {
+  "domain": "crl3.digicert.com"
+}, {
+  "domain": "api.vstsusers.visualstudio.com"
+}, {
+  "domain": "api.nuget.org"
+}, {
+  "domain": "download.jetbrains.com"
+}, {
+  "domain": "telemetry.individual.githubcopilot.com"
+}, {
+  "domain": "drivers.amd.com"
+}, {
+  "domain": "my.1password.com"
+}, {
+  "domain": "clients3.google.com"
+}, {
+  "domain": "assets.msn.com"
+}, {
+  "domain": "app.vssps.visualstudio.com"
+}, {
+  "domain": "go-eu.trouter.teams.microsoft.com"
+}, {
+  "domain": "pus6-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "www.google.com"
+}, {
+  "domain": "psg1-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "static.xx.fbcdn.net"
+}, {
+  "domain": "api.individual.githubcopilot.com"
+}, {
+  "domain": "tb-static.uber.com"
+}, {
+  "domain": "api.amplitude.com"
+}, {
+  "domain": "oneclient.sfx.ms"
+}, {
+  "domain": "www.amazon.com"
+}, {
+  "domain": "downloads.marketplace.jetbrains.com"
+}, {
+  "domain": "www.powershellgallery.com"
+}, {
+  "domain": "imgssl.constantcontact.com"
+}, {
+  "domain": "my.nalpeiron.com"
+}, {
+  "domain": "backend-xpress.jabra.com"
+}, {
+  "domain": "analytics-xpress.jabra.com"
+}, {
+  "domain": "plugins.jetbrains.com"
+}, {
+  "domain": "tracy.srv.wisestamp.com"
+}, {
+  "domain": "api-emea.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "www.jetbrains.com"
+}, {
+  "domain": "peu2-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "safebrowsing.googleapis.com"
+}, {
+  "domain": "files.constantcontact.com"
+}, {
+  "domain": "platform-cs-va6c2.adobe.io"
+}, {
+  "domain": "proxy-safebrowsing.googleapis.com"
+}, {
+  "domain": "puk2-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "g.msn.com"
+}, {
+  "domain": "attachment.freshdesk.com"
+}, {
+  "domain": "api.mixpanel.com"
+}, {
+  "domain": "pjp1-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "dap.pat-issuer.cloudflare.com"
+}, {
+  "domain": "acp-ss-va6c2.adobe.io"
+}, {
+  "domain": "acp-ss-ue1.adobe.io"
+}, {
+  "domain": "doh.opendns.com"
+}, {
+  "domain": "pus8-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "copilot-telemetry.githubusercontent.com"
+}, {
+  "domain": "go.pardot.com"
+}, {
+  "domain": "api-noam.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "api.diagnostics.office.com"
+}, {
+  "domain": "cdn.gifo.wisestamp.com"
+}, {
+  "domain": "pus5-collabhubrtc.officeapps.live.com"
+}, {
+  "domain": "download.visualstudio.microsoft.com"
+}, {
+  "domain": "b.c2r.ts.cdn.office.net"
+}, {
+  "domain": "otel.gitkraken.com"
+}, {
+  "domain": "proximity-a.wbx2.com"
+}, {
+  "domain": "filedownload.lenovo.com"
+}, {
+  "domain": "api-apac.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "www.googleapis.com"
+}, {
+  "domain": "i.pinimg.com"
+}, {
+  "domain": "i.imgur.com"
+}, {
+  "domain": "downloadplugins.citrix.com"
+}, {
+  "domain": "fonts.gstatic.com"
+}, {
+  "domain": "cctypekit.adobe.io"
+}, {
+  "domain": "filedownload.csw.lenovo.com"
+}, {
+  "domain": "onedriveclubproddm20050.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20030.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20044.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20048.blob.core.windows.net"
+}, {
+  "domain": "platform-cs-va6.adobe.io"
+}, {
+  "domain": "onedriveclubproddm20052.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20049.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20020.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20037.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20055.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20045.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20035.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20048.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20047.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20046.blob.core.windows.net"
+}, {
+  "domain": "clientperipherals.dell.com"
+}, {
+  "domain": "onedriveclubproddm20047.blob.core.windows.net"
+}, {
+  "domain": "cdn.shopify.com"
+}, {
+  "domain": "onedriveclubprodbn20053.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20054.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20027.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20021.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20007.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20041.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20031.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20029.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20023.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20032.blob.core.windows.net"
+}, {
+  "domain": "dataservice.protection.outlook.com"
+}, {
+  "domain": "onedriveclubprodbn20028.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20045.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20049.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20050.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20023.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20051.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20019.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20046.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20025.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20022.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20053.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20054.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20033.blob.core.windows.net"
+}, {
+  "domain": "ocsp.comodoca.com"
+}, {
+  "domain": "api.echosign.com"
+}, {
+  "domain": "onedriveclubprodbn20051.blob.core.windows.net"
+}, {
+  "domain": "gallery.mailchimp.com"
+}, {
+  "domain": "onedriveclubprodbn20042.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20002.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20018.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20004.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20043.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20022.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20001.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20026.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20009.blob.core.windows.net"
+}, {
+  "domain": "config.teams.microsoft.com"
+}, {
+  "domain": "onedriveclubproddm20007.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20015.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20016.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20040.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20024.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20006.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20005.blob.core.windows.net"
+}, {
+  "domain": "api.segment.io"
+}, {
+  "domain": "onedriveclubprodbn20052.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubproddm20008.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20003.blob.core.windows.net"
+}, {
+  "domain": "onedriveclubprodbn20009.blob.core.windows.net"
+}, {
+  "domain": "res.cloudinary.com"
+}, {
+  "domain": "cdn2.hubspot.net"
+}, {
+  "domain": "my.microsoftpersonalcontent.com"
+}, {
+  "domain": "f.c2r.ts.cdn.office.net"
+}, {
+  "domain": "c.whatsapp.net"
+}, {
+  "domain": "storage.googleapis.com"
+}, {
+  "domain": "api.iterable.com"
+}, {
+  "domain": "client-upgrade-a.wbx2.com"
+}, {
+  "domain": "download.lenovo.com"
+}, {
+  "domain": "api.onedrive.com"
+}, {
+  "domain": "app.launchdarkly.com"
+}, {
+  "domain": "gates.grammarly.com"
 }, {
   "domain": "drive.usercontent.google.com"
 }, {
-  "domain": "secure-assets.rubiconproject.com"
+  "domain": "raw.githubusercontent.com"
 }, {
-  "domain": "sync.smartadserver.com"
+  "domain": "goldengate.grammarly.com"
 }, {
-  "domain": "eus.rubiconproject.com"
+  "domain": "m.media-amazon.com"
 }, {
-  "domain": "cdn-ima.33across.com"
+  "domain": "ic.adobe.io"
 }, {
-  "domain": "cdn.userway.org"
+  "domain": "drive.google.com"
 }, {
-  "domain": "lexicon.33across.com"
+  "domain": "lh7-us.googleusercontent.com"
 }, {
-  "domain": "acdn.adnxs.com"
+  "domain": "chrome.cloudflare-dns.com"
+}, {
+  "domain": "upload2.fp.measure.office.com"
+}, {
+  "domain": "lh6.googleusercontent.com"
+}, {
+  "domain": "tr-common-mira.office.com"
+}, {
+  "domain": "properties.grammarly.com"
+}, {
+  "domain": "lh4.googleusercontent.com"
+}, {
+  "domain": "lh5.googleusercontent.com"
+}, {
+  "domain": "marketplace.visualstudio.com"
+}, {
+  "domain": "auth.grammarly.com"
+}, {
+  "domain": "storage.pardot.com"
+}, {
+  "domain": "capi.grammarly.com"
+}, {
+  "domain": "treatment.grammarly.com"
+}, {
+  "domain": "adobesearch.adobe.io"
+}, {
+  "domain": "mobile.launchdarkly.com"
+}, {
+  "domain": "static.licdn.com"
+}, {
+  "domain": "api.github.com"
+}, {
+  "domain": "gnar.grammarly.com"
+}, {
+  "domain": "docs.google.com"
+}, {
+  "domain": "github.com"
+}, {
+  "domain": "tr-ooc-fs.office.com"
+}, {
+  "domain": "cdn-images.mailchimp.com"
+}, {
+  "domain": "www.gstatic.com"
+}, {
+  "domain": "go.trouter.teams.microsoft.com"
+}, {
+  "domain": "lh7-rt.googleusercontent.com"
+}, {
+  "domain": "www.linkedin.com"
+}, {
+  "domain": "tr-ooc-geo.office.com"
+}, {
+  "domain": "downloads.dell.com"
+}, {
+  "domain": "canary.officeapps.live.com"
+}, {
+  "domain": "afdcanary.officeapps.live.com"
+}, {
+  "domain": "dellupdater.dell.com"
+}, {
+  "domain": "miracanary.officeapps.live.com"
+}, {
+  "domain": "forms.office.com"
+}, {
+  "domain": "www.onenote.com"
+}, {
+  "domain": "tr-ofc-atm.office.com"
+}, {
+  "domain": "mail.google.com"
+}, {
+  "domain": "eventtracking.hubapi.com"
+}, {
+  "domain": "mq.dataservices.hp.com"
+}, {
+  "domain": "s3.amazonaws.com"
+}, {
+  "domain": "media.licdn.com"
+}, {
+  "domain": "config.fp.measure.office.com"
+}, {
+  "domain": "tr-ofc-mira.office.com"
+}, {
+  "domain": "tr-ofc-afdwac.office.com"
+}, {
+  "domain": "services.gfe.nvidia.com"
+}, {
+  "domain": "metrics-a.wbx2.com"
+}, {
+  "domain": "static2.sharepointonline.com"
+}, {
+  "domain": "www.microsoft365.com"
+}, {
+  "domain": "tr-ooc-atm.office.com"
+}, {
+  "domain": "tr-ooc-acdc.office.com"
+}, {
+  "domain": "accounts.google.com"
+}, {
+  "domain": "fonts.googleapis.com"
+}, {
+  "domain": "ds.ciscospark.com"
+}, {
+  "domain": "ssl.gstatic.com"
+}, {
+  "domain": "login.microsoftonline.com"
+}, {
+  "domain": "ipv4probe.office.com"
+}, {
+  "domain": "in.appcenter.ms"
+}, {
+  "domain": "d.docs.live.net"
+}, {
+  "domain": "api.flightproxy.teams.microsoft.com"
+}, {
+  "domain": "ars.oobesaas.adobe.com"
+}, {
+  "domain": "prod-rel-ffc-ccm.oobesaas.adobe.com"
+}, {
+  "domain": "graph-next.fp.measure.office.com"
+}, {
+  "domain": "updates.logitech.com"
+}, {
+  "domain": "tr-ssc-mira.office.com"
+}, {
+  "domain": "na1e-acc.services.adobe.com"
+}, {
+  "domain": "platform-cs.adobe.io"
+}, {
+  "domain": "lh3.googleusercontent.com"
+}, {
+  "domain": "ci3.googleusercontent.com"
+}, {
+  "domain": "ffc-static-cdn.oobesaas.adobe.com"
+}, {
+  "domain": "cdn-ffc.oobesaas.adobe.com"
+}, {
+  "domain": "teams.microsoft.com"
+}, {
+  "domain": "onedrive.live.com"
+}, {
+  "domain": "augloop.office.com"
+}, {
+  "domain": "lcs-ulecs.adobe.io"
+}, {
+  "domain": "connectivity-test.cloud.microsoft"
+}, {
+  "domain": "graph.microsoft.com"
+}, {
+  "domain": "teams.cloud.microsoft"
+}, {
+  "domain": "clientstream.launchdarkly.com"
+}, {
+  "domain": "dc-api-v2.adobe.io"
+}, {
+  "domain": "ims-prod07.adobelogin.com"
+}, {
+  "domain": "augloop.svc.cloud.microsoft"
+}, {
+  "domain": "g.bing.com"
+}, {
+  "domain": "dc-api.adobe.io"
+}, {
+  "domain": "atm-fp-direct.office.com"
+}, {
+  "domain": "waconafd.officeapps.live.com"
+}, {
+  "domain": "acdc-direct.office.com"
+}, {
+  "domain": "dev.virtualearth.net"
+}, {
+  "domain": "waconatm.officeapps.live.com"
+}, {
+  "domain": "scss.adobesc.com"
+}, {
+  "domain": "upload.fp.measure.office.com"
+}, {
+  "domain": "ow1.res.office365.com"
+}, {
+  "domain": "dns.google"
+}, {
+  "domain": "r4.res.office365.com"
+}, {
+  "domain": "outlook.cloud.microsoft"
+}, {
+  "domain": "m365.cloud.microsoft"
+}, {
+  "domain": "notify.adobe.io"
+}, {
+  "domain": "outlook.office.com"
+}, {
+  "domain": "files.acrobat.com"
+}, {
+  "domain": "ims-na1.adobelogin.com"
+}, {
+  "domain": "cc-api-data.adobe.io"
+}, {
+  "domain": "outlook.office365.com"
+}, {
+  "domain": "incoming.telemetry.mozilla.org"
+}, {
+  "domain": "substrate.office.com"
+}, {
+  "domain": "www.bing.com"
+}, {
+  "domain": "copilot.cloud.microsoft"
+}, {
+  "domain": "p13n.adobe.io"
+}, {
+  "domain": "roaming.officeapps.live.com"
+}, {
+  "domain": "storage.live.com"
+}, {
+  "domain": "ecs.office.com"
+}, {
+  "domain": "ocsp.digicert.com"
+}, {
+  "domain": "mrodevicemgr.officeapps.live.com"
+}, {
+  "domain": "odc.officeapps.live.com"
+}, {
+  "domain": "login.live.com"
+}, {
+  "domain": "update.googleapis.com"
+}, {
+  "domain": "arc.msn.com"
 }]

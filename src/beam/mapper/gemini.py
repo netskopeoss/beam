@@ -41,7 +41,7 @@ from google.generativeai.types import (
 from pydantic import ConfigDict
 from pydantic_core import ValidationError
 
-from .data_sources import Application, Mapping, OperatingSystem
+from beam.mapper.data_sources import Application, Mapping, OperatingSystem
 from .llm import LLMDataSource, LLMWorker, LLMWorkProcessor
 
 logger = logging.getLogger(__name__)
