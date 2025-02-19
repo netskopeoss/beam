@@ -183,7 +183,7 @@ def get_sequence_map_feature(
     return result[feature]
 
 
-def grab_application_summary(traffic_map: Dict, key: str) -> Dict:
+def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
     """
     Generate a summary of application traffic based on the provided traffic map and key.
 

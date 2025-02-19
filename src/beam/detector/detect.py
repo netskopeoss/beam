@@ -144,9 +144,9 @@ def load_app_model(app_model_path: str) -> Any:
     Returns:
         model: The loaded model.
     """
-    with open(app_model_path, "rb") as _file:
-        model = pickle.load(_file)[0]
-    return model
+  with open(app_model_path, "rb") as _file:
+      model = pickle.load(_file)[0]
+  return model
 
 
 def load_domain_model(domain_model_path: str) -> Tuple[Set, Dict]:
@@ -358,6 +358,7 @@ def detect_anomalous_app(
             Full predictions path = {full_predictions_path}
         \n"""
         )
+
 
 def detect_anomalous_domain(
     input_path: str, domain_model_path: str, app_prediction_dir: str, prob_cutoff: float = 0.8

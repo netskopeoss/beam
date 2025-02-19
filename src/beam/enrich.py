@@ -29,8 +29,8 @@ import logging
 import re
 import string
 from typing import List
-from detector.utils import load_json_file
-from mapper.mapper import query_user_agent_mapper
+from beam.detector.utils import load_json_file
+from beam.mapper.mapper import query_user_agent_mapper
 
 
 def load_cloud_app_domains(cloud_domains_file_path: str) -> List[str]:

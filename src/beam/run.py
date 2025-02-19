@@ -44,8 +44,7 @@ from beam.detector.detect import (
 )
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
-
-from . import constants
+from beam import constants, enrich
 
 warnings.filterwarnings(action="ignore")
 

@@ -34,7 +34,7 @@ from sqlalchemy import Engine
 from sqlalchemy_utils import create_database, database_exists
 from sqlmodel import Session, SQLModel, create_engine, select
 
-from .data_sources import Application, Mapping, OperatingSystem
+from beam.mapper.data_sources import Application, Mapping, OperatingSystem
 
 
 def initialize_database(engine: Engine, logger: logging.Logger) -> None:
