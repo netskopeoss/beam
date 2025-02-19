@@ -29,7 +29,9 @@ import json
 import sys
 from datetime import datetime
 from typing import Dict, List
+
 from beam.parser.models import Transaction
+
 
 def convert_list(entries: List) -> Dict:
     """
@@ -52,7 +54,7 @@ def convert_list(entries: List) -> Dict:
 
 def parse_har_log(file_path: str) -> List[Transaction]:
     """
-    Parse a .har file and convert it to a list of NetskopeTransaction objects.
+    Parse a .har file and convert it to a list of Transaction objects.
 
     Args:
         file_path (str): The path to the .har file to parse.
@@ -64,12 +66,8 @@ def parse_har_log(file_path: str) -> List[Transaction]:
         None
     """
     entries = []
-    statuses_to_avoid = [
-        "999"  # Error
-    ]
-    methods_to_avoid = [
-        "CONNECT"
-    ]
+    statuses_to_avoid = ["999"]  # Error
+    methods_to_avoid = ["CONNECT"]
     with open(file=file_path, mode="r", encoding="utf-8-sig") as file:
         har_data = json.load(file)
         for entry in har_data["log"]["entries"]:
@@ -80,30 +78,54 @@ def parse_har_log(file_path: str) -> List[Transaction]:
                 http_status = str(http_response["status"])
                 http_method = http_request["method"]
 
-                if (http_status not in statuses_to_avoid) and (http_method not in methods_to_avoid):
-                    if ("headersSize" in http_request) and http_request["headersSize"] and (http_request["headersSize"] >= 0):
+                if (http_status not in statuses_to_avoid) and (
+                    http_method not in methods_to_avoid
+                ):
+                    if (
+                        ("headersSize" in http_request)
+                        and http_request["headersSize"]
+                        and (http_request["headersSize"] >= 0)
+                    ):
                         req_header_size = http_request["headersSize"]
                     else:
-                        req_header_size = len('\n'.join([e['name'] + ' ' + e['value'] for e in entry['request']['headers']]))
+                        req_header_size = len(
+                            "\n".join(
+                                [
+                                    e["name"] + " " + e["value"]
+                                    for e in entry["request"]["headers"]
+                                ]
+                            )
+                        )
 
-                    if ("headersSize" in http_response) and http_response["headersSize"] and (http_response["headersSize"] >= 0):
+                    if (
+                        ("headersSize" in http_response)
+                        and http_response["headersSize"]
+                        and (http_response["headersSize"] >= 0)
+                    ):
                         resp_header_size = http_response["headersSize"]
                     else:
-                        resp_header_size = len('\n'.join([e['name'] + ' ' + e['value'] for e in entry['response']['headers']]))
+                        resp_header_size = len(
+                            "\n".join(
+                                [
+                                    e["name"] + " " + e["value"]
+                                    for e in entry["response"]["headers"]
+                                ]
+                            )
+                        )
 
                     req_headers = convert_list(http_request.get("headers", []))
                     resp_headers = convert_list(http_response.get("headers", []))
                     timestamp = datetime.strptime(
                         entry["startedDateTime"].split(".")[0].split("+")[0],
-                        "%Y-%m-%dT%H:%M:%S"
+                        "%Y-%m-%dT%H:%M:%S",
                     ).timestamp()
-                    referer = req_headers.get('referer', '')
+                    referer = req_headers.get("referer", "")
                     url = http_request.get("url", "")
                     hostname = req_headers.get("host", "").split(":")[0]
                     try:
-                        uri = url.split(hostname)[1].split('?')[0]
+                        uri = url.split(hostname)[1].split("?")[0]
                     except Exception:
-                        uri = ''
+                        uri = ""
                     data = {
                         "timestamp": timestamp,
                         "useragent": req_headers.get("user-agent", ""),
@@ -113,25 +135,41 @@ def parse_har_log(file_path: str) -> List[Transaction]:
                         "http_method": http_method,
                         "http_status": http_status,
                         "client_http_version": http_response["httpVersion"],
-                        "req_content_type": req_headers.get("content-type", "").split(';')[0],
-                        "resp_content_type": http_response["content"]["mimeType"].split(';')[0],
-                        "time_taken_ms":  int(entry["time"]),
+                        "req_content_type": req_headers.get("content-type", "").split(
+                            ";"
+                        )[0],
+                        "resp_content_type": http_response["content"]["mimeType"].split(
+                            ";"
+                        )[0],
+                        "time_taken_ms": int(entry["time"]),
                         # Confirmed with Louis Wu that it is the sum of both the body and headers
-                        "client_bytes": float(http_request["bodySize"] + req_header_size),
-                        "server_bytes": float(http_response["bodySize"] + resp_header_size),
+                        "client_bytes": float(
+                            http_request["bodySize"] + req_header_size
+                        ),
+                        "server_bytes": float(
+                            http_response["bodySize"] + resp_header_size
+                        ),
                         "referer": referer,
-                        "referer_domain": referer.split('/')[2].strip() if len(referer.split('/')) >= 3 else '',
+                        "referer_domain": (
+                            referer.split("/")[2].strip()
+                            if len(referer.split("/")) >= 3
+                            else ""
+                        ),
                         "url": url,
                         "uri": uri,
-                        "src_ip": entry['_clientAddress'] if '_clientAddress' in entry else 'Unknown'
+                        "src_ip": (
+                            entry["_clientAddress"]
+                            if "_clientAddress" in entry
+                            else "Unknown"
+                        ),
                     }
-                    entries.append(
-                        Transaction(**data)
-                    )
+                    entries.append(Transaction(**data))
     return entries
 
 
 if __name__ == "__main__":
     parsed_responses = parse_har_log(sys.argv[1])
+    for response in parsed_responses:
+        print(response.model_dump_json())
     for response in parsed_responses:
         print(response.model_dump_json())

@@ -36,22 +36,20 @@ from typing import Tuple
 
 from art import tprint
 
+from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import (
-    MultiHotEncoder,
-    detect_anomalous_app,
-    detect_anomalous_domain,
-)
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
-from beam import constants, enrich
 
 warnings.filterwarnings(action="ignore")
 
 DATA_DIR = constants.DATA_DIR
 
 
-def run_detection(file_name: str, enriched_events_path: str, logger: logging.Logger) -> None:
+def run_detection(
+    file_name: str, enriched_events_path: str, logger: logging.Logger
+) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
     and applying an anomaly detection method.
@@ -87,7 +85,7 @@ def run_detection(file_name: str, enriched_events_path: str, logger: logging.Log
         fields=["application", "domain"],
         input_path=enriched_events_path,
         output_path=features_output_path,
-        min_transactions=constants.MIN_DOMAIN_TRANSACTION
+        min_transactions=constants.MIN_DOMAIN_TRANSACTION,
     )
     detect_anomalous_domain(
         input_path=features_output_path,
@@ -214,13 +212,10 @@ def process_input_file(file_path: str, logger: logging.Logger) -> None:
     if path.exists(file_path):
         logger.info(f"Processing file: {file_path}")
         file_name, parsed_file_path = parse_input_file(
-            file_path=file_path,
-            logger=logger
+            file_path=file_path, logger=logger
         )
         enriched_events_path = enrich_events(
-            file_name=file_name,
-            parsed_file_path=parsed_file_path,
-            logger=logger
+            file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
         )
         run_detection(
             file_name=file_name,

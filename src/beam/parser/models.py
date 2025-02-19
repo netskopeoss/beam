@@ -28,11 +28,11 @@
 from pydantic import BaseModel
 
 
-
 class Transaction(BaseModel):
     """
     Pydantic Model for a transaction
     """
+
     timestamp: float
     useragent: str
     hostname: str
@@ -50,4 +50,5 @@ class Transaction(BaseModel):
     referer_domain: str | None  # Use the Union type to allow for a nullable string
     url: str
     uri: str
+    src_ip: str
     src_ip: str
