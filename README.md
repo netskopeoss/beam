@@ -24,6 +24,8 @@ pip install -e .
 python beam
 ```
 ## Output from BEAM
+BEAM generates multiple files and provides the following output:
+
 1. The conclusion made from the provided PCAP or HAR files will be shown in the console with an associated probability of compromise.
 
 2. For additional information, check the directories for each session under `beam/predictions` for [SHAP Waterfall plots](https://shap.readthedocs.io/en/latest/generated/shap.plots.waterfall.html). Each session has its own SHAP Waterfall image file, which show what features were used to determine BEAM's conclusion about the session.
@@ -42,7 +44,7 @@ BEAM determined that there was a 95% possibility of a compromise here because th
 
 ![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/97bdd3bce1b3f613fc07808608298a9529eb32f4/sample_shap_waterfall.jpg)
 
-In the `beam/predictions` directory, there will be an accompanying image that shows a SHAP Waterfall plot for each session analyzed. The plot shows the reasoning behind the prediction via an impact breakdown of the evidence provided by each feature on the model’s output. In this particular case, the plot above shows the following reasons that this session was indicative of a compromise:
+BEAM provides a SHAP Waterfall plot for each session analyzed, as shown above. The plot shows the reasoning behind the prediction via an impact breakdown of the evidence provided by each feature on the model’s output. In this particular case, the plot above shows the following reasons that this session was indicative of a compromise:
 - not using the content type ‘application/json’
 - not reaching out to Box’s servers
 - the time taken for the requests
