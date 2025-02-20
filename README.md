@@ -28,6 +28,15 @@ python beam
 
 2. For additional information, check the directories for each session under `beam/predictions` for [SHAP Waterfall plots](https://shap.readthedocs.io/en/latest/generated/shap.plots.waterfall.html). Each session has its own SHAP Waterfall image file, which show what features were used to determine BEAM's conclusion about the session.
 
+The example below was produced from the sample HAR file included in this repo for a compromised version of Box:
+![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/97bdd3bce1b3f613fc07808608298a9529eb32f4/sample_shap_waterfall.jpg)
+
+The plot shows the reasoning behind the prediction via an impact breakdown of the evidence provided by each feature on the model’s output. In this particular case, the plot above shows the following reasons that this session was indicative of a compromise:
+- not using the content type ‘application/json’
+- not reaching out to Box’s servers
+- the time taken for the requests
+- the amount of data being received
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
