@@ -23,6 +23,10 @@ pip install -e .
 ```bash
 python beam
 ```
+## Output from BEAM
+1. The conclusion made from the provided PCAP or HAR files will be shown in the console with an associated probability of compromise.
+
+2. For additional information, check the directories for each session under `beam/predictions` for [SHAP Waterfall plots](https://shap.readthedocs.io/en/latest/generated/shap.plots.waterfall.html). Each session has its own SHAP Waterfall image file, which show what features were used to determine BEAM's conclusion about the session.
 
 ## Contributing
 
