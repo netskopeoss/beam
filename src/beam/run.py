@@ -32,13 +32,16 @@ import logging.config
 import warnings
 from os import path
 from pathlib import Path
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
+from beam.detector.detect import (MultiHotEncoder, detect_anomalous_app,
+                                  detect_anomalous_domain)
+from beam.detector.trainer import (ModelTrainer, extract_app_features,
+                                   train_custom_app_model)
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
 
@@ -48,7 +51,10 @@ DATA_DIR = constants.DATA_DIR
 
 
 def run_detection(
-    file_name: str, enriched_events_path: str, logger: logging.Logger
+    file_name: str, 
+    enriched_events_path: str, 
+    logger: logging.Logger,
+    use_custom_models: bool = True
 ) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
@@ -58,6 +64,7 @@ def run_detection(
         file_name (str): The identifier or name for the PCAP file.
         enriched_events_path (str): Path to the enriched events JSON file.
         logger (logging.Logger): Logger instance for capturing log messages.
+        use_custom_models (bool): Whether to include custom trained models in detection.
 
     Returns:
         None
@@ -65,19 +72,31 @@ def run_detection(
     Raises:
         None
     """
-    # logger.info("Analysing applications...")
-    # features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
-    # features.aggregate_app_traffic(
-    #     fields=["useragent"],
-    #     input_path=enriched_events_path,
-    #     output_path=features_output_path,
-    #     min_transactions=constants.MIN_APP_TRANSACTIONS
-    # )
-    # detect_anomalous_app(
-    #     input_path=features_output_path,
-    #     app_model_path=constants.APP_MODEL,
-    #     app_prediction_directory=constants.APP_PREDICTIONS_DIR,
-    # )
+    # Run app detection with basic and custom models
+    logger.info("Analysing applications...")
+    app_features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
+    features.aggregate_app_traffic(
+        fields=["useragent"],
+        input_path=enriched_events_path,
+        output_path=app_features_output_path,
+        min_transactions=constants.MIN_APP_TRANSACTIONS
+    )
+    
+    # Use combined model if available, or standard model otherwise
+    app_model_path = str(constants.APP_MODEL)
+    combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
+    
+    if use_custom_models and Path(combined_model_path).exists():
+        logger.info("Using combined model with custom apps")
+        model_to_use = combined_model_path
+    else:
+        model_to_use = app_model_path
+    
+    detect_anomalous_app(
+        input_path=app_features_output_path,
+        app_model_path=model_to_use,
+        app_prediction_directory=str(constants.APP_PREDICTIONS_DIR),
+    )
 
     logger.info("Analysing domains...")
     features_output_path = f"{DATA_DIR}/domain_summaries/{file_name}.json"
@@ -89,8 +108,8 @@ def run_detection(
     )
     detect_anomalous_domain(
         input_path=features_output_path,
-        domain_model_path=constants.DOMAIN_MODEL,
-        app_prediction_dir=constants.DOMAIN_PREDICTIONS_DIR,
+        domain_model_path=str(constants.DOMAIN_MODEL),
+        app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
     )
     logger.info(f"Features output saved to: {features_output_path}")
 
@@ -113,8 +132,8 @@ def enrich_events(file_name: str, parsed_file_path, logger: logging.Logger) -> s
     events = enrich.enrich_events(
         input_path=parsed_file_path,
         db_path=str(constants.DB_PATH),
-        cloud_domains_file_path=constants.CLOUD_DOMAINS_FILE,
-        key_domains_file_path=constants.KEY_DOMAINS_FILE,
+        cloud_domains_file_path=str(constants.CLOUD_DOMAINS_FILE),
+        key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
     )
     enriched_events_path = f"{DATA_DIR}/enriched_events/{file_name}.json"
@@ -194,14 +213,19 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
         raise Exception("[!!] File type is not supported")
 
 
-def process_input_file(file_path: str, logger: logging.Logger) -> None:
+def process_input_file(
+    file_path: str, 
+    logger: logging.Logger,
+    use_custom_models: bool = True
+) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
     Zeek, enrichment, and detection steps in sequence.
 
     Args:
-        file_path:
-        logger:
+        file_path (str): Path to the input file to process.
+        logger (logging.Logger): Logger instance for capturing log messages.
+        use_custom_models (bool): Whether to include custom trained models in detection.
 
     Returns:
         None
@@ -221,9 +245,82 @@ def process_input_file(file_path: str, logger: logging.Logger) -> None:
             file_name=file_name,
             enriched_events_path=enriched_events_path,
             logger=logger,
+            use_custom_models=use_custom_models,
         )
     else:
         logger.error(f"File not found: {file_path}")
+
+
+def process_training_data(
+    input_file_path: str,
+    app_name: str,
+    custom_model_path: Optional[str] = None,
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    """
+    Process input data to train a custom app model.
+
+    Args:
+        input_file_path (str): Path to the input file (pcap or har).
+        app_name (str): Name of the app to train for.
+        custom_model_path (Optional[str]): Path to save the model, uses default if None.
+        logger (Optional[logging.Logger]): Logger instance.
+
+    Returns:
+        None
+
+    Raises:
+        None
+    """
+    if logger is None:
+        logger = logging.getLogger(__name__)
+
+    if not custom_model_path:
+        # Ensure custom models directory exists
+        safe_create_path = utils.safe_create_path
+        safe_create_path(str(constants.CUSTOM_APP_MODELS_DIR))
+        custom_model_path = str(constants.CUSTOM_APP_MODELS_DIR / f"{app_name.replace(' ', '_').lower()}_model.pkl")
+
+    logger.info(f"Processing training data for app: {app_name}")
+
+    # Parse the input file
+    file_name, parsed_file_path = parse_input_file(file_path=input_file_path, logger=logger)
+
+    # Enrich the events
+    enriched_events_path = enrich_events(
+        file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
+    )
+
+    # Extract features for model training
+    features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
+    extract_app_features(
+        input_data_path=enriched_events_path,
+        output_path=features_output_path,
+        min_transactions=constants.MIN_APP_TRANSACTIONS,
+        fields=["useragent"]
+    )
+
+    # Train the custom app model
+    train_custom_app_model(
+        features_path=features_output_path,
+        app_name=app_name,
+        output_model_path=custom_model_path,
+        n_features=150,
+        min_transactions=constants.MIN_APP_TRANSACTIONS
+    )
+
+    logger.info(f"Custom model for '{app_name}' has been created at: {custom_model_path}")
+
+    # Create combined model including the new app
+    if Path(str(constants.APP_MODEL)).exists():
+        combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
+        trainer = ModelTrainer()
+        trainer.merge_models(
+            existing_model_path=str(constants.APP_MODEL),
+            new_model_path=custom_model_path,
+            output_path=combined_model_path
+        )
+        logger.info(f"Created combined model with the new app at: {combined_model_path}")
 
 
 def run(logger: logging.Logger) -> None:
@@ -264,6 +361,30 @@ def run(logger: logging.Logger) -> None:
         help="Path to an input file of user agents to do mapping only.",
         required=False,
     )
+    parser.add_argument(
+        "-t",
+        "--train",
+        help="Train a custom app model using the provided input file.",
+        required=False,
+        action="store_true"
+    )
+    parser.add_argument(
+        "--app_name",
+        help="Name of the application to train the model for. Required with --train.",
+        required=False,
+    )
+    parser.add_argument(
+        "--model_output",
+        help="Path to save the trained model. Optional with --train.",
+        required=False,
+    )
+    parser.add_argument(
+        "--use_custom_models",
+        help="Whether to include custom trained models in detection.",
+        required=False,
+        action="store_true",
+        default=True,
+    )
 
     args = vars(parser.parse_args())
     logger.setLevel(args["log_level"])
@@ -279,8 +400,37 @@ def run(logger: logging.Logger) -> None:
             logger=logger,
         )
         return
+    elif args["train"]:
+        if not args["app_name"]:
+            logger.error("Error: --app_name is required when using --train")
+            return
+        
+        logger.info(f"Running BEAM in training mode for app: {args['app_name']}")
+        input_paths = glob.glob(str(args["input_dir"] / "*"))
+        
+        if not input_paths:
+            logger.error(f"No input files found in {args['input_dir']}")
+            return
+            
+        # Use the first input file for training
+        input_path = input_paths[0]
+        process_training_data(
+            input_file_path=input_path,
+            app_name=args["app_name"],
+            custom_model_path=args["model_output"],
+            logger=logger
+        )
     else:
-        logger.info("Running BEAM...")
+        logger.info("Running BEAM in detection mode...")
+        use_custom_models = args["use_custom_models"]
+        logger.info(f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection")
+        
         input_paths = glob.glob(str(args["input_dir"] / "*"))
         for input_path in input_paths:
-            process_input_file(file_path=input_path, logger=logger)
+            process_input_file(
+                file_path=input_path, 
+                logger=logger, 
+                use_custom_models=use_custom_models
+            )
+                use_custom_models=use_custom_models
+            )
