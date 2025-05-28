@@ -33,21 +33,20 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-from sklearn.base import BaseEstimator
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 
-from .detect import MultiHotEncoder
-from .features import (
+from .detect import (
+    MultiHotEncoder,
     app_arr_non_numeric_feature_fields,
     app_meta_fields,
     app_numeric_feature_fields,
     app_str_non_numeric_feature_fields,
 )
-from .utils import load_json_file, safe_create_path, save_json_data
+from .utils import load_json_file, safe_create_path
 
 
 class ModelTrainer:
@@ -98,12 +97,12 @@ class ModelTrainer:
         )
 
         xgb_classifier = xgb.XGBClassifier(
-            objective="multi:softprob",  # for multiclass classification
-            eval_metric="mlogloss",  # common evaluation metric for multiclass
+            objective="binary:logistic",  # for binary classification
+            eval_metric="logloss",  # evaluation metric for binary classification
             random_state=42,
             n_jobs=-1,
             n_estimators=n_estimators,
-            max_depth=15,
+            max_depth=6,
             learning_rate=0.1,
         )
 
@@ -149,8 +148,8 @@ class ModelTrainer:
         return feature_names
 
     def convert_features_to_pd(
-        self, features: List[Dict], target_label_name: str = "application"
-    ) -> Tuple[pd.DataFrame, np.ndarray]:
+        self, features: List[Dict[str, Any]], target_label_name: str = "application"
+    ) -> Tuple[pd.DataFrame, Any]:
         """
         Convert features to pandas DataFrame for model training.
 
@@ -182,18 +181,20 @@ class ModelTrainer:
 
         return features_train, target_label
 
-    def train_model(self, training_data: List[Dict], app_name: str) -> Dict[str, Any]:
+    def train_model(
+        self, training_data: List[Dict[str, Any]], app_name: str
+    ) -> Optional[Dict[str, Any]]:
         """
         Train a model for a specific app.
 
         Args:
-            training_data (List[Dict]): List of feature dictionaries for training.
+            training_data (List[Dict[str, Any]]): List of feature dictionaries for training.
             app_name (str): Name of the app to train the model for.
 
         Returns:
             Dict[str, Any]: Trained model information.
         """
-        self.logger.info(f"Training model for application: {app_name}")
+        self.logger.info("Training model for application: %s", app_name)
 
         # Add the app name to each training sample
         for item in training_data:
@@ -208,7 +209,7 @@ class ModelTrainer:
 
         if not training_data:
             self.logger.error(
-                f"No training data with sufficient transactions for {app_name}"
+                "No training data with sufficient transactions for %s", app_name
             )
             return None
 
@@ -233,7 +234,9 @@ class ModelTrainer:
         }
 
         self.logger.info(
-            f"Model training completed for {app_name} with {len(selected_features)} selected features"
+            "Model training completed for %s with %d selected features",
+            app_name,
+            len(selected_features),
         )
 
         return model_info
@@ -249,7 +252,7 @@ class ModelTrainer:
         Returns:
             None
         """
-        self.logger.info(f"Saving model to {output_path}")
+        self.logger.info("Saving model to %s", output_path)
 
         # Ensure directory exists
         safe_create_path(str(Path(output_path).parent))
@@ -258,7 +261,7 @@ class ModelTrainer:
         with open(output_path, "wb") as model_file:
             pickle.dump([model_info], model_file)
 
-        self.logger.info(f"Model saved successfully to {output_path}")
+        self.logger.info("Model saved successfully to %s", output_path)
 
     def add_app_model(
         self, input_path: str, app_name: str, model_output_path: str
@@ -275,11 +278,19 @@ class ModelTrainer:
             None
         """
         self.logger.info(
-            f"Creating app model for {app_name} using data from {input_path}"
+            "Creating app model for %s using data from %s", app_name, input_path
         )
 
         # Load training data
         training_data = load_json_file(input_path)
+
+        # Ensure training_data is a list
+        if isinstance(training_data, dict):
+            training_data = [training_data]
+        elif not isinstance(training_data, list):
+            raise ValueError(
+                f"Training data must be a list or dict, got {type(training_data)}"
+            )
 
         # Train model
         model_info = self.train_model(training_data, app_name)
@@ -287,9 +298,9 @@ class ModelTrainer:
         if model_info:
             # Save model
             self.save_model(model_info, model_output_path)
-            self.logger.info(f"App model for {app_name} created successfully")
+            self.logger.info("App model for %s created successfully", app_name)
         else:
-            self.logger.error(f"Failed to create app model for {app_name}")
+            self.logger.error("Failed to create app model for %s", app_name)
 
     def merge_models(
         self, existing_model_path: str, new_model_path: str, output_path: str
@@ -306,7 +317,7 @@ class ModelTrainer:
             None
         """
         self.logger.info(
-            f"Merging models from {existing_model_path} and {new_model_path}"
+            "Merging models from %s and %s", existing_model_path, new_model_path
         )
 
         try:
@@ -325,17 +336,88 @@ class ModelTrainer:
             with open(output_path, "wb") as output_file:
                 pickle.dump(combined_models, output_file)
 
-            self.logger.info(f"Models merged successfully and saved to {output_path}")
+            self.logger.info("Models merged successfully and saved to %s", output_path)
 
-        except Exception as e:
-            self.logger.error(f"Error merging models: {str(e)}")
+        except (FileNotFoundError, pickle.PickleError, IOError) as e:
+            self.logger.error("Error merging models: %s", str(e))
+
+    def extract_features_for_training(
+        self, events_data: List[Dict[str, Any]], app_name: str
+    ) -> pd.DataFrame:
+        """
+        Extract features from enriched events data for training.
+
+        Args:
+            events_data (List[Dict[str, Any]]): List of enriched event dictionaries.
+            app_name (str): Name of the app to extract features for.
+
+        Returns:
+            pd.DataFrame: DataFrame containing extracted features.
+        """
+        self.logger.info("Extracting features for training app: %s", app_name)
+
+        import os
+        import tempfile
+
+        from .features import aggregate_app_traffic
+
+        # Create temporary files for processing
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as temp_input:
+            temp_input_path = temp_input.name
+            # Save events data to temporary file
+            import json
+
+            json.dump(events_data, temp_input)
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as temp_output:
+            temp_output_path = temp_output.name
+
+        try:
+            # Extract features using the existing aggregate_app_traffic function
+            aggregate_app_traffic(
+                fields=["useragent"],
+                input_path=temp_input_path,
+                output_path=temp_output_path,
+                min_transactions=self.min_transactions,
+            )
+
+            # Load the extracted features
+            features_data = load_json_file(temp_output_path)
+
+            if not features_data:
+                self.logger.warning("No features extracted for %s", app_name)
+                return pd.DataFrame()
+
+            # Ensure it's a list
+            if isinstance(features_data, dict):
+                features_data = [features_data]
+
+            # Convert to DataFrame
+            features_df = pd.DataFrame(features_data)
+            self.logger.info(
+                "Extracted %d feature records for %s", len(features_df), app_name
+            )
+
+            return features_df
+
+        finally:
+            # Clean up temporary files
+            try:
+                os.unlink(temp_input_path)
+                os.unlink(temp_output_path)
+            except OSError:
+                pass
 
 
 def extract_app_features(
     input_data_path: str,
     output_path: str,
     min_transactions: int = 50,
-    fields: List[str] = ["useragent"],
+    fields: Optional[List[str]] = None,
 ) -> str:
     """
     Extract application features from enriched events.
@@ -349,8 +431,11 @@ def extract_app_features(
     Returns:
         str: Path to the saved features file.
     """
+    if fields is None:
+        fields = ["useragent"]
+
     logger = logging.getLogger(__name__)
-    logger.info(f"Extracting app features from {input_data_path}")
+    logger.info("Extracting app features from %s", input_data_path)
 
     from .features import aggregate_app_traffic
 
@@ -361,7 +446,7 @@ def extract_app_features(
         min_transactions=min_transactions,
     )
 
-    logger.info(f"Features extracted and saved to {output_path}")
+    logger.info("Features extracted and saved to %s", output_path)
     return output_path
 
 
@@ -386,7 +471,7 @@ def train_custom_app_model(
         None
     """
     logger = logging.getLogger(__name__)
-    logger.info(f"Training custom model for {app_name}")
+    logger.info("Training custom model for %s", app_name)
 
     # Create trainer
     trainer = ModelTrainer(n_features=n_features, min_transactions=min_transactions)
@@ -396,6 +481,6 @@ def train_custom_app_model(
         input_path=features_path, app_name=app_name, model_output_path=output_model_path
     )
 
-    logger.info(f"Custom model for {app_name} trained and saved to {output_model_path}")
-
-    logger.info(f"Custom model for {app_name} trained and saved to {output_model_path}")
+    logger.info(
+        "Custom model for %s trained and saved to %s", app_name, output_model_path
+    )

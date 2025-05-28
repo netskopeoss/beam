@@ -32,16 +32,22 @@ import logging.config
 import warnings
 from os import path
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import (MultiHotEncoder, detect_anomalous_app,
-                                  detect_anomalous_domain)
-from beam.detector.trainer import (ModelTrainer, extract_app_features,
-                                   train_custom_app_model)
+from beam.detector.detect import (
+    MultiHotEncoder,
+    detect_anomalous_app,
+    detect_anomalous_domain,
+)
+from beam.detector.trainer import (
+    ModelTrainer,
+    extract_app_features,
+    train_custom_app_model,
+)
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
 
@@ -51,10 +57,10 @@ DATA_DIR = constants.DATA_DIR
 
 
 def run_detection(
-    file_name: str, 
-    enriched_events_path: str, 
+    file_name: str,
+    enriched_events_path: str,
     logger: logging.Logger,
-    use_custom_models: bool = True
+    use_custom_models: bool = True,
 ) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
@@ -79,19 +85,19 @@ def run_detection(
         fields=["useragent"],
         input_path=enriched_events_path,
         output_path=app_features_output_path,
-        min_transactions=constants.MIN_APP_TRANSACTIONS
+        min_transactions=constants.MIN_APP_TRANSACTIONS,
     )
-    
+
     # Use combined model if available, or standard model otherwise
     app_model_path = str(constants.APP_MODEL)
     combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
-    
+
     if use_custom_models and Path(combined_model_path).exists():
         logger.info("Using combined model with custom apps")
         model_to_use = combined_model_path
     else:
         model_to_use = app_model_path
-    
+
     detect_anomalous_app(
         input_path=app_features_output_path,
         app_model_path=model_to_use,
@@ -210,13 +216,11 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     elif (".pcap" in file_path) or (".cap" in file_path):
         return parse_pcap(file_path=file_path, logger=logger)
     else:
-        raise Exception("[!!] File type is not supported")
+        raise ValueError("[!!] File type is not supported")
 
 
 def process_input_file(
-    file_path: str, 
-    logger: logging.Logger,
-    use_custom_models: bool = True
+    file_path: str, logger: logging.Logger, use_custom_models: bool = True
 ) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
@@ -279,12 +283,17 @@ def process_training_data(
         # Ensure custom models directory exists
         safe_create_path = utils.safe_create_path
         safe_create_path(str(constants.CUSTOM_APP_MODELS_DIR))
-        custom_model_path = str(constants.CUSTOM_APP_MODELS_DIR / f"{app_name.replace(' ', '_').lower()}_model.pkl")
+        custom_model_path = str(
+            constants.CUSTOM_APP_MODELS_DIR
+            / f"{app_name.replace(' ', '_').lower()}_model.pkl"
+        )
 
-    logger.info(f"Processing training data for app: {app_name}")
+    logger.info("Processing training data for app: %s", app_name)
 
     # Parse the input file
-    file_name, parsed_file_path = parse_input_file(file_path=input_file_path, logger=logger)
+    file_name, parsed_file_path = parse_input_file(
+        file_path=input_file_path, logger=logger
+    )
 
     # Enrich the events
     enriched_events_path = enrich_events(
@@ -297,7 +306,7 @@ def process_training_data(
         input_data_path=enriched_events_path,
         output_path=features_output_path,
         min_transactions=constants.MIN_APP_TRANSACTIONS,
-        fields=["useragent"]
+        fields=["useragent"],
     )
 
     # Train the custom app model
@@ -306,10 +315,12 @@ def process_training_data(
         app_name=app_name,
         output_model_path=custom_model_path,
         n_features=150,
-        min_transactions=constants.MIN_APP_TRANSACTIONS
+        min_transactions=constants.MIN_APP_TRANSACTIONS,
     )
 
-    logger.info(f"Custom model for '{app_name}' has been created at: {custom_model_path}")
+    logger.info(
+        "Custom model for '%s' has been created at: %s", app_name, custom_model_path
+    )
 
     # Create combined model including the new app
     if Path(str(constants.APP_MODEL)).exists():
@@ -318,9 +329,11 @@ def process_training_data(
         trainer.merge_models(
             existing_model_path=str(constants.APP_MODEL),
             new_model_path=custom_model_path,
-            output_path=combined_model_path
+            output_path=combined_model_path,
         )
-        logger.info(f"Created combined model with the new app at: {combined_model_path}")
+        logger.info(
+            "Created combined model with the new app at: %s", combined_model_path
+        )
 
 
 def run(logger: logging.Logger) -> None:
@@ -366,7 +379,7 @@ def run(logger: logging.Logger) -> None:
         "--train",
         help="Train a custom app model using the provided input file.",
         required=False,
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument(
         "--app_name",
@@ -404,33 +417,31 @@ def run(logger: logging.Logger) -> None:
         if not args["app_name"]:
             logger.error("Error: --app_name is required when using --train")
             return
-        
+
         logger.info(f"Running BEAM in training mode for app: {args['app_name']}")
         input_paths = glob.glob(str(args["input_dir"] / "*"))
-        
+
         if not input_paths:
             logger.error(f"No input files found in {args['input_dir']}")
             return
-            
+
         # Use the first input file for training
         input_path = input_paths[0]
         process_training_data(
             input_file_path=input_path,
             app_name=args["app_name"],
             custom_model_path=args["model_output"],
-            logger=logger
+            logger=logger,
         )
     else:
         logger.info("Running BEAM in detection mode...")
         use_custom_models = args["use_custom_models"]
-        logger.info(f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection")
-        
+        logger.info(
+            f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection"
+        )
+
         input_paths = glob.glob(str(args["input_dir"] / "*"))
         for input_path in input_paths:
             process_input_file(
-                file_path=input_path, 
-                logger=logger, 
-                use_custom_models=use_custom_models
-            )
-                use_custom_models=use_custom_models
+                file_path=input_path, logger=logger, use_custom_models=use_custom_models
             )
