@@ -95,7 +95,7 @@ def run_detection(
     logger.info(f"Features output saved to: {features_output_path}")
 
 
-def enrich_events(file_name: str, parsed_file_path, logger: logging.Logger) -> str:
+def enrich_events(file_name: str, parsed_file_path: str, logger: logging.Logger) -> str:
     """
     Enrich Zeek output and save the enriched data to a new JSON file.
 
@@ -128,7 +128,7 @@ def parse_har(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     Parse a HAR file and save the output to a JSON file.
 
     Args:
-        file_path (Path): The path to the HAR file to be processed.
+        file_path (str): The path to the HAR file to be processed.
         logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
@@ -177,7 +177,7 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
     Currently, supports HAR and PCAP files.
 
     Args:
-        file_path (Path): The path to the input network file to be processed.
+        file_path (str): The path to the input network file to be processed.
         logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
@@ -200,8 +200,8 @@ def process_input_file(file_path: str, logger: logging.Logger) -> None:
     Zeek, enrichment, and detection steps in sequence.
 
     Args:
-        file_path:
-        logger:
+        file_path (str): The path to the input file to process.
+        logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
         None

@@ -26,7 +26,7 @@
 # - Dagmawi Mulugeta
 
 import logging
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from pydantic import ConfigDict
 from pydantic import Field as PydanticField
@@ -70,6 +70,7 @@ class Database(SQLModel):
         Query the database for a particular application name.
 
         Args:
+            session (Session): The database session to use for the query.
             name (str): The name of the application to search for.
 
         Returns:
@@ -92,6 +93,7 @@ class Database(SQLModel):
         Query the database for a particular operating system name.
 
         Args:
+            session (Session): The database session to use for the query.
             name (str): The name of the operating system to search for.
 
         Returns:
@@ -113,6 +115,7 @@ class Database(SQLModel):
         a Mapping object with related Application and OperatingSystem objects.
 
         Args:
+            session (Session): The database session to use for the query.
             ua (str): The user agent string to search for.
 
         Returns:
@@ -134,12 +137,13 @@ class Database(SQLModel):
         Add an Application object to the database if it does not already exist.
 
         Args:
+            session (Session): The database session to use for the query.
             app (Application): The Application object to add.
 
         Returns:
             None
         """
-        current_app = self.search_applications(name=app.name)
+        current_app = self.search_applications(session=session, name=app.name)
         if current_app:
             self.logger.info(f"Application {current_app} already exists")
             return
@@ -152,12 +156,13 @@ class Database(SQLModel):
         Add an OperatingSystem object to the database if it does not already exist.
 
         Args:
+            session (Session): The database session to use for the query.
             os (OperatingSystem): The OperatingSystem object to add.
 
         Returns:
             None
         """
-        current_os = self.search_operating_systems(name=os.name)
+        current_os = self.search_operating_systems(session=session, name=os.name)
         if current_os:
             self.logger.info(f"Operating System {current_os} already exists")
             return
@@ -190,11 +195,11 @@ class Database(SQLModel):
             )
             if app:
                 mapping.application = app
-            os = self.search_operating_systems(
+            os_obj = self.search_operating_systems(
                 session=session, name=mapping.operatingsystem.name
             )
-            if os:
-                mapping.operatingsystem = os
+            if os_obj:
+                mapping.operatingsystem = os_obj
             session.add(mapping)
             session.commit()
 
@@ -223,14 +228,14 @@ class Database(SQLModel):
 class DataStoreHandler:
     """Class to search and update the data store of mapped user agents."""
 
-    def __initialize_database__(self, db_path: str):
+    def __initialize_database__(self, db_path: str) -> None:
         """Initialize the database."""
         self.database = Database(mapping_database_path=db_path, logger=self.logger)
 
     def __init__(self, db_path: str, logger: logging.Logger):
         self.query_input: List[str] = []
         self.logger = logger
-        self.database: Database = None
+        self.database: Optional[Database] = None
         self.__initialize_database__(db_path=db_path)
 
     def search(
@@ -252,11 +257,14 @@ class DataStoreHandler:
 
         self.query_input = user_agents
         for user_agent in self.query_input:
-            mapping = self.database.search_user_agents(session=session, ua=user_agent)
-            if mapping:
-                hits.append(mapping)
-            else:
-                misses.append(user_agent)
+            if self.database:
+                mapping = self.database.search_user_agents(
+                    session=session, ua=user_agent
+                )
+                if mapping:
+                    hits.append(mapping)
+                else:
+                    misses.append(user_agent)
         return hits, misses
 
     def save_results(self, session: Session, mappings: List[Mapping]) -> None:
@@ -264,11 +272,12 @@ class DataStoreHandler:
         Save a list of Mapping objects to the database.
 
         Args:
-            input (List[Mapping]): A list of Mapping objects to save.
+            session (Session): The database session to use for the query.
+            mappings (List[Mapping]): A list of Mapping objects to save.
 
         Returns:
             None
         """
         for mapping in mappings:
-            if isinstance(mapping, Mapping):
+            if isinstance(mapping, Mapping) and self.database:
                 self.database.add_user_agent_mapping(session=session, mapping=mapping)

@@ -33,15 +33,15 @@ from typing import Dict, List
 from beam.parser.models import Transaction
 
 
-def convert_list(entries: List) -> Dict:
+def convert_list(entries: List[Dict]) -> Dict[str, str]:
     """
     Convert a list of header entries to a dictionary.
 
     Args:
-        entries (List): A list of header entries, each containing 'name' and 'value' keys.
+        entries (List[Dict]): A list of header entries, each containing 'name' and 'value' keys.
 
     Returns:
-        output: A dictionary with header names as keys and their corresponding values.
+        Dict[str, str]: A dictionary with header names as keys and their corresponding values.
 
     Raises:
         None
@@ -114,7 +114,6 @@ def parse_har_log(file_path: str) -> List[Transaction]:
                         )
 
                     req_headers = convert_list(http_request.get("headers", []))
-                    resp_headers = convert_list(http_response.get("headers", []))
                     timestamp = datetime.strptime(
                         entry["startedDateTime"].split(".")[0].split("+")[0],
                         "%Y-%m-%dT%H:%M:%S",
@@ -124,7 +123,7 @@ def parse_har_log(file_path: str) -> List[Transaction]:
                     hostname = req_headers.get("host", "").split(":")[0]
                     try:
                         uri = url.split(hostname)[1].split("?")[0]
-                    except Exception:
+                    except (IndexError, ValueError, AttributeError):
                         uri = ""
                     data = {
                         "timestamp": timestamp,

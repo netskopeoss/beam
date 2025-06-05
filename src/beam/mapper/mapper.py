@@ -32,26 +32,27 @@ import logging
 import re
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from pydantic import ConfigDict
-from sqlalchemy.orm import Session
+from sqlmodel import Session
 
 from beam.constants import GEMINI_API_KEY
+from beam.mapper.data_sources import APIDataSource, DataSource
 
 from .agent_parser import query_agent_parser
-from beam.mapper.data_sources import APIDataSource, DataSource
 from .datastore import DataStoreHandler
 from .gemini import query_gemini
 from .llm import LLMDataSource
 
 
-def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> None:
+def mass_mapping(user_agents: List[str], db_path: Path, logger: logging.Logger) -> None:
     """
     Map a list of user agents to applications.
 
     Args:
-        user_agents (list): A list of user agents to map.
+        user_agents (List[str]): A list of user agents to map.
+        db_path (Path): The path to the user agent mapping database.
         logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
@@ -60,7 +61,7 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
     Raises:
         None
     """
-    logger.info(f"Mapping {len(user_agents)} user agents...")
+    logger.info("Mapping %d user agents...", len(user_agents))
     hits, misses = query_user_agent_mapper(
         user_agents=user_agents,
         db_path=str(db_path),
@@ -68,7 +69,7 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
         llm_api_key=GEMINI_API_KEY,
         delay=1,
     )
-    logger.info(f"Found {len(hits)} hits and {len(misses)} misses.")
+    logger.info("Found %d hits and %d misses.", len(hits), len(misses))
 
 
 def run_mapping_only(
@@ -78,7 +79,10 @@ def run_mapping_only(
     Run the mass mapping process to map user agents to applications.
 
     Args:
-        None
+        user_agent_file (Path): The path to the file containing user agents.
+        db_path (Path): The path to the user agent mapping database.
+        chunk_size (int): The size of chunks to process at a time.
+        logger (logging.Logger): Logger instance for capturing log messages.
 
     Returns:
         None
@@ -86,15 +90,15 @@ def run_mapping_only(
     Raises:
         None
     """
-    logger.info(f"Reading user agents from {user_agent_file}")
+    logger.info("Reading user agents from %s", user_agent_file)
 
     with open(user_agent_file, "r", encoding="utf-8") as file:
         user_agents = file.read().splitlines()
 
-    logger.info(f"Read {len(user_agents)} user agents from the file.")
+    logger.info("Read %d user agents from the file.", len(user_agents))
 
     for i in range(0, len(user_agents), chunk_size):
-        logger.info(f"Processing chunk starting at {i}")
+        logger.info("Processing chunk starting at %d", i)
         time.sleep(2)
 
         # Extract a slice of up to chunk_size items
@@ -119,8 +123,8 @@ class UserAgentMapper(DataSource):
     llm_selection: str
     datastore: DataStoreHandler
     logger: logging.Logger
-    llm: LLMDataSource = None
-    api: APIDataSource = None
+    llm: Optional[LLMDataSource] = None
+    api: Optional[APIDataSource] = None
 
     # Needed to allow the logger to be passed in
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -164,14 +168,14 @@ class UserAgentMapper(DataSource):
         )
         # Update the hits and misses lists
         if len(hits) > 0:
-            self.logger.info(f"Found {len(hits)} user agents in the datastore.")
+            self.logger.info("Found %d user agents in the datastore.", len(hits))
             self.hits.extend(hits)
         elif len(hits) == 0:
             self.logger.info("No user agents were found in the datastore.")
 
         if len(misses) > 0:
             self.logger.info(
-                f"Found {len(misses)} user agents missing from the datastore."
+                "Found %d user agents missing from the datastore.", len(misses)
             )
             self.misses.extend(misses)
         else:
@@ -193,30 +197,35 @@ class UserAgentMapper(DataSource):
         """
         if self.misses_found:
             self.logger.info(
-                f"Checking LLM source {self.llm_selection} for a total of {len(self.misses)} user agents."
+                "Checking LLM source %s for a total of %d user agents.",
+                self.llm_selection,
+                len(self.misses),
             )
             if self.llm_api_key:
                 if self.llm_selection == "Gemini":
+                    # Remove 'logger' argument, pass only supported args
                     self.llm = query_gemini(
                         user_agents=self.misses,
                         api_key=self.llm_api_key,
-                        logger=self.logger,
+                        gemini_logger=self.logger,  # correct argument name
                     )
             else:
                 self.logger.info("No LLM API key was provided, skipping LLM check.")
                 return
 
-            if self.llm.hits_found:
+            if self.llm and self.llm.hits_found:
                 self.logger.info(
-                    f"{self.llm_selection} was able to map {len(self.llm.hits)} user agents."
+                    "%s was able to map %d user agents.",
+                    self.llm_selection,
+                    len(self.llm.hits),
                 )
                 self.hits.extend(self.llm.hits)
             else:
                 self.logger.info(
-                    f"{self.llm_selection} was unable to map any user agents."
+                    "%s was unable to map any user agents.", self.llm_selection
                 )
 
-            if self.llm.misses_found:
+            if self.llm and self.llm.misses_found:
                 # We need to reset the misses list to the new misses
                 # Some of the old misses may be hits now
                 self.misses = self.llm.misses
@@ -224,7 +233,9 @@ class UserAgentMapper(DataSource):
                 self.logger.info("Nothing left to search after querying the LLM.")
                 return
             self.logger.info(
-                f"A total of {len(self.misses)} misses exist after checking {self.llm_selection}."
+                "A total of %d misses exist after checking %s.",
+                len(self.misses),
+                self.llm_selection,
             )
         else:
             self.logger.info("Skipping the LLM check because 0 misses are left.")
@@ -245,7 +256,7 @@ class UserAgentMapper(DataSource):
         """
         if self.misses_found:
             self.logger.info(
-                f"Checking the API for a total of {len(self.misses)} user agents."
+                "Checking the API for a total of %d user agents.", len(self.misses)
             )
             self.api = query_agent_parser(self.misses)
             if self.api.hits_found:
@@ -256,7 +267,8 @@ class UserAgentMapper(DataSource):
             self.misses = self.api.misses
             if self.misses_found:
                 self.logger.info(
-                    f"A total of {len(self.misses)} misses exist after checking the API."
+                    "A total of %d misses exist after checking the API.",
+                    len(self.misses),
                 )
             else:
                 self.logger.info(
@@ -280,35 +292,37 @@ class UserAgentMapper(DataSource):
         """
         if self.hits_found:
             self.logger.info(
-                f"A total of {len(self.hits)} user agents were found. Writing those to the db."
+                "A total of %d user agents were found. Writing those to the db.",
+                len(self.hits),
             )
             self.datastore.save_results(session=session, mappings=self.hits)
         if self.misses_found:
-            self.logger.info(f"The mapper missed {len(self.misses)} user agents.")
+            self.logger.info("The mapper missed %d user agents.", len(self.misses))
 
 
 def query_user_agent_mapper(
     user_agents: List[str],
     db_path: str,
     logger: logging.Logger,
-    llm_api_key: str = None,
+    llm_api_key: Optional[str] = None,
     llm_selection: str = "Gemini",
     delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
     Query the application mapper for given user agent strings and return the results.
 
-    Args:
-        user_agents (List[str]): A list of user agents to be mapped.
-        db_path (str, optional): The path to the user agent mapping database.
-            Defaults to DB_PATH.
-        logger (logging.Logger): The logger used for logging progress and errors.
-        llm_api_key (str, optional): An API key for LLM usage. Defaults to None.
-        llm_selection (str, optional): The LLM to use. Defaults to "Gemini".
+        Args:
+            user_agents (List[str]): A list of user agents to be mapped.
+            db_path (str): The path to the user agent mapping database.
+            logger (logging.Logger): The logger used for logging progress and errors.
+            llm_api_key (Optional[str], optional): An API key for LLM usage. Defaults to None.
+            llm_selection (str, optional): The LLM to use. Defaults to "Gemini".
+            delay (int, optional): Delay between operations in seconds. Defaults to 0.
 
-    Returns:
-        Hits: Dictionary of mapped user agents
-        Misses: List of user agents that were not mapped successfully.
+        Returns:
+            Tuple[List[Dict[str, str]], List[str]]: A tuple containing:
+                - Hits: Dictionary of mapped user agents
+                - Misses: List of user agents that were not mapped successfully.
 
     Raises:
         None
@@ -319,37 +333,42 @@ def query_user_agent_mapper(
     ]
 
     logger.info(
-        f"A total of {len(user_agent_input)} user agents were provided to the mapper."
+        "A total of %d user agents were provided to the mapper.", len(user_agent_input)
     )
 
     ds = DataStoreHandler(db_path=db_path, logger=logger)
     mapper = UserAgentMapper(
         query_input=user_agent_input,
-        llm_api_key=llm_api_key,
+        llm_api_key=llm_api_key or "",
         llm_selection=llm_selection,
         logger=logger,
         datastore=ds,
     )
-    session = mapper.datastore.database.open_database()
 
-    mapper.search(session=session)
-    mapper.save_results(session=session)
-    time.sleep(delay)
     hits = []
-    if mapper.hits_found:
-        hits = []
-        for hit in mapper.hits:
-            if hit not in session:
-                session.add(hit)
-            hits.append(
-                {
-                    "user_agent_string": hit.user_agent_string,
-                    "application": hit.application.name,
-                    "vendor": hit.application.vendor,
-                    "version": hit.version,
-                    "description": hit.application.description,
-                    "operating_system": hit.operatingsystem.name,
-                }
-            )
-    session.close()
+    if ds.database:
+        session = ds.database.open_database()
+        mapper.search(session=session)
+        mapper.save_results(session=session)
+        time.sleep(delay)
+
+        if mapper.hits_found:
+            for hit in mapper.hits:
+                if hit not in session:
+                    session.add(hit)
+                hits.append(
+                    {
+                        "user_agent_string": hit.user_agent_string,
+                        "application": hit.application.name,
+                        "vendor": hit.application.vendor,
+                        "version": hit.version,
+                        "description": hit.application.description,
+                        "operating_system": (
+                            hit.operatingsystem.name
+                            if hit.operatingsystem
+                            else "unknown"
+                        ),
+                    }
+                )
+        session.close()
     return hits, mapper.misses

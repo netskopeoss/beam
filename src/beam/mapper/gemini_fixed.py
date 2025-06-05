@@ -29,14 +29,7 @@ import json
 import logging
 import time
 from json.decoder import JSONDecodeError
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
-
-if TYPE_CHECKING:
-    from google.generativeai.types import (
-        AsyncGenerateContentResponse,
-        BlockedPromptException,
-        GenerateContentResponse,
-    )
+from typing import Any, Dict, List, Optional, Union
 
 try:
     import google.generativeai as genai
@@ -49,11 +42,11 @@ try:
 
     GENAI_AVAILABLE = True
 except ImportError:
-    genai = None  # type: ignore
-    exceptions = None  # type: ignore
-    AsyncGenerateContentResponse = Any  # type: ignore
-    BlockedPromptException = Exception  # type: ignore
-    GenerateContentResponse = Any  # type: ignore
+    genai = None
+    exceptions = None
+    AsyncGenerateContentResponse = None
+    BlockedPromptException = None
+    GenerateContentResponse = None
     GENAI_AVAILABLE = False
 
 from pydantic import ConfigDict
@@ -61,13 +54,7 @@ from pydantic_core import ValidationError
 
 from beam.mapper.data_sources import Application, Mapping, OperatingSystem
 
-from .llm import (
-    LLMAuthorization,
-    LLMConfiguration,
-    LLMDataSource,
-    LLMWorker,
-    LLMWorkProcessor,
-)
+from .llm import LLMDataSource, LLMWorker, LLMWorkProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -83,17 +70,18 @@ GEMINI_SETTINGS = {
 
 
 def convert_response_to_json(
-    response: Any,  # Union types cause issues when genai is not available
-) -> Optional[List[Dict[str, Any]]]:
+    response: Union[AsyncGenerateContentResponse, GenerateContentResponse],
+) -> Optional[List[Dict]]:
     """
     Convert the Gemini LLM response to a Python list of dictionaries.
 
     Args:
-        response: The response object from the Gemini LLM. Contains a JSON-formatted
+        response (Union[AsyncGenerateContentResponse, GenerateContentResponse]):
+            The response object from the Gemini LLM. Contains a JSON-formatted
             string in its 'text' attribute.
 
     Returns:
-        Optional[List[Dict[str, Any]]]: A list of dictionaries parsed from the 'mapping_results'
+        Optional[List[Dict]]: A list of dictionaries parsed from the 'mapping_results'
         key of the JSON response, or None if parsing fails.
 
     Raises:
@@ -155,14 +143,15 @@ def convert_json_to_mappings(json_data: Dict) -> Optional[Mapping]:
 
 
 def process_response(
-    response: Any,  # Union types cause issues when genai is not available
+    response: Union[AsyncGenerateContentResponse, GenerateContentResponse],
     response_logger: logging.Logger,
 ) -> List[Mapping]:
     """
     Process the Gemini response and convert it into a list of Mapping objects.
 
     Args:
-        response: The LLM response containing JSON data in its 'text' attribute.
+        response (Union[AsyncGenerateContentResponse, GenerateContentResponse]):
+            The LLM response containing JSON data in its 'text' attribute.
         response_logger (logging.Logger): A logger instance for logging errors.
 
     Returns:
@@ -197,36 +186,26 @@ class GeminiWorker(LLMWorker):
     api_key: str
     llm_model_name: str
     gemini_config: Dict[str, Any]
-    response: Optional[Any] = None  # Avoid Union types when genai may not be available
+    response: Optional[Union[AsyncGenerateContentResponse, GenerateContentResponse]] = (
+        None
+    )
 
     # Needed to allow the logger to be passed in
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __init__(self, **data):
         """Initialize GeminiWorker."""
-        # Accept both 'gemini_config' and 'generation_config' for compatibility
-        if "generation_config" in data and "gemini_config" not in data:
-            data["gemini_config"] = data.pop("generation_config")
         super().__init__(**data)
         self.response = None
 
     def __configure_model__(self) -> Any:
         """Configure the model object."""
-        if not GENAI_AVAILABLE or genai is None:
+        if not GENAI_AVAILABLE:
             raise ImportError("Google Generative AI library is not available")
 
-        genai.configure(api_key=self.api_key)  # type: ignore
-        # Accept both dict and GenerationConfig for compatibility
-        config = self.gemini_config
-        try:
-            from google.generativeai.types import GenerationConfig
-
-            if isinstance(config, dict):
-                config = GenerationConfig(**config)
-        except ImportError:
-            pass  # If import fails, just use the dict (may error at runtime)
-        return genai.GenerativeModel(  # type: ignore
-            model_name=self.llm_model_name, generation_config=config
+        genai.configure(api_key=self.api_key)
+        return genai.GenerativeModel(
+            model_name=self.llm_model_name, generation_config=self.gemini_config
         )
 
     async def run_async_prompt(self) -> None:
@@ -250,22 +229,14 @@ class GeminiWorker(LLMWorker):
             generated_response = await model_object.generate_content_async(
                 self.full_prompt
             )
-        except (RuntimeError, ValueError, AttributeError) as e:
-            if GENAI_AVAILABLE and exceptions:
-                if isinstance(e, exceptions.ResourceExhausted):
-                    self.logger.error("Google Gemini Resource exhausted: %s", e)
-                    return
-                elif hasattr(exceptions, "BlockedPromptException") and isinstance(
-                    e, BlockedPromptException
-                ):
-                    self.logger.error("Google Gemini Prompt blocked: %s", e)
-                    return
-                elif isinstance(
-                    e, (exceptions.InternalServerError, exceptions.ServiceUnavailable)
-                ):
-                    self.logger.error("Encountered an error from Google Gemini: %s", e)
-                    return
-            self.logger.error("Unexpected error: %s", e)
+        except exceptions.ResourceExhausted as e:
+            self.logger.error("Google Gemini Resource exhausted: %s", e)
+            return
+        except BlockedPromptException as e:
+            self.logger.error("Google Gemini Prompt blocked: %s", e)
+            return
+        except (exceptions.InternalServerError, exceptions.ServiceUnavailable) as e:
+            self.logger.error("Encountered an error from Google Gemini: %s", e)
             return
         # Compute the query time
         query_stop = time.perf_counter()
@@ -288,32 +259,24 @@ class GeminiWorker(LLMWorker):
             "A prompt was launched with %d user agents.", len(self.query_input)
         )
 
-        if not GENAI_AVAILABLE or genai is None:
+        if not GENAI_AVAILABLE:
             raise ImportError("Google Generative AI library is not available")
 
-        genai.configure(api_key=self.api_key)  # type: ignore
-        model_object = genai.GenerativeModel(  # type: ignore
+        genai.configure(api_key=self.api_key)
+        model_object = genai.GenerativeModel(
             model_name=self.llm_model_name, generation_config=self.gemini_config
         )
         query_start = time.perf_counter()
         try:
             generated_response = model_object.generate_content(self.full_prompt)
-        except (RuntimeError, ValueError, AttributeError) as e:
-            if GENAI_AVAILABLE and exceptions:
-                if isinstance(e, exceptions.ResourceExhausted):
-                    self.logger.error("Google Gemini Resource exhausted: %s", e)
-                    return
-                elif hasattr(exceptions, "BlockedPromptException") and isinstance(
-                    e, BlockedPromptException
-                ):
-                    self.logger.error("Google Gemini Prompt blocked: %s", e)
-                    return
-                elif isinstance(
-                    e, (exceptions.InternalServerError, exceptions.ServiceUnavailable)
-                ):
-                    self.logger.error("Encountered an error from Google Gemini: %s", e)
-                    return
-            self.logger.error("Unexpected error: %s", e)
+        except exceptions.ResourceExhausted as e:
+            self.logger.error("Google Gemini Resource exhausted: %s", e)
+            return
+        except BlockedPromptException as e:
+            self.logger.error("Google Gemini Prompt blocked: %s", e)
+            return
+        except (exceptions.InternalServerError, exceptions.ServiceUnavailable) as e:
+            self.logger.error("Encountered an error from Google Gemini: %s", e)
             return
         # Compute the query time
         query_stop = time.perf_counter()
@@ -335,33 +298,20 @@ class GeminiWorkProcessor(LLMWorkProcessor):
     gemini_configuration: Dict[str, Any]
     user_agent_limit: int = GEMINI_USER_AGENT_LIMIT
 
-    def __add_worker__(self, index: int, input_list: List[str]) -> None:
-        """Add a GeminiWorker to the workers list (signature matches base class)."""
+    def __add_worker__(self, index: int, input_data: List[str]) -> None:
+        """Add a GeminiWorker to the workers list."""
         self.workers.append(
             GeminiWorker(
                 index=index,
                 prompt_string=self.prompt_string,
-                query_input=input_list,
+                query_input=input_data,
                 api_key=self.api_key,
                 llm_model_name=self.llm_model_name,
-                # Ensure gemini_config is a GenerationConfig object
-                gemini_config=self._ensure_generation_config(self.gemini_configuration),
+                gemini_config=self.gemini_configuration,
                 configuration=None,  # Use None to satisfy base class
                 logger=self.logger,
             )
         )
-
-    @staticmethod
-    def _ensure_generation_config(config: Dict[str, Any]) -> Any:
-        """Convert dict to GenerationConfig if possible."""
-        try:
-            from google.generativeai.types import GenerationConfig
-
-            if not isinstance(config, GenerationConfig):
-                return GenerationConfig(**config)
-            return config
-        except ImportError:
-            return config
 
     def get_results(self) -> None:
         """
@@ -409,14 +359,9 @@ def query_gemini(
         query_input=user_agents,
         api_key=api_key,
         llm_model_name=llm_model_name,
-        gemini_configuration=dict(settings),  # Ensure dict type
+        gemini_configuration=settings,
         user_agent_limit=user_agent_limit,
         logger=gemini_logger,
-        configuration=LLMConfiguration(
-            llm_model_name=llm_model_name,
-            generation_config=dict(settings),
-            authorization=LLMAuthorization(api_key=api_key),
-        ),
     )
     gemini = LLMDataSource(
         llm_selection="Gemini", work_processor=gemini_processor, logger=gemini_logger

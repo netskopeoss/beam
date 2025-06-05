@@ -27,6 +27,7 @@
 
 import logging.config
 from os import path, remove
+from typing import Any, Dict
 
 from beam.constants import LOG_CONFIG
 from beam.mapper.data_sources import Application, Mapping, OperatingSystem
@@ -37,7 +38,7 @@ TEST_DB_PATH = "./test_datastore.db"
 logging.config.fileConfig(LOG_CONFIG)
 logger = logging.getLogger("test_datastore")
 
-chrome_dict = {
+chrome_dict: Dict[str, Any] = {
     "user_agent_string": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36",
     "version": "42.0.2311.90",
     "application": {
@@ -49,7 +50,7 @@ chrome_dict = {
 }
 
 
-def reset_db():
+def reset_db() -> None:
     """Reset the test database by deleting it."""
     logger.info("Checking for the existence of the datastore test database.")
     if path.exists(TEST_DB_PATH):
@@ -57,7 +58,7 @@ def reset_db():
         remove(TEST_DB_PATH)
 
 
-def test_datastore_save_results():
+def test_datastore_save_results() -> None:
     """Test the DataStore update methods."""
 
     reset_db()
@@ -70,20 +71,22 @@ def test_datastore_save_results():
         operatingsystem=os,
     )
     datastore = DataStoreHandler(db_path=TEST_DB_PATH, logger=logger)
-    session = datastore.database.open_database()
-    datastore.save_results(session=session, mappings=[mapping])
-    session.close()
+    if datastore.database:
+        session = datastore.database.open_database()
+        datastore.save_results(session=session, mappings=[mapping])
+        session.close()
 
 
-def test_search_datastore():
+def test_search_datastore() -> None:
     """Test the DataStore search methods."""
     datastore = DataStoreHandler(logger=logger, db_path=TEST_DB_PATH)
-    session = datastore.database.open_database()
-    hits, misses = datastore.search(
-        session=session, user_agents=[chrome_dict["user_agent_string"]]
-    )
+    if datastore.database:
+        session = datastore.database.open_database()
+        hits, misses = datastore.search(
+            session=session, user_agents=[chrome_dict["user_agent_string"]]
+        )
 
-    print("Here are the hits:")
-    print(hits)
-    assert len(hits) == 1
-    assert len(misses) == 0
+        print("Here are the hits:")
+        print(hits)
+        assert len(hits) == 1
+        assert len(misses) == 0

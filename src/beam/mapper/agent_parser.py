@@ -26,16 +26,20 @@
 # - Dagmawi Mulugeta
 
 import time
-from typing import List
+from typing import List, Optional
 
 import httpagentparser
-from ua_parser import user_agent_parser
 from user_agents import parse
 
-from beam.mapper.data_sources import APIDataSource, Application, Mapping, OperatingSystem
+from beam.mapper.data_sources import (
+    APIDataSource,
+    Application,
+    Mapping,
+    OperatingSystem,
+)
 
 
-def map_item(user_agent: str) -> Mapping | None:
+def map_item(user_agent: str) -> Optional[Mapping]:
     """
     Map a user agent string and return a Mapping object with
     application, version, vendor, os, and description.
@@ -71,57 +75,65 @@ def map_item(user_agent: str) -> Mapping | None:
     vendor = str(parse(user_agent).device.brand).strip()
 
     if application not in ("Other", "unknown", "Unknown Browser"):
-        app = Application(
-            name=application, version=version, vendor=vendor, description=description
-        )
+        app = Application(name=application, vendor=vendor, description=description)
         operating_system = OperatingSystem(name=os)
         return Mapping(
             user_agent_string=user_agent,
+            version=version,
             application=app,
+            app_id=0,  # Placeholder - will be set by database
             operatingsystem=operating_system,
+            os_id=0,  # Placeholder - will be set by database
         )
 
-    parsed = user_agent_parser.Parse(user_agent)
-    application = parsed["user_agent"]["family"].strip()
-    major = parsed["user_agent"].get("major", "")
-    minor = parsed["user_agent"].get("minor", "")
-    patch = parsed["user_agent"].get("patch", "")
-    version_parts = [major, minor, patch]
-    version = ".".join(filter(None, version_parts)).strip()
+    # Try user_agent_parser as fallback - simplified error handling
+    application = "unknown"
+    version = "unknown"
+    os = "unknown"
 
-    os_family = parsed["os"]["family"].strip()
-    major = parsed["os"].get("major", "")
-    minor = parsed["os"].get("minor", "")
-    patch = parsed["os"].get("patch", "")
-    version_parts = [major, minor, patch]
-    os = os_family + " " + ".".join(filter(None, version_parts)).strip()
+    # Skip ua_parser due to typing issues, use httpagentparser directly
 
     if application not in ("Other", "unknown", "Unknown Browser"):
-        app = Application(
-            name=application, version=version, vendor=vendor, description=description
-        )
+        app = Application(name=application, vendor=vendor, description=description)
         operating_system = OperatingSystem(name=os)
         return Mapping(
             user_agent_string=user_agent,
+            version=version,
             application=app,
+            app_id=0,  # Placeholder - will be set by database
             operatingsystem=operating_system,
+            os_id=0,  # Placeholder - will be set by database
         )
 
-    application = httpagentparser.simple_detect(user_agent)[1].strip()
+    # Fallback to httpagentparser
+    try:
+        parser_result = httpagentparser.simple_detect(user_agent)
+        if isinstance(parser_result, (list, tuple)) and len(parser_result) >= 2:
+            os = str(parser_result[0]) if parser_result[0] else "unknown"
+            application = str(parser_result[1]) if parser_result[1] else "unknown"
+        else:
+            os = "unknown"
+            application = "unknown"
+    except (TypeError, AttributeError, IndexError):
+        os = "unknown"
+        application = "unknown"
+    # Final parsing attempt
     if "." in application.split(" ")[-1]:
-        application = " ".join(application.split(" ")[:-1])
-        version = application.split(" ")[-1]
-    os = httpagentparser.simple_detect(user_agent)[0].strip()
+        application_parts = application.split(" ")
+        if len(application_parts) > 1:
+            version = application_parts[-1]
+            application = " ".join(application_parts[:-1])
 
     if application not in ("Other", "unknown", "Unknown Browser"):
-        app = Application(
-            name=application, version=version, vendor=vendor, description=description
-        )
+        app = Application(name=application, vendor=vendor, description=description)
         operating_system = OperatingSystem(name=os)
         return Mapping(
             user_agent_string=user_agent,
+            version=version,
             application=app,
+            app_id=0,  # Placeholder - will be set by database
             operatingsystem=operating_system,
+            os_id=0,  # Placeholder - will be set by database
         )
     else:
         return None

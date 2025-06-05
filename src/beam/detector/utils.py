@@ -28,7 +28,7 @@
 import json
 import os
 import os.path
-from typing import Dict, List, TextIO
+from typing import Dict, List, TextIO, Union
 
 
 def safe_open(path: str) -> TextIO:
@@ -82,7 +82,7 @@ def safe_create_path(path: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 
-def load_json_file(file_path: str) -> Dict:
+def load_json_file(file_path: str) -> Union[Dict, List]:
     """
     Load JSON contents from a file.
 
@@ -90,7 +90,7 @@ def load_json_file(file_path: str) -> Dict:
         file_path (str): The path to the JSON file to load.
 
     Returns:
-        data: A dictionary containing the contents of the JSON file.
+        Union[Dict, List]: The contents of the JSON file, which can be either a dictionary or a list.
 
     Raises:
         FileNotFoundError: If the file does not exist.

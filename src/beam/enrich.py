@@ -28,7 +28,7 @@
 import logging
 import re
 import string
-from typing import List, Optional
+from typing import Dict, List, Optional, cast
 
 from beam.detector.utils import load_json_file
 from beam.mapper.mapper import query_user_agent_mapper
@@ -49,7 +49,7 @@ def load_cloud_app_domains(cloud_domains_file_path: str) -> List[str]:
     return cloud_domains
 
 
-def load_key_domains(key_domains_file_path) -> List[str]:
+def load_key_domains(key_domains_file_path: str) -> List[str]:
     """
     Helper function to load key domains.
 
@@ -64,7 +64,7 @@ def load_key_domains(key_domains_file_path) -> List[str]:
     return key_domains
 
 
-def check_for_key_domains(domain: str, key_domains_file_path) -> List[str]:
+def check_for_key_domains(domain: str, key_domains_file_path: str) -> List[str]:
     """
     Checks to see if any of the relevant hostnames have been contacted.
 
@@ -81,7 +81,7 @@ def check_for_key_domains(domain: str, key_domains_file_path) -> List[str]:
     return sorted(list({h for h in key_domains if domain.endswith(h)}))
 
 
-def get_traffic_type(domain: str, cloud_domains_file_path) -> None | str:
+def get_traffic_type(domain: str, cloud_domains_file_path: str) -> Optional[str]:
     """
     Assign a cloud / non_cloud label based on the domain provider.
 
@@ -90,7 +90,7 @@ def get_traffic_type(domain: str, cloud_domains_file_path) -> None | str:
         cloud_domains_file_path (str): The path to the file containing cloud domains.
 
     Returns:
-        None | str: "cloud" if the domain is a known cloud domain, "non_cloud" otherwise, or None if the domain is empty.
+        Optional[str]: "cloud" if the domain is a known cloud domain, "non_cloud" otherwise, or None if the domain is empty.
     """
     if not domain:
         return None
@@ -167,7 +167,7 @@ def enrich_events(
     cloud_domains_file_path: str,
     key_domains_file_path: str,
     llm_api_key: str,
-) -> dict:
+) -> List[Dict]:
     """
     Take in a parsed Zeek JSON file and enrich it with application information.
 
@@ -179,11 +179,11 @@ def enrich_events(
         llm_api_key (str): The API key for the language model.
 
     Returns:
-        dict: The enriched events.
+        List[Dict]: The enriched events.
     """
     logger = logging.getLogger(__name__)
     logger.info(f"Enriching file {input_path}")
-    events = load_json_file(input_path)
+    events = cast(List[Dict], load_json_file(input_path))
     full_ua_list = [
         event["useragent"]
         for event in events

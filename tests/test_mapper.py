@@ -37,7 +37,7 @@ logging.config.fileConfig(LOG_CONFIG)
 logger = logging.getLogger("test_mapper")
 
 
-def reset_db():
+def reset_db() -> None:
     """Reset the test database by deleting it."""
     logger.info("Checking for the existence of the mapper test database.")
     if path.exists(TEST_DB_PATH):

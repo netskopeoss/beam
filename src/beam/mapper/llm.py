@@ -1,18 +1,16 @@
-"""LLM Module"""
-
 # Copyright 2025 Netskope, Inc.
 # Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
 # following conditions are met:
-
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following
 # disclaimer.
-
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following
 # disclaimer in the documentation and/or other materials provided with the distribution.
-
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote
 # products derived from this software without specific prior written permission.
-
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
 # INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 # DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -20,7 +18,7 @@
 # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
 # WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+#
 # Authors:
 # - Colin Estep
 # - Dagmawi Mulugeta
@@ -36,35 +34,27 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from beam.mapper.data_sources import DataSource, Mapping
 
-"""Constants that define the limits of what can be requested from an LLM in
-each request. These are just defaults in case nothing specific is defined
-for the specific LLM.
-"""
 DEFAULT_LLM_USER_AGENT_LIMIT = 15
 DEFAULT_LLM_INPUT_PREFIX = (
-    """Execute all of the instructions above for the following user agent strings:"""
+    "Execute all of the instructions above for the following user agent strings:"
 )
-LLM_RESPONSE_FORMAT = """
-Each mapping is a JSON object like this:
-{
-    "user_agent_string": str,
-    "version": str,
-    "application": {
-        "name": str,
-        "vendor": str,
-        "description": str
-    },
-    "operatingsystem": {
-        "name": str
-    }
-}
-The response is a JSON object with a list of mappings:
-{
-    "mapping_results": [
-        mappings
-    ]
-}
-"""
+LLM_RESPONSE_FORMAT = (
+    "Each mapping is a JSON object like this:\n"
+    "{\n"
+    '    "user_agent_string": str,\n'
+    '    "version": str,\n'
+    '    "application": {\n'
+    '        "name": str,\n'
+    '        "vendor": str,\n'
+    '        "description": str\n'
+    "    },\n"
+    '    "operatingsystem": {\n'
+    '        "name": str\n'
+    "    }\n"
+    "}\n"
+    "The response is a JSON object with a list of mappings:"
+    '{\n    "mapping_results": [\n        mappings\n    ]\n}'
+)
 DEFAULT_LLM_PROMPT = """
     Parse the given user agent strings to determine what application and
     operating system it represents. Produce a JSON formatted response
@@ -99,8 +89,15 @@ DEFAULT_LLM_PROMPT = """
 
 
 def create_full_prompt(prompt_string: str, input_list: List[str]) -> str:
-    """Function that will combine the initial prompt and
-    input list to create the full prompt for an LLM.
+    """
+    Function that will combine the initial prompt and input list to create the full prompt for an LLM.
+
+    Args:
+        prompt_string (str): The base prompt string.
+        input_list (List[str]): List of input items to be included in the prompt.
+
+    Returns:
+        str: The complete prompt string ready for LLM consumption.
     """
     input_string = "\n".join(input_list)
     full_prompt = (
@@ -121,7 +118,7 @@ class LLMAuthorization(BaseModel, ABC):
     This ingests the LLM credentials to be used by the LLM Configuration.
     """
 
-    api_key: str = Field(default=None)
+    api_key: Optional[str] = Field(default=None)
 
 
 class LLMConfiguration(BaseModel, ABC):
@@ -173,7 +170,7 @@ class LLMWorker(BaseModel, ABC):
         Raises:
             Exception: If an error occurs during the asynchronous prompt execution.
         """
-        pass
+        ...
 
     @abstractmethod
     def run_single_prompt(self) -> None:
@@ -183,7 +180,7 @@ class LLMWorker(BaseModel, ABC):
         Raises:
             Exception: If an error occurs during the single prompt execution.
         """
-        pass
+        ...
 
 
 class LLMWorkProcessor(BaseModel, ABC):
@@ -192,7 +189,7 @@ class LLMWorkProcessor(BaseModel, ABC):
     This will moderate the amount of input tokens.
     """
 
-    delay_between_requests: int = 0.5
+    delay_between_requests: float = 0.5
     prompt_string: str = Field(default=DEFAULT_LLM_PROMPT)
     query_input: List[str]
     user_agent_limit: int = Field(default=DEFAULT_LLM_USER_AGENT_LIMIT)
@@ -228,18 +225,18 @@ class LLMWorkProcessor(BaseModel, ABC):
         return create_full_prompt(self.prompt_string, self.query_input)
 
     @abstractmethod
-    def __add_worker__(self, index: int, input: List[str]) -> None:
+    def __add_worker__(self, index: int, input_list: List[str]) -> None:
         """
         Abstract method to add a new worker for a given subset of user agents.
 
         Args:
             index (int): The worker index or identifier.
-            input (List[str]): A list of user agents or strings to process.
+            input_list (List[str]): A list of user agents or strings to process.
 
         Raises:
             NotImplementedError: If not implemented in a subclass.
         """
-        pass
+        ...
 
     @abstractmethod
     def get_results(self) -> None:
@@ -249,7 +246,7 @@ class LLMWorkProcessor(BaseModel, ABC):
         Raises:
             NotImplementedError: If not implemented in a subclass.
         """
-        pass
+        ...
 
     @staticmethod
     def make_queue_of_lists(input_list: List[str], limit: int) -> deque:
@@ -306,7 +303,7 @@ class LLMWorkProcessor(BaseModel, ABC):
         while len(self.input_queue) > 0:
             next_list = self.input_queue.popleft()
             index += 1
-            self.__add_worker__(index, input=next_list)
+            self.__add_worker__(index, input_list=next_list)
 
     def run_workers_serially(self) -> None:
         """
@@ -374,13 +371,15 @@ class LLMDataSource(DataSource):
             object deemed invalid (e.g., unknown application) is removed and
             added to misses.
         """
+        valid_hits = []
         for mapping in initial_hits:
             if mapping is None:
-                initial_hits.remove(mapping)
-            elif mapping and mapping.application.name in ("Unknown", "unknown", ""):
+                continue
+            elif mapping.application.name in ("Unknown", "unknown", ""):
                 self.misses.append(mapping.user_agent_string)
-                initial_hits.remove(mapping)
-        return initial_hits
+            else:
+                valid_hits.append(mapping)
+        return valid_hits
 
     def __find_missing_user_agents__(self) -> List[str]:
         """
@@ -392,14 +391,11 @@ class LLMDataSource(DataSource):
         Raises:
             None
         """
-        query_list = self.query_input
+        query_list = list(self.query_input)
         ua_hits = [
             mapping.user_agent_string for mapping in self.hits if mapping is not None
         ]
-        for ua in query_list:
-            if ua in ua_hits:
-                query_list.remove(ua)
-        return query_list
+        return [ua for ua in query_list if ua not in ua_hits]
 
     def get_results(self) -> None:
         """

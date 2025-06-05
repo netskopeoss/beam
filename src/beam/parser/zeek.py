@@ -31,13 +31,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List
 
-# TODO: Future improvements
-#  - Handle encrypted packet captures via this method as well
-#  https://docs.zeek.org/en/master/frameworks/tls-decryption.html
-#  - Also consider suggesting a method to decrypt ALL the traffic from a
-#  machine, like a VM, to show how to capture traffic before feeding
-#  it to this system
-#  - Add JA4 fingerprint
+# Note: Future improvements may include handling encrypted packet captures, VM traffic decryption, and adding JA4 fingerprint support.
 
 
 def run_zeek(file_path: str) -> str:
@@ -56,7 +50,9 @@ def run_zeek(file_path: str) -> str:
     logger = logging.getLogger(__name__)
     output_path = file_path.replace(".pcap", "").replace("input", "zeek")
     logger.info(
-        f"[X] Running {file_path} through zeek and outputting the results here: {output_path}"
+        "[X] Running %s through zeek and outputting the results here: %s",
+        file_path,
+        output_path,
     )
     Path(output_path).mkdir(parents=True, exist_ok=True)
     command_to_run = [
@@ -68,12 +64,12 @@ def run_zeek(file_path: str) -> str:
         "LogAscii::use_json=T",
         "local",
     ]
-    logger.info(f"[x] Running {' '.join(command_to_run)}")
-    subprocess.run(command_to_run)
+    logger.info("[x] Running %s", " ".join(command_to_run))
+    subprocess.run(command_to_run, check=True)
     return output_path
 
 
-def grab_zeek_log(dir_path: str, log_name: str) -> Dict:
+def grab_zeek_log(dir_path: str, log_name: str) -> Dict[str, List[Dict]]:
     """
     Helper function to parse through a zeek log and return a python dictionary.
 
@@ -82,7 +78,7 @@ def grab_zeek_log(dir_path: str, log_name: str) -> Dict:
         log_name (str): The name of the Zeek log file to parse.
 
     Returns:
-        dict: A dictionary containing parsed log data, keyed by 'uid'.
+        Dict[str, List[Dict]]: A dictionary containing parsed log data, keyed by 'uid'.
 
     Raises:
         None
@@ -93,21 +89,19 @@ def grab_zeek_log(dir_path: str, log_name: str) -> Dict:
     log_data = dict()
 
     try:
-        with open(log_path) as _file:
+        with open(log_path, encoding="utf-8") as _file:
             for line in _file.readlines():
                 e = json.loads(line)
                 if e["uid"] in log_data:
                     log_data[e["uid"]].append(e)
                 else:
                     log_data[e["uid"]] = [e]
-
-    except Exception as e:
-        logger.info(f"[x] Error opening {log_path}")
-
+    except (FileNotFoundError, json.JSONDecodeError):
+        logger.info("[x] Error opening %s", log_path)
     return log_data
 
 
-def process_zeek_output(input_path: str) -> List:
+def process_zeek_output(input_path: str) -> List[Dict]:
     """
     Parse the Zeek output logs and save the parsed results to a JSON file.
 
@@ -115,7 +109,7 @@ def process_zeek_output(input_path: str) -> List:
         input_path (str): The path to the directory containing Zeek output logs.
 
     Returns:
-        None
+        List[Dict]: A list of parsed log entries as dictionaries.
 
     Raises:
         None
@@ -124,14 +118,13 @@ def process_zeek_output(input_path: str) -> List:
     http_data = grab_zeek_log(input_path, log_name="http.log")
     conn_data = grab_zeek_log(input_path, log_name="conn.log")
     files_data = grab_zeek_log(input_path, log_name="files.log")
-    ssl_data = grab_zeek_log(input_path, log_name="ssl.log")
-
+    # ssl_data = grab_zeek_log(input_path, log_name="ssl.log")  # Unused
     parsed_result = []
-
-    for _uid in http_data.items():
+    for _uid, _ in http_data.items():
         try:
             http_row = http_data[_uid][0]
-            connection = conn_data.get(_uid, None)[0]
+            connection_list = conn_data.get(_uid, None)
+            connection = connection_list[0] if connection_list else None
             files = files_data.get(_uid, None)
 
             if "host" in http_row:
@@ -152,13 +145,10 @@ def process_zeek_output(input_path: str) -> List:
             req_types = http_row.get("orig_mime_types", [])
             resp_types = http_row.get("resp_mime_types", [])
 
-            # TODO: We are only grabbing one entry here - need to identify why the discrepancy
-
+            # Note: Only grabbing one entry here; revisit if multiple entries are expected.
             req_content_type = req_types[0] if len(req_types) > 0 else None
             resp_content_type = resp_types[0] if len(resp_types) > 0 else None
-
-            # TODO: these do not seem like files - need to filter them better if NSKP output is actual files
-
+            # Note: Filtering of files may be needed if NSKP output is actual files.
             file_types = (
                 sorted(
                     list({c.get("mime_type", "") for c in files} if files else set())
@@ -169,22 +159,16 @@ def process_zeek_output(input_path: str) -> List:
                     list({c.get("total_bytes", 0) for c in files} if files else set())
                 ),
             )
-
-            # TODO: We are only grabbing one entry here - need to identify why the discrepancy
-
+            # Note: Only grabbing one entry here; revisit if multiple entries are expected.
             file_type = file_types[0] if len(file_types) > 0 else None
             file_size = file_sizes[0] if len(file_sizes) > 0 else None
 
-            # TODO: At the moment, we are only dealing with http traffic
-            #     Need to identify cases where this might be https
-            uri_scheme = "http"
+            # Note: Currently only dealing with http traffic; extend for https if needed.
             referrer = http_row.get("referrer", "")
             is_referred = True if referrer else False
-
             useragent = http_row.get("user_agent", "")
-
             parsed_log_line = {
-                "timestamp": connection.get("ts", 0),
+                "timestamp": connection.get("ts", 0) if connection else 0,
                 "useragent": useragent,
                 "domain": domain,
                 "referrer": referrer,
@@ -196,10 +180,10 @@ def process_zeek_output(input_path: str) -> List:
                 "src_port": http_row.get("id.orig_p", ""),
                 "dst_ip": http_row.get("id.resp_h", ""),
                 "dst_port": http_row.get("id.resp_p", ""),
-                "client_bytes": connection["orig_bytes"],
-                "server_bytes": connection["resp_bytes"],
-                "time_taken_ms": connection["duration"] * 1000.0,
-                "service": connection.get("service", ""),
+                "client_bytes": connection["orig_bytes"] if connection else 0,
+                "server_bytes": connection["resp_bytes"] if connection else 0,
+                "time_taken_ms": connection["duration"] * 1000.0 if connection else 0.0,
+                "service": connection.get("service", "") if connection else "",
                 "http_status": http_status,
                 "status_msg": status_msg,
                 "req_types": req_types,
@@ -215,9 +199,7 @@ def process_zeek_output(input_path: str) -> List:
                 "file_size": file_size,
                 # 'uri_scheme': uri_scheme
             }
-
             parsed_result.append(parsed_log_line)
-
-        except Exception as e:
-            logger.error(f"[!!] Exception: {e}")
+        except (KeyError, IndexError, json.JSONDecodeError) as e:
+            logger.error("[!!] Exception: %s", str(e))
     return parsed_result
