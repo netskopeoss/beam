@@ -337,6 +337,12 @@ class GeminiWorkProcessor(LLMWorkProcessor):
 
     def __add_worker__(self, index: int, input_list: List[str]) -> None:
         """Add a GeminiWorker to the workers list (signature matches base class)."""
+        # Always pass a dict for gemini_config to satisfy Pydantic validation
+        config_dict = (
+            dict(self.gemini_configuration)
+            if not isinstance(self.gemini_configuration, dict)
+            else self.gemini_configuration
+        )
         self.workers.append(
             GeminiWorker(
                 index=index,
@@ -344,8 +350,7 @@ class GeminiWorkProcessor(LLMWorkProcessor):
                 query_input=input_list,
                 api_key=self.api_key,
                 llm_model_name=self.llm_model_name,
-                # Ensure gemini_config is a GenerationConfig object
-                gemini_config=self._ensure_generation_config(self.gemini_configuration),
+                gemini_config=config_dict,  # Always a dict for Pydantic
                 configuration=None,  # Use None to satisfy base class
                 logger=self.logger,
             )
