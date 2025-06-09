@@ -84,22 +84,6 @@ def run_detection(
         min_transactions=constants.MIN_APP_TRANSACTIONS,
     )
 
-    # Use combined model if available, or standard model otherwise
-    # app_model_path = str(constants.APP_MODEL)
-    # combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
-
-    # if use_custom_models and Path(combined_model_path).exists():
-    #     logger.info("Using combined model with custom apps")
-    #     model_to_use = combined_model_path
-    # else:
-    #     model_to_use = app_model_path
-
-    # detect_anomalous_app(
-    #     input_path=app_features_output_path,
-    #     app_model_path=model_to_use,
-    #     app_prediction_directory=str(constants.APP_PREDICTIONS_DIR),
-    # )
-
     logger.info("Analysing domains...")
     features_output_path = f"{DATA_DIR}/domain_summaries/{file_name}.json"
     features.aggregate_app_traffic(
