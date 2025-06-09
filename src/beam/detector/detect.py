@@ -26,9 +26,8 @@
 # - Dagmawi Mulugeta
 
 import logging
-import os
 import pickle
-from typing import Any, Dict, Optional, Set, Tuple
+from typing import Any, Dict, Set, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -308,95 +307,6 @@ def convert_supply_chain_summaries_to_features(
     )
     features_pd.reset_index()
     return features_og, features_pd
-
-
-def detect_anomalous_app(
-    input_path: str,
-    app_model_path: str,
-    app_prediction_directory: str,
-    custom_model_path: Optional[str] = None,
-) -> None:
-    """
-    Detect anomalous applications in the given input data.
-
-    Args:
-        input_path (str): The path to the input JSON file containing the data.
-        app_model_path (str): The path to the pickled model.
-        app_prediction_directory (str): The directory to save the predictions.
-        custom_model_path (str, optional): Path to a custom model to use alongside the standard model.
-
-    Returns:
-        None
-    """
-    logger = logging.getLogger(__name__)
-    logger.info(f"[x] Detecting anomalous applications in {input_path}")
-
-    # Load the primary model
-    model = load_app_model(app_model_path)
-
-    # If a custom model is specified, try to load and use it
-    if custom_model_path and os.path.exists(custom_model_path):
-        logger.info(f"[x] Using custom model from: {custom_model_path}")
-        model = load_app_model(custom_model_path)
-    estimator = model["estimator"]
-    selected_feature_names = model["selected_features"]
-    classes = estimator.classes_
-
-    features_og, features_pd = convert_summary_to_features(load_json_file(input_path))
-    predictions = estimator.predict_proba(features_pd)
-    features_scaled = estimator["rf_feat"].transform(
-        estimator["ct"].transform(features_pd)
-    )
-
-    for observation_index, observation_key in enumerate(features_og["key"]):
-        predicted_class_index = predictions[observation_index].argmax()
-        predicted_class_name = classes[predicted_class_index]
-        predicted_class_proba = predictions[observation_index, predicted_class_index]
-
-        plt.clf()
-        chosen_instance = features_scaled[observation_index, :]
-        explainer = shap.TreeExplainer(estimator["rf"])
-        shap_values = explainer.shap_values(chosen_instance)
-        shap.initjs()
-        exp = shap.Explanation(
-            values=shap_values[..., predicted_class_index],
-            base_values=explainer.expected_value[predicted_class_index],
-            data=chosen_instance,
-            feature_names=selected_feature_names,
-        )
-
-        shap.waterfall_plot(exp, max_display=20, show=False)
-        obs_file_dir = (
-            str(observation_index)
-            + "_"
-            + observation_key.replace(" ", "_").replace("'", "").replace("/", "")[:35]
-        )
-        parent_dir = f"{app_prediction_directory}/{obs_file_dir}/"
-        safe_create_path(parent_dir)
-        exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-        plt.savefig(exp_png_path, dpi=150, bbox_inches="tight")
-
-        full_predictions = sorted(
-            [
-                {"class": c, "probability": round(100.0 * p, 4)}
-                for p, c in zip(predictions[observation_index], classes)
-            ],
-            key=lambda x: x["probability"],
-            reverse=True,
-        )
-        full_predictions_path = f"{parent_dir}full_predictions.json"
-        save_json_data(full_predictions, full_predictions_path)
-
-        logger.info(
-            f"""
-            i = {observation_index}
-            Advertised user agent = {observation_key}
-            Predicted class = {predicted_class_name} ({round(predicted_class_proba * 100, 2)}%)
-            Top 3 predictions = {full_predictions[:3]}
-            SHAP explanation path = {exp_png_path}
-            Full predictions path = {full_predictions_path}
-        \n"""
-        )
 
 
 def detect_anomalous_domain(

@@ -38,11 +38,7 @@ from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import (
-    MultiHotEncoder,
-    detect_anomalous_app,
-    detect_anomalous_domain,
-)
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 from beam.detector.trainer import (
     ModelTrainer,
     extract_app_features,
@@ -89,20 +85,20 @@ def run_detection(
     )
 
     # Use combined model if available, or standard model otherwise
-    app_model_path = str(constants.APP_MODEL)
-    combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
+    # app_model_path = str(constants.APP_MODEL)
+    # combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
 
-    if use_custom_models and Path(combined_model_path).exists():
-        logger.info("Using combined model with custom apps")
-        model_to_use = combined_model_path
-    else:
-        model_to_use = app_model_path
+    # if use_custom_models and Path(combined_model_path).exists():
+    #     logger.info("Using combined model with custom apps")
+    #     model_to_use = combined_model_path
+    # else:
+    #     model_to_use = app_model_path
 
-    detect_anomalous_app(
-        input_path=app_features_output_path,
-        app_model_path=model_to_use,
-        app_prediction_directory=str(constants.APP_PREDICTIONS_DIR),
-    )
+    # detect_anomalous_app(
+    #     input_path=app_features_output_path,
+    #     app_model_path=model_to_use,
+    #     app_prediction_directory=str(constants.APP_PREDICTIONS_DIR),
+    # )
 
     logger.info("Analysing domains...")
     features_output_path = f"{DATA_DIR}/domain_summaries/{file_name}.json"
@@ -262,7 +258,18 @@ def process_training_data(
     logger: Optional[logging.Logger] = None,
 ) -> None:
     """
-    Process input data to train a custom app model.
+    Orchestrates the full pipeline for training a custom application model from network traffic data (PCAP or HAR).
+
+    This function performs the following steps:
+      1. Ensures a logger is available for status and error reporting.
+      2. Determines the output path for the custom model, creating the directory if needed.
+      3. Parses the input file (PCAP or HAR) into a standardized JSON format.
+      4. Enriches the parsed events with additional context (e.g., domain and cloud data).
+      5. Extracts relevant features (e.g., useragent) from the enriched events for model training.
+      6. Trains a custom application model using the extracted features and saves it.
+      7. If a standard application model exists, merges the new custom model with it to create a combined model, enabling detection of both standard and custom apps.
+
+    This pipeline automates and standardizes the process of training new application detection models, ensuring consistency and enabling seamless extension of the detection system with custom-trained models.
 
     Args:
         input_file_path (str): Path to the input file (pcap or har).
