@@ -48,8 +48,8 @@ class Transaction(BaseModel):
     time_taken_ms: int
     client_bytes: float
     server_bytes: float
-    referer: Optional[str]  # Use the Union type to allow for a nullable string
-    referer_domain: Optional[str]  # Use the Union type to allow for a nullable string
+    referrer: Optional[str]  # Allow null value
+    referrer_domain: Optional[str]  # Allow null value
     url: str
     uri: str
     src_ip: str
