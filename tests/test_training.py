@@ -31,7 +31,6 @@ def test_process_training_data_merges_model(
     file_name = "dummy_input"
     parsed_file_path = "parsed.json"
     enriched_events_path = "enriched.json"
-    features_output_path = f"data/app_summaries/{file_name}.json"
 
     mock_parse.return_value = (file_name, parsed_file_path)
     mock_enrich.return_value = enriched_events_path
@@ -64,7 +63,6 @@ def test_process_training_data_no_merge(
     file_name = "dummy_input"
     parsed_file_path = "parsed.json"
     enriched_events_path = "enriched.json"
-    features_output_path = f"data/app_summaries/{file_name}.json"
 
     mock_parse.return_value = (file_name, parsed_file_path)
     mock_enrich.return_value = enriched_events_path

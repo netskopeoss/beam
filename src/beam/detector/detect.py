@@ -368,7 +368,7 @@ def detect_anomalous_domain(
 
             try:
                 chosen_instance = features_scaled[observation_index, :].toarray()
-            except:
+            except AttributeError:
                 chosen_instance = features_scaled[observation_index, :]
 
             explainer = shap.TreeExplainer(estimator["rf"])
@@ -383,7 +383,7 @@ def detect_anomalous_domain(
 
             try:
                 shap.waterfall_plot(exp[0], max_display=20, show=False)
-            except:
+            except (IndexError, AttributeError):
                 shap.waterfall_plot(exp, max_display=20, show=False)
 
             obs_file_dir = (
