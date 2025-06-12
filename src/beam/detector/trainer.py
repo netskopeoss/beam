@@ -276,12 +276,12 @@ class ModelTrainer:
             f"Dataset has {X.shape[1]} raw features, which transform to {transformed_feature_count} features"
         )
 
-        # Use a lower value than the transformed count to be safe
-        # Always use at most 10 features or 75% of available features, whichever is smaller
-        safe_max_features = min(10, int(transformed_feature_count * 0.75))
+        # Use a substantial portion of the available features while still being safe
+        # Use up to 90% of available features with a higher maximum limit of 30
+        safe_max_features = min(30, int(transformed_feature_count * 0.9))
         safe_max_features = max(
-            1, safe_max_features
-        )  # Ensure at least 1 feature is selected
+            5, safe_max_features
+        )  # Ensure at least 5 features are selected
         self.logger.info(
             f"Setting max_features to {safe_max_features} (out of {transformed_feature_count} available)"
         )
