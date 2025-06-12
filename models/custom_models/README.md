@@ -50,10 +50,10 @@ export APP_NAME="MyCustomApp"  # Replace with your app name
 ##### Step 3: Train the Model
 ```bash
 # Basic training command
-python -m beam.run --train --app_name "$APP_NAME" -i data/input/
+python -m beam --train --app_name "$APP_NAME" -i data/input/
 
 # With custom output path
-python -m beam.run --train \
+python -m beam --train \
     --app_name "$APP_NAME" \
     -i data/input/ \
     --model_output "models/custom_models/${APP_NAME}_model.pkl"
@@ -71,7 +71,7 @@ ls -la models/combined_app_model.pkl
 ##### Step 5: Test the Model
 ```bash
 # Run detection with custom models enabled (default)
-python -m beam.run -i data/input/test_traffic.pcap --use_custom_models
+python -m beam -i data/input/test_traffic.pcap --use_custom_models
 
 # Check predictions directory for results
 ls -la predictions/anomalous_app/
