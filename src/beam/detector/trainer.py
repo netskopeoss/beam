@@ -52,7 +52,7 @@ from .utils import load_json_file, safe_create_path
 class ModelTrainer:
     """Class for training custom app models"""
 
-    def __init__(self, n_features: int = 150, min_transactions: int = 50):
+    def __init__(self, n_features: int = 50, min_transactions: int = 50):
         """
         Initialize the ModelTrainer.
 
@@ -74,16 +74,28 @@ class ModelTrainer:
             ),
         ]
 
-    def get_pipeline_estimator(self, n_estimators: int = 100) -> Pipeline:
+    def get_pipeline_estimator(
+        self, n_estimators: int = 100, feature_count: int = None
+    ) -> Pipeline:
         """
         Create a pipeline estimator for model training.
 
         Args:
             n_estimators (int): Number of estimators for RandomForest and XGBoost.
+            feature_count (int): Number of features available in the dataset.
+                                If provided, max_features will be limited to this value.
 
         Returns:
             Pipeline: The configured pipeline estimator.
         """
+        # Calculate max_features - should not exceed the available features
+        if feature_count is not None:
+            # If feature_count is explicitly provided, use it directly
+            max_features = feature_count
+        else:
+            # Otherwise use the default n_features
+            max_features = self.n_features
+
         # Feature selector based on Random Forest importance
         rf_feature_selector = SelectFromModel(
             estimator=RandomForestClassifier(
@@ -93,7 +105,7 @@ class ModelTrainer:
                 n_jobs=-1,
             ),
             threshold=-np.inf,  # Select based on max_features
-            max_features=self.n_features,
+            max_features=max_features,
         )
 
         xgb_classifier = xgb.XGBClassifier(
@@ -216,8 +228,66 @@ class ModelTrainer:
         # Convert to pandas DataFrame
         X, y = self.convert_features_to_pd(training_data)
 
-        # Create and fit the model
-        estimator = self.get_pipeline_estimator()
+        # For binary classification, we need numeric labels (0 or 1), not string labels
+        # Since we have only one class in training data, we need to create a synthetic negative class
+        # We'll add some negative examples with '0' label
+        self.logger.info(
+            f"Creating binary classification dataset with target class '{app_name}'"
+        )
+
+        # Create synthetic negative examples by copying the first few examples and changing their labels
+        negative_samples = []
+        if len(training_data) > 0:
+            # Use a small number of samples from the training data as templates
+            for i in range(min(5, len(training_data))):
+                neg_sample = training_data[i].copy()
+                neg_sample["application"] = (
+                    "not_" + app_name
+                )  # This will be encoded as 0
+                negative_samples.append(neg_sample)
+
+            # Add the negative samples to the training data
+            combined_data = training_data + negative_samples
+
+            # Re-convert to DataFrame with the combined data
+            X, y = self.convert_features_to_pd(combined_data)
+
+            # Encode labels as 0 and 1
+            y_encoded = np.zeros(len(y), dtype=int)
+            y_encoded[y == app_name] = 1  # Set positive class to 1
+            y = y_encoded
+
+            self.logger.info(
+                f"Created dataset with {len(training_data)} positive examples and {len(negative_samples)} synthetic negative examples"
+            )
+        else:
+            self.logger.error("No positive examples available for training")
+            return None
+
+        # Now we can proceed with feature transformation
+        ct = ColumnTransformer(
+            transformers=self.columns_to_be_transformed, remainder="drop"
+        )
+        X_transformed = ct.fit_transform(X)
+
+        # Now we can accurately determine the number of transformed features
+        transformed_feature_count = X_transformed.shape[1]
+        self.logger.info(
+            f"Dataset has {X.shape[1]} raw features, which transform to {transformed_feature_count} features"
+        )
+
+        # Use a lower value than the transformed count to be safe
+        # Always use at most 10 features or 75% of available features, whichever is smaller
+        safe_max_features = min(10, int(transformed_feature_count * 0.75))
+        safe_max_features = max(
+            1, safe_max_features
+        )  # Ensure at least 1 feature is selected
+        self.logger.info(
+            f"Setting max_features to {safe_max_features} (out of {transformed_feature_count} available)"
+        )
+
+        # Now create the full pipeline with our safe max_features value
+        estimator = self.get_pipeline_estimator(feature_count=safe_max_features)
         estimator.fit(X, y)
 
         # Get feature names
@@ -379,7 +449,7 @@ class ModelTrainer:
         try:
             # Extract features using the existing aggregate_app_traffic function
             aggregate_app_traffic(
-                fields=["useragent"],
+                fields=["useragent", "domain"],
                 input_path=temp_input_path,
                 output_path=temp_output_path,
                 min_transactions=self.min_transactions,
@@ -432,7 +502,7 @@ def extract_app_features(
         str: Path to the saved features file.
     """
     if fields is None:
-        fields = ["useragent"]
+        fields = ["useragent", "domain"]
 
     logger = logging.getLogger(__name__)
     logger.info("Extracting app features from %s", input_data_path)
@@ -454,7 +524,7 @@ def train_custom_app_model(
     features_path: str,
     app_name: str,
     output_model_path: str,
-    n_features: int = 150,
+    n_features: int = 50,
     min_transactions: int = 50,
 ) -> None:
     """

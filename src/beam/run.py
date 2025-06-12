@@ -297,15 +297,15 @@ def process_training_data(
         input_data_path=enriched_events_path,
         output_path=features_output_path,
         min_transactions=constants.MIN_APP_TRANSACTIONS,
-        fields=["useragent"],
+        fields=["useragent", "domain"],
     )
 
-    # Train the custom app model
+    # Train the custom app model with a more reasonable default n_features
     train_custom_app_model(
         features_path=features_output_path,
         app_name=app_name,
         output_model_path=custom_model_path,
-        n_features=150,
+        n_features=50,  # Lower default value to avoid exceeding available features
         min_transactions=constants.MIN_APP_TRANSACTIONS,
     )
 
@@ -410,7 +410,13 @@ def run(logger: logging.Logger) -> None:
             return
 
         logger.info(f"Running BEAM in training mode for app: {args['app_name']}")
-        input_paths = glob.glob(str(args["input_dir"] / "*"))
+        # Convert input_dir to Path object if it's a string
+        input_dir = (
+            Path(args["input_dir"])
+            if isinstance(args["input_dir"], str)
+            else args["input_dir"]
+        )
+        input_paths = glob.glob(str(input_dir / "*"))
 
         if not input_paths:
             logger.error(f"No input files found in {args['input_dir']}")
@@ -431,7 +437,13 @@ def run(logger: logging.Logger) -> None:
             f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection"
         )
 
-        input_paths = glob.glob(str(args["input_dir"] / "*"))
+        # Convert input_dir to Path object if it's a string
+        input_dir = (
+            Path(args["input_dir"])
+            if isinstance(args["input_dir"], str)
+            else args["input_dir"]
+        )
+        input_paths = glob.glob(str(input_dir / "*"))
         for input_path in input_paths:
             process_input_file(
                 file_path=input_path, logger=logger, use_custom_models=use_custom_models
