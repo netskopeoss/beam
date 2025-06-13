@@ -56,7 +56,8 @@ def run_detection(
     file_name: str,
     enriched_events_path: str,
     logger: logging.Logger,
-    use_custom_models: bool = True,
+    use_custom_models: bool = False,
+    app_name: str
 ) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
@@ -92,9 +93,17 @@ def run_detection(
         output_path=features_output_path,
         min_transactions=constants.MIN_DOMAIN_TRANSACTION,
     )
+
+    if use_custom_models and app_name:
+        model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{app_name}.pkl")
+        logger.info(f"Using custom model for {app_name}")
+    else:
+        model_path = Path(constants.DOMAIN_MODEL)
+        logger.info("Using default domain model.")
+
     detect_anomalous_domain(
         input_path=features_output_path,
-        domain_model_path=str(constants.DOMAIN_MODEL),
+        domain_model_path=model_path,
         app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
     )
     logger.info(f"Features output saved to: {features_output_path}")
@@ -200,7 +209,7 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
 
 
 def process_input_file(
-    file_path: str, logger: logging.Logger, use_custom_models: bool = True
+    file_path: str, logger: logging.Logger, use_custom_models: bool = False, app_name: str
 ) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
@@ -230,6 +239,7 @@ def process_input_file(
             enriched_events_path=enriched_events_path,
             logger=logger,
             use_custom_models=use_custom_models,
+            app_name=app_name,
         )
     else:
         logger.error(f"File not found: {file_path}")
@@ -387,7 +397,7 @@ def run(logger: logging.Logger) -> None:
         help="Whether to include custom trained models in detection.",
         required=False,
         action="store_true",
-        default=True,
+        default=False,
     )
 
     args = vars(parser.parse_args())
@@ -433,6 +443,7 @@ def run(logger: logging.Logger) -> None:
     else:
         logger.info("Running BEAM in detection mode...")
         use_custom_models = args["use_custom_models"]
+        app_name = args["app_name"]
         logger.info(
             f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection"
         )
@@ -446,5 +457,8 @@ def run(logger: logging.Logger) -> None:
         input_paths = glob.glob(str(input_dir / "*"))
         for input_path in input_paths:
             process_input_file(
-                file_path=input_path, logger=logger, use_custom_models=use_custom_models
+                file_path=input_path,
+                logger=logger,
+                use_custom_models=use_custom_models,
+                app_name=app_name,
             )

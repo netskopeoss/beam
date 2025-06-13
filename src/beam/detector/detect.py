@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 import shap
 from numpy.typing import NDArray
+from path import Path
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -179,7 +180,7 @@ def load_app_model(app_model_path: str) -> Any:
     return model
 
 
-def load_domain_model(domain_model_path: str) -> Tuple[Set, Dict]:
+def load_domain_model(domain_model_path: Path) -> Tuple[Set, Dict]:
     """
     Load the domain model from the specified path.
 
@@ -311,7 +312,7 @@ def convert_supply_chain_summaries_to_features(
 
 def detect_anomalous_domain(
     input_path: str,
-    domain_model_path: str,
+    domain_model_path: Path,
     app_prediction_dir: str,
     prob_cutoff: float = 0.8,
 ) -> None:
