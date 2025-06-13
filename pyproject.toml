@@ -75,7 +75,8 @@ dependencies = [
     "urllib3==2.3.0",
     "user-agents==2.2.0",
     "art==6.4",
-    "xgboost==2.1.1"
+    "xgboost==2.1.1",
+    "path>=17.1.0",
 ]
 
 [dependency-groups]
