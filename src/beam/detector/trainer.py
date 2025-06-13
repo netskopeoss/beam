@@ -34,7 +34,6 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_selection import SelectFromModel
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
@@ -96,13 +95,16 @@ class ModelTrainer:
             # Otherwise use the default n_features
             max_features = self.n_features
 
-        # Feature selector based on Random Forest importance
-        rf_feature_selector = SelectFromModel(
-            estimator=RandomForestClassifier(
-                n_estimators=n_estimators,
-                criterion="entropy",
+        # Use XGBoost model for feature selection instead of Random Forest
+        xgb_feature_selector = SelectFromModel(
+            estimator=xgb.XGBClassifier(
+                objective="binary:logistic",
+                eval_metric="logloss",
                 random_state=42,
                 n_jobs=-1,
+                n_estimators=n_estimators,
+                max_depth=4,
+                learning_rate=0.1,
             ),
             threshold=-np.inf,  # Select based on max_features
             max_features=max_features,
@@ -126,12 +128,12 @@ class ModelTrainer:
                     transformers=self.columns_to_be_transformed, remainder="drop"
                 ),
             ),
-            ("rf_feat", rf_feature_selector),
+            ("xgb_feat", xgb_feature_selector),  # Use XGBoost for feature selection
             ("xgb", xgb_classifier),
         ]
 
         self.logger.info(
-            "Creating pipeline with ColumnTransformer, RF Selector, XGBoost Classifier"
+            "Creating pipeline with ColumnTransformer, XGBoost Feature Selector, XGBoost Classifier"
         )
         return Pipeline(steps=steps)
 
@@ -292,7 +294,7 @@ class ModelTrainer:
 
         # Get feature names
         feature_names = self.get_feature_names(ct=estimator.named_steps["ct"])
-        selected_feat_ind = estimator.named_steps["rf_feat"].get_support()
+        selected_feat_ind = estimator.named_steps["xgb_feat"].get_support()
         selected_features = np.array(feature_names)[selected_feat_ind]
 
         # Create model information dictionary

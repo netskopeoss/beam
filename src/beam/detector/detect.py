@@ -355,9 +355,16 @@ def detect_anomalous_domain(
             classes = estimator.classes_
 
             predictions = estimator.predict_proba(features_pd)
-            features_scaled = estimator["rf_feat"].transform(
-                estimator["ct"].transform(features_pd)
-            )
+
+            # Try to get features using XGBoost feature selector first, then fall back to RF if needed
+            if "xgb_feat" in estimator:
+                features_scaled = estimator["xgb_feat"].transform(
+                    estimator["ct"].transform(features_pd)
+                )
+            else:  # For backward compatibility with older models
+                features_scaled = estimator["rf_feat"].transform(
+                    estimator["ct"].transform(features_pd)
+                )
 
             predicted_class_index = predictions[observation_index].argmax()
             predicted_class_name = classes[predicted_class_index]
@@ -372,7 +379,16 @@ def detect_anomalous_domain(
             except AttributeError:
                 chosen_instance = features_scaled[observation_index, :]
 
-            explainer = shap.TreeExplainer(estimator["rf"])
+            # Try to get the XGBoost model first (preferred), then fall back to Random Forest
+            if "xgb" in estimator:
+                tree_model = estimator["xgb"]
+            elif "rf" in estimator:
+                tree_model = estimator["rf"]
+            else:
+                # Get the last step in the pipeline which should be the tree-based model
+                tree_model = estimator.steps[-1][1]
+
+            explainer = shap.TreeExplainer(tree_model)
             shap_values = explainer.shap_values(chosen_instance)
             shap.initjs()
             exp = shap.Explanation(

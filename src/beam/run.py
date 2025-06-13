@@ -56,8 +56,8 @@ def run_detection(
     file_name: str,
     enriched_events_path: str,
     logger: logging.Logger,
+    app_name: str,
     use_custom_models: bool = False,
-    app_name: str
 ) -> None:
     """
     Detect anomalous apps in the enriched events by aggregating app traffic
@@ -95,7 +95,7 @@ def run_detection(
     )
 
     if use_custom_models and app_name:
-        model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{app_name}.pkl")
+        model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{app_name}_model.pkl")
         logger.info(f"Using custom model for {app_name}")
     else:
         model_path = Path(constants.DOMAIN_MODEL)
@@ -209,7 +209,10 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
 
 
 def process_input_file(
-    file_path: str, logger: logging.Logger, use_custom_models: bool = False, app_name: str
+    file_path: str,
+    logger: logging.Logger,
+    app_name: str,
+    use_custom_models: bool = False,
 ) -> None:
     """
     Process files made available in the 'input_pcaps' directory, running
@@ -238,8 +241,8 @@ def process_input_file(
             file_name=file_name,
             enriched_events_path=enriched_events_path,
             logger=logger,
-            use_custom_models=use_custom_models,
             app_name=app_name,
+            use_custom_models=use_custom_models,
         )
     else:
         logger.error(f"File not found: {file_path}")
