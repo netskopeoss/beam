@@ -190,7 +190,9 @@ class ModelTrainer:
 
         # Select only the feature columns needed for training
         feature_start_index = len(app_meta_fields)
-        features_train = features_pd[feature_fields[feature_start_index:]]
+        # Only select columns that actually exist in the DataFrame
+        available_feature_fields = [col for col in feature_fields[feature_start_index:] if col in features_pd.columns]
+        features_train = features_pd[available_feature_fields]
         features_train = features_train.fillna(0)
 
         return features_train, target_label

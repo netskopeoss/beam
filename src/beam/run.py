@@ -38,7 +38,7 @@ from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain, detect_anomalous_domain_with_custom_model
 from beam.detector.trainer import (
     ModelTrainer,
     extract_app_features,
@@ -52,11 +52,46 @@ warnings.filterwarnings(action="ignore")
 DATA_DIR = constants.DATA_DIR
 
 
+def normalize_app_name(app_name: str) -> str:
+    """
+    Normalize application name for consistent file naming.
+    
+    Args:
+        app_name (str): Original application name
+        
+    Returns:
+        str: Normalized name (lowercase, spaces replaced with underscores)
+    """
+    return app_name.lower().replace(" ", "_").replace("-", "_")
+
+
+def discover_apps_in_traffic(enriched_events_path: str, min_transactions: int = 50) -> dict:
+    """
+    Discover applications in enriched events and count their transactions.
+    
+    Args:
+        enriched_events_path (str): Path to enriched events JSON file
+        min_transactions (int): Minimum transactions required for an app
+        
+    Returns:
+        dict: Dictionary mapping original app names to transaction counts
+    """
+    events = utils.load_json_file(enriched_events_path)
+    app_counts = {}
+    
+    for event in events:
+        app_name = event.get("application", "Unknown")
+        if app_name != "Unknown":
+            app_counts[app_name] = app_counts.get(app_name, 0) + 1
+    
+    # Filter apps with sufficient transactions
+    return {app: count for app, count in app_counts.items() if count >= min_transactions}
+
+
 def run_detection(
     file_name: str,
     enriched_events_path: str,
     logger: logging.Logger,
-    app_name: str,
     use_custom_models: bool = False,
 ) -> None:
     """
@@ -94,18 +129,44 @@ def run_detection(
         min_transactions=constants.MIN_DOMAIN_TRANSACTION,
     )
 
-    if use_custom_models and app_name:
-        model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{app_name}_model.pkl")
-        logger.info(f"Using custom model for {app_name}")
+    if use_custom_models:
+        # Discover applications in traffic and match to custom models
+        discovered_apps = discover_apps_in_traffic(
+            enriched_events_path, min_transactions=constants.MIN_DOMAIN_TRANSACTION
+        )
+        
+        custom_models_used = False
+        for original_app_name in discovered_apps.keys():
+            normalized_app_name = normalize_app_name(original_app_name)
+            custom_model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl")
+            
+            if custom_model_path.exists():
+                logger.info(f"Using custom model for '{original_app_name}' -> {custom_model_path}")
+                detect_anomalous_domain_with_custom_model(
+                    input_path=features_output_path,
+                    custom_model_path=custom_model_path,
+                    app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
+                )
+                custom_models_used = True
+            else:
+                logger.info(f"No custom model found for '{original_app_name}' (looked for: {custom_model_path})")
+        
+        if not custom_models_used:
+            logger.warning("Custom models requested but none found for applications in traffic. Using default domain model.")
+            model_path = Path(constants.DOMAIN_MODEL)
+            detect_anomalous_domain(
+                input_path=features_output_path,
+                domain_model_path=model_path,
+                app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
+            )
     else:
         model_path = Path(constants.DOMAIN_MODEL)
         logger.info("Using default domain model.")
-
-    detect_anomalous_domain(
-        input_path=features_output_path,
-        domain_model_path=model_path,
-        app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
-    )
+        detect_anomalous_domain(
+            input_path=features_output_path,
+            domain_model_path=model_path,
+            app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
+        )
     logger.info(f"Features output saved to: {features_output_path}")
 
 
@@ -211,7 +272,6 @@ def parse_input_file(file_path: str, logger: logging.Logger) -> Tuple[str, str]:
 def process_input_file(
     file_path: str,
     logger: logging.Logger,
-    app_name: str,
     use_custom_models: bool = False,
 ) -> None:
     """
@@ -241,7 +301,6 @@ def process_input_file(
             file_name=file_name,
             enriched_events_path=enriched_events_path,
             logger=logger,
-            app_name=app_name,
             use_custom_models=use_custom_models,
         )
     else:
@@ -250,27 +309,24 @@ def process_input_file(
 
 def process_training_data(
     input_file_path: str,
-    app_name: str,
+    app_name: Optional[str] = None,
     custom_model_path: Optional[str] = None,
     logger: Optional[logging.Logger] = None,
 ) -> None:
     """
-    Orchestrates the full pipeline for training a custom application model from network traffic data (PCAP or HAR).
+    Orchestrates the full pipeline for training custom application models from network traffic data (PCAP or HAR).
 
     This function performs the following steps:
       1. Ensures a logger is available for status and error reporting.
-      2. Determines the output path for the custom model, creating the directory if needed.
-      3. Parses the input file (PCAP or HAR) into a standardized JSON format.
-      4. Enriches the parsed events with additional context (e.g., domain and cloud data).
-      5. Extracts relevant features (e.g., useragent) from the enriched events for model training.
-      6. Trains a custom application model using the extracted features and saves it.
-      7. If a standard application model exists, merges the new custom model with it to create a combined model, enabling detection of both standard and custom apps.
-
-    This pipeline automates and standardizes the process of training new application detection models, ensuring consistency and enabling seamless extension of the detection system with custom-trained models.
+      2. Parses the input file (PCAP or HAR) into a standardized JSON format.
+      3. Enriches the parsed events with additional context (e.g., domain and cloud data).
+      4. Auto-discovers applications in the traffic (or uses the specified app_name if provided).
+      5. For each application with sufficient traffic, extracts relevant features and trains a custom model.
+      6. Saves individual models with normalized names for consistent file naming.
 
     Args:
         input_file_path (str): Path to the input file (pcap or har).
-        app_name (str): Name of the app to train for.
+        app_name (Optional[str]): Name of specific app to train for. If None, trains for all discovered apps.
         custom_model_path (Optional[str]): Path to save the model, uses default if None.
         logger (Optional[logging.Logger]): Logger instance.
 
@@ -283,16 +339,11 @@ def process_training_data(
     if logger is None:
         logger = logging.getLogger(__name__)
 
-    if not custom_model_path:
-        # Ensure custom models directory exists
-        safe_create_path = utils.safe_create_path
-        safe_create_path(str(constants.CUSTOM_APP_MODELS_DIR))
-        custom_model_path = str(
-            constants.CUSTOM_APP_MODELS_DIR
-            / f"{app_name.replace(' ', '_').lower()}_model.pkl"
-        )
+    # Ensure custom models directory exists
+    safe_create_path = utils.safe_create_path
+    safe_create_path(str(constants.CUSTOM_APP_MODELS_DIR))
 
-    logger.info("Processing training data for app: %s", app_name)
+    logger.info("Processing training data from: %s", input_file_path)
 
     # Parse the input file
     file_name, parsed_file_path = parse_input_file(
@@ -304,8 +355,44 @@ def process_training_data(
         file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
     )
 
-    # Extract features for model training
+    # Discover applications in the traffic
+    discovered_apps = discover_apps_in_traffic(
+        enriched_events_path, min_transactions=constants.MIN_APP_TRANSACTIONS
+    )
+    
+    # Report all applications found in traffic (including those below threshold)
+    all_apps = discover_apps_in_traffic(enriched_events_path, min_transactions=1)
+    logger.info("=== APPLICATION DISCOVERY REPORT ===")
+    logger.info("Applications found in traffic:")
+    for app_name, count in sorted(all_apps.items(), key=lambda x: x[1], reverse=True):
+        status = "✓ ELIGIBLE" if count >= constants.MIN_APP_TRANSACTIONS else "✗ insufficient"
+        logger.info(f"  {app_name}: {count} transactions ({status})")
+    logger.info(f"Minimum transactions required for training: {constants.MIN_APP_TRANSACTIONS}")
+    logger.info("=====================================")
+    
+    if not discovered_apps:
+        logger.warning("No applications found with sufficient transactions for model training")
+        return
+
+    logger.info("Applications eligible for training: %s", list(discovered_apps.keys()))
+    
+    # Determine which apps to train models for
+    if app_name:
+        # Check if the specified app exists in the traffic
+        if app_name in discovered_apps:
+            apps_to_train = {app_name: discovered_apps[app_name]}
+            logger.info("Training model for specified app: %s (%d transactions)", app_name, discovered_apps[app_name])
+        else:
+            logger.error("Specified app '%s' not found in traffic. Available apps: %s", app_name, list(discovered_apps.keys()))
+            return
+    else:
+        # Train models for all discovered apps
+        apps_to_train = discovered_apps
+        logger.info("Training models for all discovered apps: %s", list(apps_to_train.keys()))
+
+    # Extract features for model training (once for all apps)
     features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
+    # Use both useragent and domain fields for feature extraction to satisfy trainer expectations  
     extract_app_features(
         input_data_path=enriched_events_path,
         output_path=features_output_path,
@@ -313,31 +400,32 @@ def process_training_data(
         fields=["useragent", "domain"],
     )
 
-    # Train the custom app model with a more reasonable default n_features
-    train_custom_app_model(
-        features_path=features_output_path,
-        app_name=app_name,
-        output_model_path=custom_model_path,
-        n_features=50,  # Lower default value to avoid exceeding available features
-        min_transactions=constants.MIN_APP_TRANSACTIONS,
-    )
+    # Train models for each app
+    for original_app_name, transaction_count in apps_to_train.items():
+        normalized_app_name = normalize_app_name(original_app_name)
+        
+        if custom_model_path and len(apps_to_train) == 1:
+            # Use the provided path if training only one app
+            model_path = custom_model_path
+        else:
+            # Generate path using normalized name
+            model_path = str(
+                constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl"
+            )
 
-    logger.info(
-        "Custom model for '%s' has been created at: %s", app_name, custom_model_path
-    )
+        logger.info("Training model for '%s' (%d transactions) -> %s", 
+                   original_app_name, transaction_count, model_path)
 
-    # Create combined model including the new app
-    if Path(str(constants.APP_MODEL)).exists():
-        combined_model_path = str(constants.MODEL_DIRECTORY / "combined_app_model.pkl")
-        trainer = ModelTrainer()
-        trainer.merge_models(
-            existing_model_path=str(constants.APP_MODEL),
-            new_model_path=custom_model_path,
-            output_path=combined_model_path,
+        # Train the custom app model
+        train_custom_app_model(
+            features_path=features_output_path,
+            app_name=original_app_name,  # Use original name for training (it's used as the key)
+            output_model_path=model_path,
+            n_features=50,  # Lower default value to avoid exceeding available features
+            min_transactions=constants.MIN_APP_TRANSACTIONS,
         )
-        logger.info(
-            "Created combined model with the new app at: %s", combined_model_path
-        )
+
+        logger.info("Custom model for '%s' created at: %s", original_app_name, model_path)
 
 
 def run(logger: logging.Logger) -> None:
@@ -387,7 +475,7 @@ def run(logger: logging.Logger) -> None:
     )
     parser.add_argument(
         "--app_name",
-        help="Name of the application to train the model for. Required with --train.",
+        help="Name of specific application to train model for. If not provided, trains models for all discovered apps with sufficient traffic.",
         required=False,
     )
     parser.add_argument(
@@ -418,50 +506,66 @@ def run(logger: logging.Logger) -> None:
         )
         return
     elif args["train"]:
-        if not args["app_name"]:
-            logger.error("Error: --app_name is required when using --train")
+        app_name = args["app_name"]
+        if app_name:
+            logger.info(f"Running BEAM in training mode for specific app: {app_name}")
+        else:
+            logger.info("Running BEAM in training mode for all discovered apps")
+            
+        # Handle both directory and single file inputs
+        input_path_str = args["input_dir"]
+        input_path = Path(input_path_str)
+        
+        if input_path.is_file():
+            # Single file provided
+            input_files = [str(input_path)]
+        elif input_path.is_dir():
+            # Directory provided, find all files
+            input_files = glob.glob(str(input_path / "*"))
+        else:
+            logger.error(f"Input path does not exist: {input_path_str}")
             return
 
-        logger.info(f"Running BEAM in training mode for app: {args['app_name']}")
-        # Convert input_dir to Path object if it's a string
-        input_dir = (
-            Path(args["input_dir"])
-            if isinstance(args["input_dir"], str)
-            else args["input_dir"]
-        )
-        input_paths = glob.glob(str(input_dir / "*"))
-
-        if not input_paths:
-            logger.error(f"No input files found in {args['input_dir']}")
+        if not input_files:
+            logger.error(f"No input files found in {input_path_str}")
             return
 
         # Use the first input file for training
-        input_path = input_paths[0]
+        input_file = input_files[0]
         process_training_data(
-            input_file_path=input_path,
-            app_name=args["app_name"],
+            input_file_path=input_file,
+            app_name=app_name,
             custom_model_path=args["model_output"],
             logger=logger,
         )
     else:
         logger.info("Running BEAM in detection mode...")
         use_custom_models = args["use_custom_models"]
-        app_name = args["app_name"]
         logger.info(
             f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection"
         )
 
-        # Convert input_dir to Path object if it's a string
-        input_dir = (
-            Path(args["input_dir"])
-            if isinstance(args["input_dir"], str)
-            else args["input_dir"]
-        )
-        input_paths = glob.glob(str(input_dir / "*"))
-        for input_path in input_paths:
+        # Handle both directory and single file inputs
+        input_path_str = args["input_dir"]
+        input_path = Path(input_path_str)
+        
+        if input_path.is_file():
+            # Single file provided
+            input_files = [str(input_path)]
+        elif input_path.is_dir():
+            # Directory provided, find all files
+            input_files = glob.glob(str(input_path / "*"))
+        else:
+            logger.error(f"Input path does not exist: {input_path_str}")
+            return
+
+        if not input_files:
+            logger.error(f"No input files found in {input_path_str}")
+            return
+
+        for input_file in input_files:
             process_input_file(
-                file_path=input_path,
+                file_path=input_file,
                 logger=logger,
                 use_custom_models=use_custom_models,
-                app_name=app_name,
             )
