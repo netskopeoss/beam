@@ -416,11 +416,6 @@ def detect_anomalous_domain(
                 feature_names=selected_feature_names,
             )
 
-            try:
-                shap.waterfall_plot(exp[0], max_display=20, show=False)
-            except (IndexError, AttributeError):
-                shap.waterfall_plot(exp, max_display=20, show=False)
-
             obs_file_dir = (
                 str(observation_index)
                 + "_"
@@ -431,11 +426,43 @@ def detect_anomalous_domain(
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
             exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-            plt.savefig(exp_png_path, dpi=150, bbox_inches="tight")
+            
+            # Attempt to create SHAP plot, but don't let plotting errors stop detection
+            try:
+                # Set reasonable figure size before plotting
+                plt.figure(figsize=(10, 6))
+                shap.waterfall_plot(exp[0], max_display=20, show=False)
+                plt.savefig(exp_png_path, dpi=100, bbox_inches="tight")
+            except (IndexError, AttributeError):
+                try:
+                    shap.waterfall_plot(exp, max_display=20, show=False)
+                    plt.savefig(exp_png_path, dpi=100, bbox_inches="tight")
+                except Exception:
+                    # Create a simple text-based plot
+                    plt.figure(figsize=(8, 4))
+                    plt.text(0.5, 0.5, f'SHAP analysis completed for {predicted_class_name}\n'
+                                        f'Probability: {round(predicted_class_proba * 100, 2)}%\n'
+                                        f'Plot generation failed - see JSON for details', 
+                             ha='center', va='center', transform=plt.gca().transAxes)
+                    plt.title(f'SHAP Analysis: {predicted_class_name}')
+                    plt.savefig(exp_png_path, dpi=50)
+            except Exception as e:
+                # Create a simple text-based plot for any other errors
+                try:
+                    plt.figure(figsize=(8, 4))
+                    plt.text(0.5, 0.5, f'SHAP analysis completed for {predicted_class_name}\n'
+                                        f'Probability: {round(predicted_class_proba * 100, 2)}%\n'
+                                        f'Plot generation failed: {str(e)[:50]}...', 
+                             ha='center', va='center', transform=plt.gca().transAxes)
+                    plt.title(f'SHAP Analysis: {predicted_class_name}')
+                    plt.savefig(exp_png_path, dpi=50)
+                except Exception:
+                    # If even simple plotting fails, just continue without the image
+                    pass
 
             full_predictions = sorted(
                 [
-                    {"class": c, "probability": round(100.0 * p, 4)}
+                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -606,11 +633,18 @@ def detect_anomalous_domain_with_custom_model(
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
             exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-            plt.savefig(exp_png_path, dpi=150, bbox_inches="tight")
+            try:
+                plt.savefig(exp_png_path, dpi=150, bbox_inches="tight")
+            except ValueError as e:
+                if "Image size" in str(e) or "too large" in str(e):
+                    # If image is too large, save with lower DPI
+                    plt.savefig(exp_png_path, dpi=50, bbox_inches=None)
+                else:
+                    raise
 
             full_predictions = sorted(
                 [
-                    {"class": c, "probability": round(100.0 * p, 4)}
+                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
