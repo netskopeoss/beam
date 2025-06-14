@@ -327,7 +327,7 @@ class ModelTrainer:
         self.logger.info("Saving model to %s", output_path)
 
         # Ensure directory exists
-        safe_create_path(str(Path(output_path).parent))
+        safe_create_path(output_path)
 
         # Save the model
         with open(output_path, "wb") as model_file:
