@@ -357,11 +357,16 @@ def detect_anomalous_domain(
             predictions = estimator.predict_proba(features_pd)
 
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
-            if hasattr(estimator, 'named_steps') and "xgb_feat" in estimator.named_steps:
+            if (
+                hasattr(estimator, "named_steps")
+                and "xgb_feat" in estimator.named_steps
+            ):
                 features_scaled = estimator["xgb_feat"].transform(
                     estimator["ct"].transform(features_pd)
                 )
-            elif hasattr(estimator, 'named_steps') and "rf_feat" in estimator.named_steps:
+            elif (
+                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+            ):
                 features_scaled = estimator["rf_feat"].transform(
                     estimator["ct"].transform(features_pd)
                 )
@@ -388,15 +393,15 @@ def detect_anomalous_domain(
                 chosen_instance = features_scaled[observation_index, :].toarray()
             except AttributeError:
                 chosen_instance = features_scaled[observation_index, :]
-            
+
             # Ensure chosen_instance is 2D for SHAP
             if chosen_instance.ndim == 1:
                 chosen_instance = chosen_instance.reshape(1, -1)
 
             # Try to get the XGBoost model first (preferred), then fall back to Random Forest
-            if hasattr(estimator, 'named_steps') and "xgb" in estimator.named_steps:
+            if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
                 tree_model = estimator["xgb"]
-            elif hasattr(estimator, 'named_steps') and "rf" in estimator.named_steps:
+            elif hasattr(estimator, "named_steps") and "rf" in estimator.named_steps:
                 tree_model = estimator["rf"]
             elif "xgb" in estimator:
                 tree_model = estimator["xgb"]
@@ -426,7 +431,7 @@ def detect_anomalous_domain(
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
             exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-            
+
             # Attempt to create SHAP plot, but don't let plotting errors stop detection
             try:
                 # Set reasonable figure size before plotting
@@ -440,21 +445,33 @@ def detect_anomalous_domain(
                 except Exception:
                     # Create a simple text-based plot
                     plt.figure(figsize=(8, 4))
-                    plt.text(0.5, 0.5, f'SHAP analysis completed for {predicted_class_name}\n'
-                                        f'Probability: {round(predicted_class_proba * 100, 2)}%\n'
-                                        f'Plot generation failed - see JSON for details', 
-                             ha='center', va='center', transform=plt.gca().transAxes)
-                    plt.title(f'SHAP Analysis: {predicted_class_name}')
+                    plt.text(
+                        0.5,
+                        0.5,
+                        f"SHAP analysis completed for {predicted_class_name}\n"
+                        f"Probability: {round(predicted_class_proba * 100, 2)}%\n"
+                        f"Plot generation failed - see JSON for details",
+                        ha="center",
+                        va="center",
+                        transform=plt.gca().transAxes,
+                    )
+                    plt.title(f"SHAP Analysis: {predicted_class_name}")
                     plt.savefig(exp_png_path, dpi=50)
             except Exception as e:
                 # Create a simple text-based plot for any other errors
                 try:
                     plt.figure(figsize=(8, 4))
-                    plt.text(0.5, 0.5, f'SHAP analysis completed for {predicted_class_name}\n'
-                                        f'Probability: {round(predicted_class_proba * 100, 2)}%\n'
-                                        f'Plot generation failed: {str(e)[:50]}...', 
-                             ha='center', va='center', transform=plt.gca().transAxes)
-                    plt.title(f'SHAP Analysis: {predicted_class_name}')
+                    plt.text(
+                        0.5,
+                        0.5,
+                        f"SHAP analysis completed for {predicted_class_name}\n"
+                        f"Probability: {round(predicted_class_proba * 100, 2)}%\n"
+                        f"Plot generation failed: {str(e)[:50]}...",
+                        ha="center",
+                        va="center",
+                        transform=plt.gca().transAxes,
+                    )
+                    plt.title(f"SHAP Analysis: {predicted_class_name}")
                     plt.savefig(exp_png_path, dpi=50)
                 except Exception:
                     # If even simple plotting fails, just continue without the image
@@ -505,15 +522,15 @@ def detect_anomalous_domain_with_custom_model(
         None
     """
     logger = logging.getLogger(__name__)
-    
+
     # Load the individual custom model
     with open(custom_model_path, "rb") as _file:
         raw_models = pickle.load(_file)
-    
+
     # Convert single model to the expected format
     models = dict()
     apps = set()
-    
+
     if isinstance(raw_models, list) and len(raw_models) > 0:
         raw_model = raw_models[0].copy()  # Take the first (and likely only) model
         app = raw_model.pop("key")
@@ -522,10 +539,10 @@ def detect_anomalous_domain_with_custom_model(
     else:
         logger.error(f"Unexpected model format in {custom_model_path}")
         return
-    
+
     logger.info("[x] Apps found in the custom model: " + str(apps))
     logger.info("[x] Loading traffic from: " + str(input_path))
-    
+
     features_og, features_pd = convert_supply_chain_summaries_to_features(
         load_json_file(input_path)
     )
@@ -551,11 +568,16 @@ def detect_anomalous_domain_with_custom_model(
             predictions = estimator.predict_proba(features_pd)
 
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
-            if hasattr(estimator, 'named_steps') and "xgb_feat" in estimator.named_steps:
+            if (
+                hasattr(estimator, "named_steps")
+                and "xgb_feat" in estimator.named_steps
+            ):
                 features_scaled = estimator["xgb_feat"].transform(
                     estimator["ct"].transform(features_pd)
                 )
-            elif hasattr(estimator, 'named_steps') and "rf_feat" in estimator.named_steps:
+            elif (
+                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+            ):
                 features_scaled = estimator["rf_feat"].transform(
                     estimator["ct"].transform(features_pd)
                 )
@@ -582,15 +604,15 @@ def detect_anomalous_domain_with_custom_model(
                 chosen_instance = features_scaled[observation_index, :].toarray()
             except AttributeError:
                 chosen_instance = features_scaled[observation_index, :]
-            
+
             # Ensure chosen_instance is 2D for SHAP
             if chosen_instance.ndim == 1:
                 chosen_instance = chosen_instance.reshape(1, -1)
 
             # Try to get the XGBoost model first (preferred), then fall back to Random Forest
-            if hasattr(estimator, 'named_steps') and "xgb" in estimator.named_steps:
+            if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
                 tree_model = estimator["xgb"]
-            elif hasattr(estimator, 'named_steps') and "rf" in estimator.named_steps:
+            elif hasattr(estimator, "named_steps") and "rf" in estimator.named_steps:
                 tree_model = estimator["rf"]
             elif "xgb" in estimator:
                 tree_model = estimator["xgb"]

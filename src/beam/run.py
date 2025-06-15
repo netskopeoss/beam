@@ -38,9 +38,12 @@ from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
-from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain, detect_anomalous_domain_with_custom_model
+from beam.detector.detect import (
+    MultiHotEncoder,
+    detect_anomalous_domain,
+    detect_anomalous_domain_with_custom_model,
+)
 from beam.detector.trainer import (
-    ModelTrainer,
     extract_app_features,
     train_custom_app_model,
 )
@@ -55,37 +58,49 @@ DATA_DIR = constants.DATA_DIR
 def normalize_app_name(app_name: str) -> str:
     """
     Normalize application name for consistent file naming.
-    
+
     Args:
         app_name (str): Original application name
-        
+
     Returns:
         str: Normalized name (lowercase, spaces replaced with underscores)
     """
     return app_name.lower().replace(" ", "_").replace("-", "_")
 
 
-def discover_apps_in_traffic(enriched_events_path: str, min_transactions: int = 50) -> dict:
+def discover_apps_in_traffic(
+    enriched_events_path: str, min_transactions: int = 50
+) -> dict:
     """
     Discover applications in enriched events and count their transactions.
-    
+
     Args:
         enriched_events_path (str): Path to enriched events JSON file
         min_transactions (int): Minimum transactions required for an app
-        
+
     Returns:
         dict: Dictionary mapping original app names to transaction counts
     """
     events = utils.load_json_file(enriched_events_path)
     app_counts = {}
-    
+
+    # Handle cases where events might not be a list
+    if not isinstance(events, list):
+        raise TypeError(f"Expected events to be a list, got {type(events)}")
+
     for event in events:
+        # Skip malformed events (None, strings, etc.)
+        if not isinstance(event, dict):
+            continue
+
         app_name = event.get("application", "Unknown")
         if app_name != "Unknown":
             app_counts[app_name] = app_counts.get(app_name, 0) + 1
-    
+
     # Filter apps with sufficient transactions
-    return {app: count for app, count in app_counts.items() if count >= min_transactions}
+    return {
+        app: count for app, count in app_counts.items() if count >= min_transactions
+    }
 
 
 def run_detection(
@@ -134,14 +149,18 @@ def run_detection(
         discovered_apps = discover_apps_in_traffic(
             enriched_events_path, min_transactions=constants.MIN_DOMAIN_TRANSACTION
         )
-        
+
         custom_models_used = False
         for original_app_name in discovered_apps.keys():
             normalized_app_name = normalize_app_name(original_app_name)
-            custom_model_path = Path(constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl")
-            
+            custom_model_path = Path(
+                constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl"
+            )
+
             if custom_model_path.exists():
-                logger.info(f"Using custom model for '{original_app_name}' -> {custom_model_path}")
+                logger.info(
+                    f"Using custom model for '{original_app_name}' -> {custom_model_path}"
+                )
                 detect_anomalous_domain_with_custom_model(
                     input_path=features_output_path,
                     custom_model_path=custom_model_path,
@@ -149,10 +168,14 @@ def run_detection(
                 )
                 custom_models_used = True
             else:
-                logger.info(f"No custom model found for '{original_app_name}' (looked for: {custom_model_path})")
-        
+                logger.info(
+                    f"No custom model found for '{original_app_name}' (looked for: {custom_model_path})"
+                )
+
         if not custom_models_used:
-            logger.warning("Custom models requested but none found for applications in traffic. Using default domain model.")
+            logger.warning(
+                "Custom models requested but none found for applications in traffic. Using default domain model."
+            )
             model_path = Path(constants.DOMAIN_MODEL)
             detect_anomalous_domain(
                 input_path=features_output_path,
@@ -359,40 +382,58 @@ def process_training_data(
     discovered_apps = discover_apps_in_traffic(
         enriched_events_path, min_transactions=constants.MIN_APP_TRANSACTIONS
     )
-    
+
     # Report all applications found in traffic (including those below threshold)
     all_apps = discover_apps_in_traffic(enriched_events_path, min_transactions=1)
     logger.info("=== APPLICATION DISCOVERY REPORT ===")
     logger.info("Applications found in traffic:")
     for app_name, count in sorted(all_apps.items(), key=lambda x: x[1], reverse=True):
-        status = "✓ ELIGIBLE" if count >= constants.MIN_APP_TRANSACTIONS else "✗ insufficient"
+        status = (
+            "✓ ELIGIBLE"
+            if count >= constants.MIN_APP_TRANSACTIONS
+            else "✗ insufficient"
+        )
         logger.info(f"  {app_name}: {count} transactions ({status})")
-    logger.info(f"Minimum transactions required for training: {constants.MIN_APP_TRANSACTIONS}")
+    logger.info(
+        f"Minimum transactions required for training: {constants.MIN_APP_TRANSACTIONS}"
+    )
     logger.info("=====================================")
-    
+
     if not discovered_apps:
-        logger.warning("No applications found with sufficient transactions for model training")
+        logger.warning(
+            "No applications found with sufficient transactions for model training"
+        )
         return
 
     logger.info("Applications eligible for training: %s", list(discovered_apps.keys()))
-    
+
     # Determine which apps to train models for
     if app_name:
         # Check if the specified app exists in the traffic
         if app_name in discovered_apps:
             apps_to_train = {app_name: discovered_apps[app_name]}
-            logger.info("Training model for specified app: %s (%d transactions)", app_name, discovered_apps[app_name])
+            logger.info(
+                "Training model for specified app: %s (%d transactions)",
+                app_name,
+                discovered_apps[app_name],
+            )
         else:
-            logger.error("Specified app '%s' not found in traffic. Available apps: %s", app_name, list(discovered_apps.keys()))
+            logger.error(
+                "Specified app '%s' not found in traffic. Available apps: %s",
+                app_name,
+                list(discovered_apps.keys()),
+            )
             return
     else:
         # Train models for all discovered apps
         apps_to_train = discovered_apps
-        logger.info("Training models for all discovered apps: %s", list(apps_to_train.keys()))
+        logger.info(
+            "Training models for all discovered apps: %s", list(apps_to_train.keys())
+        )
 
     # Extract features for model training (once for all apps)
     features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
-    # Use both useragent and domain fields for feature extraction to satisfy trainer expectations  
+    # Use both useragent and domain fields for feature extraction to satisfy trainer expectations
     extract_app_features(
         input_data_path=enriched_events_path,
         output_path=features_output_path,
@@ -403,7 +444,7 @@ def process_training_data(
     # Train models for each app
     for original_app_name, transaction_count in apps_to_train.items():
         normalized_app_name = normalize_app_name(original_app_name)
-        
+
         if custom_model_path and len(apps_to_train) == 1:
             # Use the provided path if training only one app
             model_path = custom_model_path
@@ -413,8 +454,12 @@ def process_training_data(
                 constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl"
             )
 
-        logger.info("Training model for '%s' (%d transactions) -> %s", 
-                   original_app_name, transaction_count, model_path)
+        logger.info(
+            "Training model for '%s' (%d transactions) -> %s",
+            original_app_name,
+            transaction_count,
+            model_path,
+        )
 
         # Train the custom app model
         train_custom_app_model(
@@ -425,7 +470,9 @@ def process_training_data(
             min_transactions=constants.MIN_APP_TRANSACTIONS,
         )
 
-        logger.info("Custom model for '%s' created at: %s", original_app_name, model_path)
+        logger.info(
+            "Custom model for '%s' created at: %s", original_app_name, model_path
+        )
 
 
 def run(logger: logging.Logger) -> None:
@@ -511,11 +558,11 @@ def run(logger: logging.Logger) -> None:
             logger.info(f"Running BEAM in training mode for specific app: {app_name}")
         else:
             logger.info("Running BEAM in training mode for all discovered apps")
-            
+
         # Handle both directory and single file inputs
         input_path_str = args["input_dir"]
         input_path = Path(input_path_str)
-        
+
         if input_path.is_file():
             # Single file provided
             input_files = [str(input_path)]
@@ -548,7 +595,7 @@ def run(logger: logging.Logger) -> None:
         # Handle both directory and single file inputs
         input_path_str = args["input_dir"]
         input_path = Path(input_path_str)
-        
+
         if input_path.is_file():
             # Single file provided
             input_files = [str(input_path)]

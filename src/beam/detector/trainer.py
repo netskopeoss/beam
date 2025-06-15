@@ -27,7 +27,6 @@
 
 import logging
 import pickle
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -191,7 +190,11 @@ class ModelTrainer:
         # Select only the feature columns needed for training
         feature_start_index = len(app_meta_fields)
         # Only select columns that actually exist in the DataFrame
-        available_feature_fields = [col for col in feature_fields[feature_start_index:] if col in features_pd.columns]
+        available_feature_fields = [
+            col
+            for col in feature_fields[feature_start_index:]
+            if col in features_pd.columns
+        ]
         features_train = features_pd[available_feature_fields]
         features_train = features_train.fillna(0)
 
