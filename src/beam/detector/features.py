@@ -205,18 +205,25 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
 
     for i, transaction in enumerate(transactions):
         if i >= 1:
-            transaction["time_interval_sec"] = (transaction["timestamp"] - transactions[i - 1]["timestamp"])
+            transaction["time_interval_sec"] = (
+                transaction["timestamp"] - transactions[i - 1]["timestamp"]
+            )
         else:
             transaction["time_interval_sec"] = 0.0
 
-        actions = [transactions[i - d]["action"] for d in range(sequence_window_length) if (i - d) >= 0]
+        actions = [
+            transactions[i - d]["action"]
+            for d in range(sequence_window_length)
+            if (i - d) >= 0
+        ]
         transaction["potential_sequence"] = potential_sequence(actions)
 
     transaction_count = len(transactions)
     seq = get_sequence_map(t["potential_sequence"] for t in transactions)
-    distinct_domains = set(t.get("domain", "") for t in transactions if t.get("domain", ""))
+    distinct_domains = set(
+        t.get("domain", "") for t in transactions if t.get("domain", "")
+    )
     distinct_domain_count = len(distinct_domains)
-    distinct_url_count = len(set(t.get("url", "") for t in transactions if t.get("url", "")))
     distinct_referrer_count = len(
         set(
             urlparse(t.get("referrer", "")).netloc
@@ -244,16 +251,7 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
         )
     )
     distinct_status_count = len(distinct_statuses)
-    distinct_version_count = len(
-        set(
-            t.get("client_http_version", "")
-            for t in transactions
-            if t.get("client_http_version", "")
-        )
-    )
-    distinct_service_count = len(
-        set(t.get("service", "") for t in transactions if t.get("service", ""))
-    )
+    distinct_http_method_count = len(distinct_http_methods)
 
     distinct_req_types = sorted(
         list(
@@ -277,21 +275,6 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
     )
     distinct_resp_type_count = len(distinct_resp_types)
 
-    distinct_file_count = len(
-        set(file_hash for t in transactions for file_hash in t.get("file_hashes", []))
-    )
-    distinct_file_types = sorted(
-        list(
-            set(
-                file_type.split(";")[0]
-                for t in transactions
-                for file_types in t.get("file_types", [])
-                for file_type in file_types
-                if file_type
-            )
-        )
-    )
-    distinct_file_type_count = len(distinct_file_types)
     referred_traffic_percent = (
         len([1 for t in transactions if "referrer" in t and t["referrer"]]) * 100.0
     ) / transaction_count
@@ -316,18 +299,26 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
         * 100.0
     ) / transaction_count
 
-    key_domains = sorted(list(set(h for t in transactions for h in t.get("key_hostnames", []))))
+    key_domains = sorted(
+        list(set(h for t in transactions for h in t.get("key_hostnames", [])))
+    )
     distinct_key_domain_count = len(key_domains)
     range_timestamp = int(transactions[-1]["timestamp"] - transactions[0]["timestamp"])
     time_taken_stats = get_numeric_stats(events=transactions, field="time_taken_ms")
     client_byte_stats = get_numeric_stats(events=transactions, field="client_bytes")
     server_byte_stats = get_numeric_stats(events=transactions, field="server_bytes")
-    time_interval_sec_stats = get_numeric_stats( events=transactions[1:], field="time_interval_sec" )
-    applications = list(set(t.get("application", "") for t in transactions if t.get("application", "")))
+    time_interval_sec_stats = get_numeric_stats(
+        events=transactions[1:], field="time_interval_sec"
+    )
+    applications = list(
+        set(t.get("application", "") for t in transactions if t.get("application", ""))
+    )
     unique_actions = set(t["action"] for t in transactions if "action" in t)
 
     if len(applications) > 1:
-        raise Exception("[!] More than one application detected for the same useragent", key)
+        raise Exception(
+            "[!] More than one application detected for the same useragent", key
+        )
 
     summary = {
         "key": key,
@@ -371,9 +362,9 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
     }
 
     if "domain" in fields:
-        summary.update({
-            "domain": list(distinct_domains)[0] if distinct_domains else ""
-        })
+        summary.update(
+            {"domain": list(distinct_domains)[0] if distinct_domains else ""}
+        )
 
     summary.update(time_taken_stats)
     summary.update(client_byte_stats)
@@ -382,7 +373,9 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
     return summary
 
 
-def aggregate_app_traffic(fields: List[str], input_path: str, output_path: str, min_transactions: int) -> None:
+def aggregate_app_traffic(
+    fields: List[str], input_path: str, output_path: str, min_transactions: int
+) -> None:
     """
     Aggregate application traffic data from enriched events and save the summaries to a JSON file.
 
@@ -418,7 +411,9 @@ def aggregate_app_traffic(fields: List[str], input_path: str, output_path: str, 
 
     summaries = []
     for key in traffic_map:
-        summary = grab_application_summary(traffic_map=traffic_map, key=key, fields=fields)
+        summary = grab_application_summary(
+            traffic_map=traffic_map, key=key, fields=fields
+        )
         if summary["transactions"] > min_transactions:
             summaries.append(summary)
         else:

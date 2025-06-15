@@ -114,7 +114,6 @@ def parse_har_log(file_path: str) -> List[Transaction]:
                         )
 
                     req_headers = convert_list(http_request.get("headers", []))
-                    resp_headers = convert_list(http_response.get("headers", []))
                     timestamp = datetime.strptime(
                         entry["startedDateTime"].split(".")[0].split("+")[0],
                         "%Y-%m-%dT%H:%M:%S",

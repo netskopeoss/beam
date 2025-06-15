@@ -38,9 +38,9 @@ from pydantic import ConfigDict
 from sqlalchemy.orm import Session
 
 from beam.constants import GEMINI_API_KEY
+from beam.mapper.data_sources import APIDataSource, DataSource
 
 from .agent_parser import query_agent_parser
-from beam.mapper.data_sources import APIDataSource, DataSource
 from .datastore import DataStoreHandler
 from .gemini import query_gemini
 from .llm import LLMDataSource
@@ -119,8 +119,8 @@ class UserAgentMapper(DataSource):
     llm_selection: str
     datastore: DataStoreHandler
     logger: logging.Logger
-    llm: LLMDataSource = None
-    api: APIDataSource = None
+    llm: LLMDataSource | None = None
+    api: APIDataSource | None = None
 
     # Needed to allow the logger to be passed in
     model_config = ConfigDict(arbitrary_types_allowed=True)

@@ -124,7 +124,6 @@ def process_zeek_output(input_path: str) -> List:
     http_data = grab_zeek_log(input_path, log_name="http.log")
     conn_data = grab_zeek_log(input_path, log_name="conn.log")
     files_data = grab_zeek_log(input_path, log_name="files.log")
-    ssl_data = grab_zeek_log(input_path, log_name="ssl.log")
 
     parsed_result = []
 
@@ -177,7 +176,6 @@ def process_zeek_output(input_path: str) -> List:
 
             # TODO: At the moment, we are only dealing with http traffic
             #     Need to identify cases where this might be https
-            uri_scheme = "http"
             referrer = http_row.get("referrer", "")
             is_referred = True if referrer else False
 
