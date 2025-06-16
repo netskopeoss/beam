@@ -137,20 +137,13 @@ class TestCustomModelDetection:
         ]
         mock_pickle_load.return_value = mock_model_data
 
-        # Test detection with SHAP completely mocked out to avoid complex plotting issues
-        with patch("beam.detector.detect.shap") as mock_shap_module:
-            mock_explainer = MagicMock()
-            mock_shap_module.TreeExplainer.return_value = mock_explainer
-            mock_shap_module.waterfall_plot = MagicMock()
-            mock_explainer.shap_values.return_value = np.array([[0.1, 0.2]])
-            mock_explainer.expected_value = [0.5]
-
-            detect_anomalous_domain_with_custom_model(
-                input_path=temp_workspace["input_file"],
-                custom_model_path=Path(temp_workspace["custom_model"]),
-                app_prediction_dir=temp_workspace["prediction_dir"],
-                prob_cutoff=0.5,
-            )
+        # Test detection
+        detect_anomalous_domain_with_custom_model(
+            input_path=temp_workspace["input_file"],
+            custom_model_path=Path(temp_workspace["custom_model"]),
+            app_prediction_dir=temp_workspace["prediction_dir"],
+            prob_cutoff=0.5,
+        )
 
         # Verify feature conversion was called
         mock_convert_features.assert_called_once()
@@ -204,20 +197,13 @@ class TestCustomModelDetection:
         ]
         mock_pickle_load.return_value = mock_model_data
 
-        # Test detection with high cutoff and SHAP mocked
-        with patch("beam.detector.detect.shap") as mock_shap_module:
-            mock_explainer = MagicMock()
-            mock_shap_module.TreeExplainer.return_value = mock_explainer
-            mock_shap_module.waterfall_plot = MagicMock()
-            mock_explainer.shap_values.return_value = np.array([[0.1, 0.2]])
-            mock_explainer.expected_value = [0.5]
-
-            detect_anomalous_domain_with_custom_model(
-                input_path=temp_workspace["input_file"],
-                custom_model_path=Path(temp_workspace["custom_model"]),
-                app_prediction_dir=temp_workspace["prediction_dir"],
-                prob_cutoff=0.8,  # Higher than prediction
-            )
+        # Test detection with high cutoff
+        detect_anomalous_domain_with_custom_model(
+            input_path=temp_workspace["input_file"],
+            custom_model_path=Path(temp_workspace["custom_model"]),
+            app_prediction_dir=temp_workspace["prediction_dir"],
+            prob_cutoff=0.8,  # Higher than prediction
+        )
 
         # Should still call prediction but not generate alert
         mock_estimator.predict_proba.assert_called_once()
