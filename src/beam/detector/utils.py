@@ -48,7 +48,7 @@ def safe_open(path: str) -> TextIO:
     return open(path, "w", encoding="utf-8")
 
 
-def save_json_data(data: Dict | List, file_path: str) -> None:
+def save_json_data(data: Union[Dict, List], file_path: str) -> None:
     """
     Save JSON contents to a file.
 
