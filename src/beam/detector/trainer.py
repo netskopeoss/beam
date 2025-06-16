@@ -320,20 +320,25 @@ class ModelTrainer:
         return model_info
 
     def train_ensemble_model(
-        self, training_data: List[Dict[str, Any]], app_name: str, use_ensemble: bool = True
+        self,
+        training_data: List[Dict[str, Any]],
+        app_name: str,
+        use_ensemble: bool = True,
     ) -> Optional[Dict[str, Any]]:
         """
         Train an ensemble anomaly detection model for supply chain compromise detection.
-        
+
         Args:
             training_data (List[Dict[str, Any]]): List of feature dictionaries for training.
             app_name (str): Name of the app to train the model for.
             use_ensemble (bool): Whether to use ensemble methods or fall back to XGBoost.
-            
+
         Returns:
             Dict[str, Any]: Trained model information.
         """
-        self.logger.info("Training ensemble anomaly detection model for application: %s", app_name)
+        self.logger.info(
+            "Training ensemble anomaly detection model for application: %s", app_name
+        )
 
         # Add the app name to each training sample
         for item in training_data:
@@ -354,47 +359,46 @@ class ModelTrainer:
 
         # Convert to pandas DataFrame
         X, _ = self.convert_features_to_pd(training_data)
-        
+
         # For ensemble anomaly detection, we assume training data is mostly normal
         # No need for synthetic negative examples - unsupervised approach
-        
-        if use_ensemble and len(training_data) >= 10:  # Need sufficient data for ensemble
-            self.logger.info(f"Training ensemble model with {len(training_data)} normal samples")
-            
+
+        if (
+            use_ensemble and len(training_data) >= 10
+        ):  # Need sufficient data for ensemble
+            self.logger.info(
+                f"Training ensemble model with {len(training_data)} normal samples"
+            )
+
             # Transform features using the same pipeline approach
             ct = ColumnTransformer(
-                transformers=self.columns_to_be_transformed,
-                remainder="passthrough"
+                transformers=self.columns_to_be_transformed, remainder="passthrough"
             )
-            
+
             X_transformed = ct.fit_transform(X)
-            
+
             # Initialize ensemble detector
             ensemble_detector = EnsembleAnomalyDetector(
                 contamination=0.1,  # Expect 10% anomalies in future data
                 isolation_forest_params={
-                    'n_estimators': 100,
-                    'contamination': 0.1,
-                    'random_state': 42,
-                    'n_jobs': -1
+                    "n_estimators": 100,
+                    "contamination": 0.1,
+                    "random_state": 42,
+                    "n_jobs": -1,
                 },
-                one_class_svm_params={
-                    'nu': 0.1,
-                    'gamma': 'scale',
-                    'kernel': 'rbf'
-                },
+                one_class_svm_params={"nu": 0.1, "gamma": "scale", "kernel": "rbf"},
                 autoencoder_params={
-                    'encoding_dim': min(32, X_transformed.shape[1] // 2),
-                    'contamination': 0.1
-                }
+                    "encoding_dim": min(32, X_transformed.shape[1] // 2),
+                    "contamination": 0.1,
+                },
             )
-            
+
             # Train the ensemble
             ensemble_detector.fit(X_transformed)
-            
+
             # Get feature names
             feature_names = self.get_feature_names(ct=ct)
-            
+
             # Create model information dictionary
             model_info = {
                 "key": app_name,
@@ -402,18 +406,20 @@ class ModelTrainer:
                 "estimator": ensemble_detector,
                 "feature_transformer": ct,
                 "features": feature_names,
-                "n_training_samples": len(training_data)
+                "n_training_samples": len(training_data),
             }
-            
+
             self.logger.info(
                 "Ensemble model training completed for %s with %d features",
                 app_name,
                 len(feature_names),
             )
-            
+
         else:
             # Fall back to traditional supervised approach
-            self.logger.info(f"Insufficient data for ensemble ({len(training_data)} samples), falling back to XGBoost")
+            self.logger.info(
+                f"Insufficient data for ensemble ({len(training_data)} samples), falling back to XGBoost"
+            )
             model_info = self.train_model(training_data, app_name)
             if model_info:
                 model_info["model_type"] = "xgboost"

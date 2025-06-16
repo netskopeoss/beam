@@ -29,9 +29,9 @@ import logging
 import math
 import re
 import statistics
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime
-from typing import Dict, List, Optional, Union, Set
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
 import numpy as np
@@ -57,13 +57,13 @@ def get_numeric_stats(events: List, field: str) -> Dict:
         None
     """
     values = [e.get(field, 0) for e in events]
-    
+
     if not values:
         return {}
-    
+
     # Convert to numpy array for efficient computation
     values_array = np.array(values)
-    
+
     # Basic statistics
     basic_stats = {
         f"avg_{field}": np.mean(values_array),
@@ -74,7 +74,7 @@ def get_numeric_stats(events: List, field: str) -> Dict:
         f"min_{field}": np.min(values_array),
         f"sum_{field}": np.sum(values_array),
     }
-    
+
     # Percentile-based features (more robust with limited samples)
     percentiles = {
         f"p25_{field}": np.percentile(values_array, 25),
@@ -83,23 +83,23 @@ def get_numeric_stats(events: List, field: str) -> Dict:
         f"p95_{field}": np.percentile(values_array, 95),
         f"p99_{field}": np.percentile(values_array, 99),
     }
-    
+
     # Inter-quartile range (robust measure of spread)
     iqr = percentiles[f"p75_{field}"] - percentiles[f"p25_{field}"]
     percentiles[f"iqr_{field}"] = iqr
-    
+
     # Coefficient of variation (normalized variance)
     mean_val = basic_stats[f"avg_{field}"]
     std_val = basic_stats[f"std_{field}"]
     cv = std_val / (abs(mean_val) + 1e-8) if mean_val != 0 else 0
-    
+
     # Distribution shape measures
     shape_stats = {
         f"cv_{field}": cv,
         f"skewness_{field}": stats.skew(values_array) if len(values) > 2 else 0,
         f"kurtosis_{field}": stats.kurtosis(values_array) if len(values) > 3 else 0,
     }
-    
+
     # Outlier detection features
     if iqr > 0:
         # Standard outlier bounds (1.5 * IQR rule)
@@ -109,17 +109,20 @@ def get_numeric_stats(events: List, field: str) -> Dict:
         outlier_ratio = outliers / len(values_array)
     else:
         outlier_ratio = 0
-    
+
     outlier_stats = {
         f"outlier_ratio_{field}": outlier_ratio,
     }
-    
+
     # Robust statistics (median-based alternatives)
     robust_stats = {
-        f"mad_{field}": np.median(np.abs(values_array - np.median(values_array))),  # Median Absolute Deviation
-        f"robust_cv_{field}": np.median(np.abs(values_array - np.median(values_array))) / (np.median(values_array) + 1e-8),
+        f"mad_{field}": np.median(
+            np.abs(values_array - np.median(values_array))
+        ),  # Median Absolute Deviation
+        f"robust_cv_{field}": np.median(np.abs(values_array - np.median(values_array)))
+        / (np.median(values_array) + 1e-8),
     }
-    
+
     # Combine all statistics
     all_stats = {}
     all_stats.update(basic_stats)
@@ -127,16 +130,16 @@ def get_numeric_stats(events: List, field: str) -> Dict:
     all_stats.update(shape_stats)
     all_stats.update(outlier_stats)
     all_stats.update(robust_stats)
-    
+
     # Convert numpy types to native Python types for JSON serialization
     for key, value in all_stats.items():
-        if hasattr(value, 'item'):  # numpy scalar
+        if hasattr(value, "item"):  # numpy scalar
             all_stats[key] = value.item()
         elif isinstance(value, np.ndarray):
             all_stats[key] = value.tolist()
         elif isinstance(value, (np.integer, np.floating)):
             all_stats[key] = float(value)
-    
+
     return all_stats
 
 
@@ -318,13 +321,13 @@ def get_temporal_features(transactions: List[Dict]) -> Dict[str, float]:
 
     try:
         interval_regularity = (
-            1.0 / (statistics.stdev(intervals) + 1e-6)
-            if len(intervals) > 1
+            (1.0 / (statistics.stdev(intervals) + 1e-6) if len(intervals) > 1 else 0.0)
+            if intervals
             else 0.0
-        ) if intervals else 0.0
+        )
     except statistics.StatisticsError:
         interval_regularity = 0.0
-    
+
     return {
         "burst_ratio": burst_count / len(intervals) if intervals else 0.0,
         "interval_entropy": interval_entropy,
@@ -397,7 +400,9 @@ def get_network_behavior_features(transactions: List[Dict]) -> Dict[str, float]:
 
         avg_path_depth = statistics.mean(path_depths) if path_depths else 0.0
         try:
-            path_depth_std = statistics.stdev(path_depths) if len(path_depths) > 1 else 0.0
+            path_depth_std = (
+                statistics.stdev(path_depths) if len(path_depths) > 1 else 0.0
+            )
         except statistics.StatisticsError:
             path_depth_std = 0.0
     else:
@@ -516,7 +521,9 @@ def get_content_analysis_features(transactions: List[Dict]) -> Dict[str, float]:
         compressed_responses / total_responses if total_responses > 0 else 0.0
     )
     try:
-        avg_compression = statistics.mean(compression_ratios) if compression_ratios else 1.0
+        avg_compression = (
+            statistics.mean(compression_ratios) if compression_ratios else 1.0
+        )
     except statistics.StatisticsError:
         avg_compression = 1.0
 
@@ -580,50 +587,56 @@ def get_content_analysis_features(transactions: List[Dict]) -> Dict[str, float]:
 def get_protocol_security_features(transactions: List[Dict]) -> Dict[str, float]:
     """
     Extract protocol-level security features from transaction data.
-    
+
     Args:
         transactions (List[Dict]): List of transaction dictionaries
-        
+
     Returns:
         Dict[str, float]: Dictionary of protocol security features
     """
     if not transactions:
         return {}
-    
+
     # TLS/HTTPS analysis
-    https_requests = sum(1 for t in transactions if t.get("uri_scheme", "").lower() == "https")
+    https_requests = sum(
+        1 for t in transactions if t.get("uri_scheme", "").lower() == "https"
+    )
     https_ratio = https_requests / len(transactions)
-    
+
     # HTTP version analysis
-    http_versions = [t.get("client_http_version", "") for t in transactions if t.get("client_http_version")]
+    http_versions = [
+        t.get("client_http_version", "")
+        for t in transactions
+        if t.get("client_http_version")
+    ]
     version_diversity = len(set(http_versions))
-    
+
     # HTTP/2 and modern protocol usage
     http2_requests = sum(1 for v in http_versions if "2" in v)
     http2_ratio = http2_requests / len(http_versions) if http_versions else 0.0
-    
+
     # Security headers analysis (inferred from common patterns)
     security_headers = {
         "strict-transport-security": 0,
-        "content-security-policy": 0, 
+        "content-security-policy": 0,
         "x-frame-options": 0,
         "x-content-type-options": 0,
-        "x-xss-protection": 0
+        "x-xss-protection": 0,
     }
-    
+
     # Analyze response content types for security patterns
     resp_types = [t.get("resp_content_type", "").lower() for t in transactions]
-    
+
     # Detect potential security header presence (heuristic based on response patterns)
     json_responses = sum(1 for rt in resp_types if "json" in rt)
     html_responses = sum(1 for rt in resp_types if "html" in rt)
-    
+
     # Mixed content detection (HTTP resources on HTTPS pages)
     mixed_content_risk = 0
     if https_ratio > 0.5:  # If mostly HTTPS
         http_requests = len(transactions) - https_requests
         mixed_content_risk = http_requests / len(transactions)
-    
+
     # Certificate chain depth estimation (heuristic based on subdomain complexity)
     domains = [t.get("domain", "") for t in transactions if t.get("domain")]
     cert_chain_depth_estimate = 0.0
@@ -636,14 +649,18 @@ def get_protocol_security_features(transactions: List[Dict]) -> Dict[str, float]
                 subdomain_levels.append(len(parts) - 2)
             else:
                 subdomain_levels.append(0)
-        cert_chain_depth_estimate = statistics.mean(subdomain_levels) if subdomain_levels else 0.0
-    
+        cert_chain_depth_estimate = (
+            statistics.mean(subdomain_levels) if subdomain_levels else 0.0
+        )
+
     # Protocol downgrade detection
     protocol_consistency = 1.0
     if https_ratio > 0 and https_ratio < 1.0:
         # Mixed protocols might indicate downgrade attacks
-        protocol_consistency = abs(https_ratio - 0.5) * 2  # Closer to 0.5 = less consistent
-    
+        protocol_consistency = (
+            abs(https_ratio - 0.5) * 2
+        )  # Closer to 0.5 = less consistent
+
     return {
         "https_ratio": https_ratio,
         "http_version_diversity": version_diversity,
@@ -660,32 +677,39 @@ def get_protocol_security_features(transactions: List[Dict]) -> Dict[str, float]
 def get_header_fingerprint_features(transactions: List[Dict]) -> Dict[str, float]:
     """
     Extract HTTP header fingerprinting features from transaction data.
-    
+
     Args:
         transactions (List[Dict]): List of transaction dictionaries
-        
+
     Returns:
         Dict[str, float]: Dictionary of header fingerprint features
     """
     if not transactions:
         return {}
-    
+
     user_agents = [t.get("useragent", "") for t in transactions if t.get("useragent")]
-    
+
     # User-Agent analysis
     ua_diversity = len(set(user_agents))
     ua_consistency = 1.0 - (ua_diversity / len(user_agents)) if user_agents else 0.0
-    
+
     # User-Agent entropy (measure of randomness)
     if user_agents:
         all_ua_chars = "".join(user_agents)
         char_counts = Counter(all_ua_chars)
         total_chars = len(all_ua_chars)
-        ua_entropy = -sum((count/total_chars) * math.log2(count/total_chars) 
-                         for count in char_counts.values() if count > 0) if total_chars > 0 else 0.0
+        ua_entropy = (
+            -sum(
+                (count / total_chars) * math.log2(count / total_chars)
+                for count in char_counts.values()
+                if count > 0
+            )
+            if total_chars > 0
+            else 0.0
+        )
     else:
         ua_entropy = 0.0
-    
+
     # Common User-Agent patterns
     browser_patterns = {
         "chrome": sum(1 for ua in user_agents if "chrome" in ua.lower()),
@@ -693,13 +717,25 @@ def get_header_fingerprint_features(transactions: List[Dict]) -> Dict[str, float
         "safari": sum(1 for ua in user_agents if "safari" in ua.lower()),
         "edge": sum(1 for ua in user_agents if "edge" in ua.lower()),
     }
-    
+
     # Bot/automated tool detection
-    bot_indicators = ["bot", "crawler", "spider", "scraper", "automated", "python", "curl", "wget"]
-    bot_requests = sum(1 for ua in user_agents 
-                      if any(indicator in ua.lower() for indicator in bot_indicators))
+    bot_indicators = [
+        "bot",
+        "crawler",
+        "spider",
+        "scraper",
+        "automated",
+        "python",
+        "curl",
+        "wget",
+    ]
+    bot_requests = sum(
+        1
+        for ua in user_agents
+        if any(indicator in ua.lower() for indicator in bot_indicators)
+    )
     bot_ratio = bot_requests / len(user_agents) if user_agents else 0.0
-    
+
     # Suspicious User-Agent characteristics
     suspicious_ua_count = 0
     for ua in user_agents:
@@ -707,15 +743,15 @@ def get_header_fingerprint_features(transactions: List[Dict]) -> Dict[str, float
         if len(ua) < 10 or len(ua) > 500:
             suspicious_ua_count += 1
         # Unusual character patterns
-        if re.search(r'[^\w\s\-\.\(\)\/;:,]', ua):
+        if re.search(r"[^\w\s\-\.\(\)\/;:,]", ua):
             suspicious_ua_count += 1
-    
+
     suspicious_ua_ratio = suspicious_ua_count / len(user_agents) if user_agents else 0.0
-    
+
     # Referer header analysis
     referers = [t.get("referer", "") for t in transactions if t.get("referer")]
     referer_present_ratio = len(referers) / len(transactions)
-    
+
     # Referer consistency (same-origin vs cross-origin)
     same_origin_referers = 0
     for t in transactions:
@@ -728,15 +764,23 @@ def get_header_fingerprint_features(transactions: List[Dict]) -> Dict[str, float
                     same_origin_referers += 1
             except:
                 pass
-    
-    same_origin_referer_ratio = same_origin_referers / len(referers) if referers else 0.0
-    
+
+    same_origin_referer_ratio = (
+        same_origin_referers / len(referers) if referers else 0.0
+    )
+
     # Content-Type consistency
-    req_types = [t.get("req_content_type", "") for t in transactions if t.get("req_content_type")]
-    resp_types = [t.get("resp_content_type", "") for t in transactions if t.get("resp_content_type")]
-    
+    req_types = [
+        t.get("req_content_type", "") for t in transactions if t.get("req_content_type")
+    ]
+    resp_types = [
+        t.get("resp_content_type", "")
+        for t in transactions
+        if t.get("resp_content_type")
+    ]
+
     content_type_diversity = len(set(req_types + resp_types))
-    
+
     return {
         "ua_diversity": ua_diversity,
         "ua_consistency": ua_consistency,
@@ -746,127 +790,173 @@ def get_header_fingerprint_features(transactions: List[Dict]) -> Dict[str, float
         "referer_present_ratio": referer_present_ratio,
         "same_origin_referer_ratio": same_origin_referer_ratio,
         "content_type_diversity": content_type_diversity,
-        "chrome_ratio": browser_patterns["chrome"] / len(user_agents) if user_agents else 0.0,
-        "firefox_ratio": browser_patterns["firefox"] / len(user_agents) if user_agents else 0.0,
-        "safari_ratio": browser_patterns["safari"] / len(user_agents) if user_agents else 0.0,
+        "chrome_ratio": browser_patterns["chrome"] / len(user_agents)
+        if user_agents
+        else 0.0,
+        "firefox_ratio": browser_patterns["firefox"] / len(user_agents)
+        if user_agents
+        else 0.0,
+        "safari_ratio": browser_patterns["safari"] / len(user_agents)
+        if user_agents
+        else 0.0,
     }
 
 
 def get_supply_chain_indicators(transactions: List[Dict]) -> Dict[str, float]:
     """
     Extract supply chain specific security indicators from transaction data.
-    
+
     Args:
         transactions (List[Dict]): List of transaction dictionaries
-        
+
     Returns:
         Dict[str, float]: Dictionary of supply chain security features
     """
     if not transactions:
         return {}
-    
+
     domains = [t.get("domain", "") for t in transactions if t.get("domain")]
     urls = [t.get("url", "") for t in transactions if t.get("url")]
-    
+
     # Dependency tracking - identify external vs internal domains
     unique_domains = set(domains)
-    
+
     # Classify domains as internal vs external (heuristic)
     internal_domains = set()
     external_domains = set()
-    
+
     for domain in unique_domains:
         # Heuristics for internal vs external
-        if any(indicator in domain.lower() for indicator in 
-               ["localhost", "127.0.0.1", "internal", "corp", "local"]):
+        if any(
+            indicator in domain.lower()
+            for indicator in ["localhost", "127.0.0.1", "internal", "corp", "local"]
+        ):
             internal_domains.add(domain)
         else:
             external_domains.add(domain)
-    
-    external_domain_ratio = len(external_domains) / len(unique_domains) if unique_domains else 0.0
-    
+
+    external_domain_ratio = (
+        len(external_domains) / len(unique_domains) if unique_domains else 0.0
+    )
+
     # CDN and third-party service detection
     cdn_domains = set()
     thirdparty_services = set()
-    
-    cdn_indicators = ["cdn", "cloudfront", "akamai", "fastly", "cloudflare", "keycdn", "maxcdn"]
-    service_indicators = ["googleapis", "facebook", "twitter", "linkedin", "analytics", 
-                         "tracking", "ads", "doubleclick", "googlesyndication"]
-    
+
+    cdn_indicators = [
+        "cdn",
+        "cloudfront",
+        "akamai",
+        "fastly",
+        "cloudflare",
+        "keycdn",
+        "maxcdn",
+    ]
+    service_indicators = [
+        "googleapis",
+        "facebook",
+        "twitter",
+        "linkedin",
+        "analytics",
+        "tracking",
+        "ads",
+        "doubleclick",
+        "googlesyndication",
+    ]
+
     for domain in unique_domains:
         domain_lower = domain.lower()
         if any(indicator in domain_lower for indicator in cdn_indicators):
             cdn_domains.add(domain)
         if any(indicator in domain_lower for indicator in service_indicators):
             thirdparty_services.add(domain)
-    
+
     cdn_usage_ratio = len(cdn_domains) / len(unique_domains) if unique_domains else 0.0
-    thirdparty_service_ratio = len(thirdparty_services) / len(unique_domains) if unique_domains else 0.0
-    
+    thirdparty_service_ratio = (
+        len(thirdparty_services) / len(unique_domains) if unique_domains else 0.0
+    )
+
     # Typosquatting detection
     suspicious_domains = 0
     for domain in unique_domains:
         # Check for suspicious patterns
-        if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', domain):  # IP addresses
+        if re.search(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", domain):  # IP addresses
             suspicious_domains += 1
-        elif len(domain.split('.')) > 5:  # Very deep subdomains
+        elif len(domain.split(".")) > 5:  # Very deep subdomains
             suspicious_domains += 1
-        elif re.search(r'[0-9]{5,}', domain):  # Long numeric sequences
+        elif re.search(r"[0-9]{5,}", domain):  # Long numeric sequences
             suspicious_domains += 1
-        elif any(char in domain for char in ['-', '_']) and domain.count('-') + domain.count('_') > 3:
+        elif (
+            any(char in domain for char in ["-", "_"])
+            and domain.count("-") + domain.count("_") > 3
+        ):
             suspicious_domains += 1  # Too many hyphens/underscores
-    
-    suspicious_domain_ratio = suspicious_domains / len(unique_domains) if unique_domains else 0.0
-    
+
+    suspicious_domain_ratio = (
+        suspicious_domains / len(unique_domains) if unique_domains else 0.0
+    )
+
     # Domain age estimation (heuristic based on patterns)
     new_domain_indicators = 0
     for domain in unique_domains:
         # Heuristics for potentially new/suspicious domains
-        if re.search(r'[a-z]{8,}\.tk|\.ml|\.ga|\.cf', domain.lower()):  # Free TLDs
+        if re.search(r"[a-z]{8,}\.tk|\.ml|\.ga|\.cf", domain.lower()):  # Free TLDs
             new_domain_indicators += 1
-        elif re.search(r'[0-9]+[a-z]+[0-9]+', domain):  # Mixed alphanumeric
+        elif re.search(r"[0-9]+[a-z]+[0-9]+", domain):  # Mixed alphanumeric
             new_domain_indicators += 1
-    
-    new_domain_ratio = new_domain_indicators / len(unique_domains) if unique_domains else 0.0
-    
+
+    new_domain_ratio = (
+        new_domain_indicators / len(unique_domains) if unique_domains else 0.0
+    )
+
     # Request pattern analysis for supply chain attacks
     api_endpoints = sum(1 for url in urls if "/api/" in url.lower())
     api_endpoint_ratio = api_endpoints / len(urls) if urls else 0.0
-    
+
     # File type analysis for potential payload delivery
     file_extensions = []
     for url in urls:
         path = urlparse(url).path
-        if '.' in path:
-            ext = path.split('.')[-1].lower()
+        if "." in path:
+            ext = path.split(".")[-1].lower()
             if len(ext) <= 5:  # Reasonable extension length
                 file_extensions.append(ext)
-    
+
     executable_extensions = ["exe", "dll", "bin", "com", "scr", "bat", "cmd", "ps1"]
     script_extensions = ["js", "vbs", "php", "py", "sh", "pl"]
-    
-    executable_requests = sum(1 for ext in file_extensions if ext in executable_extensions)
+
+    executable_requests = sum(
+        1 for ext in file_extensions if ext in executable_extensions
+    )
     script_requests = sum(1 for ext in file_extensions if ext in script_extensions)
-    
-    executable_ratio = executable_requests / len(file_extensions) if file_extensions else 0.0
+
+    executable_ratio = (
+        executable_requests / len(file_extensions) if file_extensions else 0.0
+    )
     script_ratio = script_requests / len(file_extensions) if file_extensions else 0.0
-    
+
     # Time-based anomaly detection
     timestamps = [t.get("timestamp", 0) for t in transactions if t.get("timestamp")]
     if len(timestamps) > 1:
-        time_intervals = [timestamps[i] - timestamps[i-1] for i in range(1, len(timestamps))]
+        time_intervals = [
+            timestamps[i] - timestamps[i - 1] for i in range(1, len(timestamps))
+        ]
         # Detect very regular intervals (possible automated attacks)
         if time_intervals and len(time_intervals) > 1:
             try:
-                interval_cv = statistics.stdev(time_intervals) / (statistics.mean(time_intervals) + 1e-6)
-                automation_suspicion = 1.0 / (interval_cv + 1e-6) if interval_cv < 0.1 else 0.0
+                interval_cv = statistics.stdev(time_intervals) / (
+                    statistics.mean(time_intervals) + 1e-6
+                )
+                automation_suspicion = (
+                    1.0 / (interval_cv + 1e-6) if interval_cv < 0.1 else 0.0
+                )
             except statistics.StatisticsError:
                 automation_suspicion = 0.0
         else:
             automation_suspicion = 0.0
     else:
         automation_suspicion = 0.0
-    
+
     return {
         "external_domain_ratio": external_domain_ratio,
         "cdn_usage_ratio": cdn_usage_ratio,
@@ -886,48 +976,55 @@ def get_supply_chain_indicators(transactions: List[Dict]) -> Dict[str, float]:
 def get_behavioral_baseline_features(transactions: List[Dict]) -> Dict[str, float]:
     """
     Extract behavioral baseline features for anomaly detection.
-    
+
     Args:
         transactions (List[Dict]): List of transaction dictionaries
-        
+
     Returns:
         Dict[str, float]: Dictionary of behavioral baseline features
     """
     if not transactions:
         return {}
-    
+
     # Geographic consistency (based on IP patterns)
     src_ips = [t.get("src_ip", "") for t in transactions if t.get("src_ip")]
     unique_ips = set(src_ips)
     ip_diversity = len(unique_ips)
-    
+
     # Private IP address detection
     private_ip_count = 0
     for ip in unique_ips:
         if ip.startswith(("10.", "172.", "192.168.", "127.")):
             private_ip_count += 1
-    
+
     private_ip_ratio = private_ip_count / len(unique_ips) if unique_ips else 0.0
-    
+
     # Request volume patterns
-    total_bytes = sum(t.get("client_bytes", 0) + t.get("server_bytes", 0) for t in transactions)
+    total_bytes = sum(
+        t.get("client_bytes", 0) + t.get("server_bytes", 0) for t in transactions
+    )
     avg_bytes_per_request = total_bytes / len(transactions) if transactions else 0.0
-    
+
     # Error pattern analysis
     error_statuses = ["4", "5"]  # 4xx and 5xx errors
-    error_requests = sum(1 for t in transactions 
-                        if any(t.get("http_status", "").startswith(status) for status in error_statuses))
+    error_requests = sum(
+        1
+        for t in transactions
+        if any(t.get("http_status", "").startswith(status) for status in error_statuses)
+    )
     error_rate = error_requests / len(transactions)
-    
+
     # Request method diversity
     methods = [t.get("http_method", "") for t in transactions if t.get("http_method")]
     method_diversity = len(set(methods))
-    
+
     # Non-standard methods
     standard_methods = {"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"}
-    non_standard_methods = sum(1 for method in methods if method not in standard_methods)
+    non_standard_methods = sum(
+        1 for method in methods if method not in standard_methods
+    )
     non_standard_method_ratio = non_standard_methods / len(methods) if methods else 0.0
-    
+
     return {
         "ip_diversity": ip_diversity,
         "private_ip_ratio": private_ip_ratio,
@@ -1271,7 +1368,7 @@ def grab_application_summary(traffic_map: Dict, key: str, fields: list) -> Dict:
     network_features = get_network_behavior_features(transactions)
     content_features = get_content_analysis_features(transactions)
     graph_features = get_graph_based_features(transactions)
-    
+
     # Add new security-focused features
     protocol_security_features = get_protocol_security_features(transactions)
     header_fingerprint_features = get_header_fingerprint_features(transactions)

@@ -192,50 +192,62 @@ def run_detection(
             app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
         )
     logger.info(f"Features output saved to: {features_output_path}")
-    
+
     # Generate security analysis report
     try:
         summaries = utils.load_json_file(features_output_path)
         security_report = generate_security_report(summaries)
-        
+
         # Save security report
-        security_report_path = features_output_path.replace('.json', '_security_report.txt')
-        with open(security_report_path, 'w') as f:
+        security_report_path = features_output_path.replace(
+            ".json", "_security_report.txt"
+        )
+        with open(security_report_path, "w") as f:
             f.write(security_report)
-        
+
         logger.info(f"Security analysis report saved to: {security_report_path}")
-        
+
         # Also print key security insights to console
         print("\n" + "=" * 60)
         print("🔒 SECURITY ANALYSIS SUMMARY")
         print("=" * 60)
-        
+
         # Extract key insights for console display
         from beam.detector.security_report import SecurityAnalysisReport
+
         analyzer = SecurityAnalysisReport()
         analysis = analyzer.analyze_security_features(summaries)
-        
+
         # Show critical insights
-        critical_insights = [insight for insight in analysis['security_insights'] 
-                           if insight['severity'] in ['HIGH', 'MEDIUM']]
-        
+        critical_insights = [
+            insight
+            for insight in analysis["security_insights"]
+            if insight["severity"] in ["HIGH", "MEDIUM"]
+        ]
+
         if critical_insights:
             print("🚨 CRITICAL SECURITY INSIGHTS:")
             for insight in critical_insights:
-                print(f"  [{insight['severity']}] {insight['type']}: {insight['domain']}")
+                print(
+                    f"  [{insight['severity']}] {insight['type']}: {insight['domain']}"
+                )
                 print(f"      {insight['details'][:80]}...")
         else:
             print("✅ No critical security issues detected")
-        
+
         # Show overall risk
-        risk_level = analysis['risk_assessment']['overall_risk_level']
+        risk_level = analysis["risk_assessment"]["overall_risk_level"]
         print(f"\n⚠️  OVERALL RISK LEVEL: {risk_level}")
-        print(f"📊 Applications analyzed: {analysis['risk_assessment']['total_applications']}")
-        print(f"🔍 Applications with issues: {analysis['risk_assessment']['applications_with_issues']}")
-        
+        print(
+            f"📊 Applications analyzed: {analysis['risk_assessment']['total_applications']}"
+        )
+        print(
+            f"🔍 Applications with issues: {analysis['risk_assessment']['applications_with_issues']}"
+        )
+
         print(f"\n📄 Full report available at: {security_report_path}")
         print("=" * 60)
-        
+
     except Exception as e:
         logger.warning(f"Failed to generate security report: {e}")
 
@@ -434,7 +446,9 @@ def process_training_data(
     all_apps = discover_apps_in_traffic(enriched_events_path, min_transactions=1)
     logger.info("=== APPLICATION DISCOVERY REPORT ===")
     logger.info("Applications found in traffic:")
-    for discovered_app_name, count in sorted(all_apps.items(), key=lambda x: x[1], reverse=True):
+    for discovered_app_name, count in sorted(
+        all_apps.items(), key=lambda x: x[1], reverse=True
+    ):
         status = (
             "✓ ELIGIBLE"
             if count >= constants.MIN_APP_TRANSACTIONS
@@ -599,13 +613,14 @@ def run(logger: logging.Logger) -> None:
     if args.get("mode") == "demo":
         logger.info("Running BEAM in demo mode...")
         from beam.demo import run_demo
+
         run_demo(logger)
         return
-    
+
     # Check if this might be a first-time user with no input files
     input_path_str = args["input_dir"]
     input_path = Path(input_path_str)
-    
+
     # Suggest demo mode for first-time users
     if not args["mapping_only"] and not args["train"]:
         if input_path.is_dir():
@@ -700,19 +715,21 @@ def run(logger: logging.Logger) -> None:
         # Check for matching application models before processing
         if use_custom_models:
             logger.info("Checking for matching application models...")
-            
+
             # Analyze input files to discover applications
             all_discovered_apps = set()
             available_models = set()
-            
+
             # Check what custom models are available
             custom_models_dir = Path(constants.CUSTOM_APP_MODELS_DIR)
             if custom_models_dir.exists():
                 for model_file in custom_models_dir.glob("*_model.pkl"):
                     # Extract app name from model filename
-                    model_name = model_file.stem.replace("_model", "").replace("_", " ").title()
+                    model_name = (
+                        model_file.stem.replace("_model", "").replace("_", " ").title()
+                    )
                     available_models.add(model_name)
-            
+
             # Quick discovery of apps in input files
             for input_file in input_files:
                 try:
@@ -721,37 +738,47 @@ def run(logger: logging.Logger) -> None:
                         file_path=input_file, logger=logger
                     )
                     temp_enriched_path = enrich_events(
-                        file_name=temp_file_name, 
-                        parsed_file_path=temp_parsed_path, 
-                        logger=logger
+                        file_name=temp_file_name,
+                        parsed_file_path=temp_parsed_path,
+                        logger=logger,
                     )
-                    
+
                     # Discover applications
                     discovered_apps = discover_apps_in_traffic(
                         temp_enriched_path, min_transactions=1
                     )
                     all_discovered_apps.update(discovered_apps.keys())
-                    
+
                 except Exception as e:
-                    logger.warning(f"Failed to analyze {input_file} for applications: {e}")
+                    logger.warning(
+                        f"Failed to analyze {input_file} for applications: {e}"
+                    )
                     continue
-            
+
             if all_discovered_apps:
-                logger.info(f"Applications discovered in input data: {sorted(all_discovered_apps)}")
+                logger.info(
+                    f"Applications discovered in input data: {sorted(all_discovered_apps)}"
+                )
                 logger.info(f"Available custom models: {sorted(available_models)}")
-                
+
                 # Check for matches (normalize names for comparison)
-                normalized_discovered = {normalize_app_name(app) for app in all_discovered_apps}
-                normalized_available = {normalize_app_name(model) for model in available_models}
-                
+                normalized_discovered = {
+                    normalize_app_name(app) for app in all_discovered_apps
+                }
+                normalized_available = {
+                    normalize_app_name(model) for model in available_models
+                }
+
                 matching_apps = normalized_discovered.intersection(normalized_available)
                 missing_apps = normalized_discovered - normalized_available
-                
+
                 if not matching_apps:
                     print("\n" + "=" * 60)
                     print("🚫 NO MATCHING MODELS FOUND")
                     print("=" * 60)
-                    print("BEAM detected applications in your input data, but no matching")
+                    print(
+                        "BEAM detected applications in your input data, but no matching"
+                    )
                     print("trained models were found. You need to train models first.")
                     print()
                     print("🔍 APPLICATIONS DETECTED:")
@@ -762,7 +789,9 @@ def run(logger: logging.Logger) -> None:
                     print("   1. Collect clean training data for each application")
                     print("   2. Run training command for each app:")
                     for app in sorted(all_discovered_apps):
-                        print(f"      python -m beam --train --app_name \"{app}\" -i /path/to/training/data")
+                        print(
+                            f'      python -m beam --train --app_name "{app}" -i /path/to/training/data'
+                        )
                     print()
                     print("   3. Once trained, re-run BEAM for detection")
                     print()
