@@ -434,13 +434,13 @@ def process_training_data(
     all_apps = discover_apps_in_traffic(enriched_events_path, min_transactions=1)
     logger.info("=== APPLICATION DISCOVERY REPORT ===")
     logger.info("Applications found in traffic:")
-    for app_name, count in sorted(all_apps.items(), key=lambda x: x[1], reverse=True):
+    for discovered_app_name, count in sorted(all_apps.items(), key=lambda x: x[1], reverse=True):
         status = (
             "✓ ELIGIBLE"
             if count >= constants.MIN_APP_TRANSACTIONS
             else "✗ insufficient"
         )
-        logger.info(f"  {app_name}: {count} transactions ({status})")
+        logger.info(f"  {discovered_app_name}: {count} transactions ({status})")
     logger.info(
         f"Minimum transactions required for training: {constants.MIN_APP_TRANSACTIONS}"
     )
