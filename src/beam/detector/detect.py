@@ -29,11 +29,10 @@ import logging
 import pickle
 from typing import Any, Dict, Set, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import shap
 from numpy.typing import NDArray
+from path import Path
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -107,35 +106,65 @@ app_feature_fields = (
 )
 
 
-malware_meta_fields = [
-    "key"
-]
+malware_meta_fields = ["key"]
 malware_feature_columns = malware_meta_fields + [
-    "referer_domain_cnt", "unique_actions", "key_hostname_cnt", "domain_cnt",
-
-    "http_status_cnt", "http_method_cnt", "req_content_type_cnt", "resp_content_type_cnt",
-
-    "avg_time_interval_sec", "std_time_interval_sec", "median_time_interval_sec", "range_time_interval_sec",
+    "referer_domain_cnt",
+    "unique_actions",
+    "key_hostname_cnt",
+    "domain_cnt",
+    "http_status_cnt",
+    "http_method_cnt",
+    "req_content_type_cnt",
+    "resp_content_type_cnt",
+    "avg_time_interval_sec",
+    "std_time_interval_sec",
+    "median_time_interval_sec",
+    "range_time_interval_sec",
     "range_timestamp",
-
-    "max_time_taken_ms", "min_time_taken_ms", "sum_time_taken_ms", "avg_time_taken_ms", "std_time_taken_ms",
-    "median_time_taken_ms", "range_time_taken_ms",
-    "max_client_bytes", "min_client_bytes", "sum_client_bytes", "avg_client_bytes", "std_client_bytes",
-    "median_client_bytes", "range_client_bytes",
-    "max_server_bytes", "min_server_bytes", "sum_server_bytes", "avg_server_bytes", "std_server_bytes",
-    "median_server_bytes", "range_server_bytes",
-
-    "refered_traffic_pct", 'web_traffic_pct', 'cloud_traffic_pct',
-
-    "sequence_num_keys", "sequence_max_key_length", "sequence_min_key_length", "sequence_max_val", "sequence_min_val",
-    "sequence_sum_val", "sequence_avg_val", "sequence_std_val", "sequence_median_val", "sequence_range_val",
-
-    "key_hostnames", "http_methods", "http_statuses", "req_content_types", "resp_content_types"
+    "max_time_taken_ms",
+    "min_time_taken_ms",
+    "sum_time_taken_ms",
+    "avg_time_taken_ms",
+    "std_time_taken_ms",
+    "median_time_taken_ms",
+    "range_time_taken_ms",
+    "max_client_bytes",
+    "min_client_bytes",
+    "sum_client_bytes",
+    "avg_client_bytes",
+    "std_client_bytes",
+    "median_client_bytes",
+    "range_client_bytes",
+    "max_server_bytes",
+    "min_server_bytes",
+    "sum_server_bytes",
+    "avg_server_bytes",
+    "std_server_bytes",
+    "median_server_bytes",
+    "range_server_bytes",
+    "refered_traffic_pct",
+    "web_traffic_pct",
+    "cloud_traffic_pct",
+    "sequence_num_keys",
+    "sequence_max_key_length",
+    "sequence_min_key_length",
+    "sequence_max_val",
+    "sequence_min_val",
+    "sequence_sum_val",
+    "sequence_avg_val",
+    "sequence_std_val",
+    "sequence_median_val",
+    "sequence_range_val",
+    "key_hostnames",
+    "http_methods",
+    "http_statuses",
+    "req_content_types",
+    "resp_content_types",
 ]
 
 
 def load_app_model(app_model_path: str) -> Any:
-  """
+    """
     Load the application model from the specified path.
 
     Args:
@@ -144,12 +173,12 @@ def load_app_model(app_model_path: str) -> Any:
     Returns:
         model: The loaded model.
     """
-  with open(app_model_path, "rb") as _file:
-      model = pickle.load(_file)[0]
-  return model
+    with open(app_model_path, "rb") as _file:
+        model = pickle.load(_file)[0]
+    return model
 
 
-def load_domain_model(domain_model_path: str) -> Tuple[Set, Dict]:
+def load_domain_model(domain_model_path: Path) -> Tuple[Set, Dict]:
     """
     Load the domain model from the specified path.
 
@@ -279,89 +308,11 @@ def convert_supply_chain_summaries_to_features(
     return features_og, features_pd
 
 
-def detect_anomalous_app(
-    input_path: str,
-    app_model_path: str,
-    app_prediction_directory: str,
-) -> None:
-    """
-    Detect anomalous applications in the given input data.
-
-    Args:
-        input_path (str): The path to the input JSON file containing the data.
-        app_model_path (str): The path to the pickled model.
-        app_prediction_directory (str): The directory to save the predictions.
-
-    Returns:
-        None
-    """
-    logger = logging.getLogger(__name__)
-    logger.info(f"[x] Detecting anomalous applications in {input_path}")
-
-    model = load_app_model(app_model_path)
-    estimator = model["estimator"]
-    selected_feature_names = model["selected_features"]
-    classes = estimator.classes_
-
-    features_og, features_pd = convert_summary_to_features(load_json_file(input_path))
-    predictions = estimator.predict_proba(features_pd)
-    features_scaled = estimator["rf_feat"].transform(
-        estimator["ct"].transform(features_pd)
-    )
-
-    for observation_index, observation_key in enumerate(features_og["key"]):
-        predicted_class_index = predictions[observation_index].argmax()
-        predicted_class_name = classes[predicted_class_index]
-        predicted_class_proba = predictions[observation_index, predicted_class_index]
-
-        plt.clf()
-        chosen_instance = features_scaled[observation_index, :]
-        explainer = shap.TreeExplainer(estimator["rf"])
-        shap_values = explainer.shap_values(chosen_instance)
-        shap.initjs()
-        exp = shap.Explanation(
-            values=shap_values[..., predicted_class_index],
-            base_values=explainer.expected_value[predicted_class_index],
-            data=chosen_instance,
-            feature_names=selected_feature_names,
-        )
-
-        shap.waterfall_plot(exp, max_display=20, show=False)
-        obs_file_dir = (
-            str(observation_index)
-            + "_"
-            + observation_key.replace(" ", "_").replace("'", "").replace("/", "")[:35]
-        )
-        parent_dir = f"{app_prediction_directory}/{obs_file_dir}/"
-        safe_create_path(parent_dir)
-        exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-        plt.savefig(exp_png_path, dpi=150, bbox_inches="tight")
-
-        full_predictions = sorted(
-            [
-                {"class": c, "probability": round(100.0 * p, 4)}
-                for p, c in zip(predictions[observation_index], classes)
-            ],
-            key=lambda x: x["probability"],
-            reverse=True,
-        )
-        full_predictions_path = f"{parent_dir}full_predictions.json"
-        save_json_data(full_predictions, full_predictions_path)
-
-        logger.info(
-            f"""
-            i = {observation_index}
-            Advertised user agent = {observation_key}
-            Predicted class = {predicted_class_name} ({round(predicted_class_proba * 100, 2)}%)
-            Top 3 predictions = {full_predictions[:3]}
-            SHAP explanation path = {exp_png_path}
-            Full predictions path = {full_predictions_path}
-        \n"""
-        )
-
-
 def detect_anomalous_domain(
-    input_path: str, domain_model_path: str, app_prediction_dir: str, prob_cutoff: float = 0.8
+    input_path: str,
+    domain_model_path: Path,
+    app_prediction_dir: str,
+    prob_cutoff: float = 0.8,
 ) -> None:
     """
     Detect anomalous domains in the given input data.
@@ -402,35 +353,37 @@ def detect_anomalous_domain(
             classes = estimator.classes_
 
             predictions = estimator.predict_proba(features_pd)
-            features_scaled = estimator["rf_feat"].transform(
-                estimator["ct"].transform(features_pd)
-            )
+
+            # Try to get features using XGBoost feature selector first, then fall back to RF if needed
+            if (
+                hasattr(estimator, "named_steps")
+                and "xgb_feat" in estimator.named_steps
+            ):
+                features_scaled = estimator["xgb_feat"].transform(
+                    estimator["ct"].transform(features_pd)
+                )
+            elif (
+                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+            ):
+                features_scaled = estimator["rf_feat"].transform(
+                    estimator["ct"].transform(features_pd)
+                )
+            else:
+                # Try accessing as dictionary for backward compatibility
+                if "xgb_feat" in estimator:
+                    features_scaled = estimator["xgb_feat"].transform(
+                        estimator["ct"].transform(features_pd)
+                    )
+                else:
+                    features_scaled = estimator["rf_feat"].transform(
+                        estimator["ct"].transform(features_pd)
+                    )
 
             predicted_class_index = predictions[observation_index].argmax()
             predicted_class_name = classes[predicted_class_index]
             predicted_class_proba = predictions[
                 observation_index, predicted_class_index
             ]
-
-            plt.clf()
-
-            try:
-                chosen_instance = features_scaled[observation_index, :].toarray()
-            except:
-                chosen_instance = features_scaled[observation_index, :]
-
-            explainer = shap.TreeExplainer(estimator['rf'])
-            shap_values = explainer.shap_values(chosen_instance)
-            shap.initjs()
-            exp = shap.Explanation(values=shap_values[..., predicted_class_index],
-                                   base_values=explainer.expected_value[predicted_class_index],
-                                   data=chosen_instance,
-                                   feature_names=selected_feature_names)
-
-            try:
-                shap.waterfall_plot(exp[0], max_display=20, show=False)
-            except:
-                shap.waterfall_plot(exp, max_display=20, show=False)
 
             obs_file_dir = (
                 str(observation_index)
@@ -441,12 +394,10 @@ def detect_anomalous_domain(
             )
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
-            exp_png_path = f"{parent_dir}{predicted_class_name}_shap_waterfall.png"
-            plt.savefig(exp_png_path, dpi=150, bbox_inches='tight')
 
             full_predictions = sorted(
                 [
-                    {"class": c, "probability": round(100.0 * p, 4)}
+                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -455,14 +406,116 @@ def detect_anomalous_domain(
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
 
-            if (predicted_class_name == "Not specified app") and (predicted_class_proba >= prob_cutoff):
-                logger.info("[!!] Potential supply chain compromise found ")
-                logger.info(
-                    f"""
-                    i = {observation_index}
-                    {observation_key}
-                    Predicted class = {predicted_class_name} ({round(predicted_class_proba * 100, 2)}%)
-                    Top 3 predictions = {full_predictions[:3]}
-                    Full predictions path = {full_predictions_path}
-                \n"""
+
+def detect_anomalous_domain_with_custom_model(
+    input_path: str,
+    custom_model_path: Path,
+    app_prediction_dir: str,
+    prob_cutoff: float = 0.8,
+) -> None:
+    """
+    Detect anomalous domains using an individual custom model.
+
+    Args:
+        input_path (str): The path to the input JSON file containing the data.
+        custom_model_path (Path): The path to the custom model file.
+        app_prediction_dir (str): The directory to save the predictions.
+        prob_cutoff (float): The cutoff for probability to determine if it's anomalous.
+
+    Returns:
+        None
+    """
+    logger = logging.getLogger(__name__)
+
+    # Load the individual custom model
+    with open(custom_model_path, "rb") as _file:
+        raw_models = pickle.load(_file)
+
+    # Convert single model to the expected format
+    models = dict()
+    apps = set()
+
+    if isinstance(raw_models, list) and len(raw_models) > 0:
+        raw_model = raw_models[0].copy()  # Take the first (and likely only) model
+        app = raw_model.pop("key")
+        models[app] = raw_model
+        apps.add(app)
+    else:
+        logger.error(f"Unexpected model format in {custom_model_path}")
+        return
+
+    features_og, features_pd = convert_supply_chain_summaries_to_features(
+        load_json_file(input_path)
+    )
+
+    for observation_index, observation_series in features_og.iterrows():
+        application = observation_series["application"]
+        if application not in models:
+            logger.info(
+                "[x] Application not found in custom models: " + str(application)
+            )
+        else:
+            logger.info(
+                "[x] Application found to test supply chain compromises against: "
+                + str(application)
+            )
+            observation_key = observation_series["key"]
+            model = models[application]
+
+            estimator = model["estimator"]
+            selected_feature_names = model["selected_features"]
+            classes = estimator.classes_
+
+            predictions = estimator.predict_proba(features_pd)
+
+            # Try to get features using XGBoost feature selector first, then fall back to RF if needed
+            if (
+                hasattr(estimator, "named_steps")
+                and "xgb_feat" in estimator.named_steps
+            ):
+                features_scaled = estimator["xgb_feat"].transform(
+                    estimator["ct"].transform(features_pd)
                 )
+            elif (
+                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+            ):
+                features_scaled = estimator["rf_feat"].transform(
+                    estimator["ct"].transform(features_pd)
+                )
+            else:
+                # Try accessing as dictionary for backward compatibility
+                if "xgb_feat" in estimator:
+                    features_scaled = estimator["xgb_feat"].transform(
+                        estimator["ct"].transform(features_pd)
+                    )
+                else:
+                    features_scaled = estimator["rf_feat"].transform(
+                        estimator["ct"].transform(features_pd)
+                    )
+
+            predicted_class_index = predictions[observation_index].argmax()
+            predicted_class_name = classes[predicted_class_index]
+            predicted_class_proba = predictions[
+                observation_index, predicted_class_index
+            ]
+
+            obs_file_dir = (
+                str(observation_index)
+                + "_"
+                + observation_key.replace(" ", "_")
+                .replace("'", "")
+                .replace("/", "")[:35]
+            )
+            parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
+            safe_create_path(parent_dir)
+
+            full_predictions = sorted(
+                [
+                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
+                    for p, c in zip(predictions[observation_index], classes)
+                ],
+                key=lambda x: x["probability"],
+                reverse=True,
+            )
+            full_predictions_path = f"{parent_dir}full_predictions.json"
+            save_json_data(full_predictions, full_predictions_path)
