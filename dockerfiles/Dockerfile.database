@@ -1,0 +1,33 @@
+# Database Services Container
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements for database components
+COPY requirements.txt .
+RUN pip install --no-cache-dir sqlmodel sqlalchemy sqlite
+
+# Copy source code (specifically mapper and database components)
+COPY src/beam/mapper/ ./src/beam/mapper/
+COPY src/beam/constants.py ./src/beam/constants.py
+COPY src/beam/__init__.py ./src/beam/__init__.py
+
+# Create database directories
+RUN mkdir -p /app/data/mapper \
+    /var/lib/beam
+
+# Set environment variables
+ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1
+
+# Copy database initialization script
+COPY dockerfiles/scripts/init_database.py /app/init_database.py
+
+# Default command - initialize database and keep running
+CMD ["python", "/app/init_database.py"]

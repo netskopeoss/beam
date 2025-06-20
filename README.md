@@ -3,8 +3,32 @@
 # Netskope BEAM
 Behavioral Evaluation of Application Metrics (BEAM) is a Python library for detecting supply chain compromises by analyzing network traffic.
 
-## Usage
-### Prequisites
+## 🚀 Quick Start with Docker (Recommended)
+
+**The fastest way to see BEAM in action:**
+
+```bash
+# Clone the repository
+git clone git@github.com:netskopeoss/beam.git
+cd beam
+
+# Run the interactive demo (one command!)
+./demo-docker.sh
+```
+
+This will:
+- Automatically build the Docker container with all dependencies
+- Run the supply chain compromise detection demo
+- Show you how BEAM detects malicious behavior in network traffic
+- Complete in ~30 seconds
+
+**What you'll see:** A real-world example of the Box cloud storage app infected with malware, and how BEAM's AI detects the hidden malicious communication.
+
+For more Docker options, see [Docker Setup Guide](dockerfiles/README.md).
+
+## Manual Installation
+
+### Prerequisites
 1. Install Zeek (formerly known as Bro) locally, using the instructions available [here](https://docs.zeek.org/en/current/install.html).
 
 2. Clone the BEAM repo:

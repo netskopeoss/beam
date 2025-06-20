@@ -7,12 +7,16 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+# Make MultiHotEncoder available in __main__ context for pickle loading
+import __main__
 from beam import constants
 from beam.detector import features, utils
-from beam.detector.detect import detect_anomalous_domain
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 from beam.detector.security_report import generate_security_report
 from beam.enrich import enrich_events
 from beam.parser import har
+
+__main__.MultiHotEncoder = MultiHotEncoder
 
 
 def print_demo_header() -> None:
@@ -365,15 +369,27 @@ def cleanup_demo_files(temp_demo_dir: Path, logger: logging.Logger) -> None:
             logger.warning(f"Failed to clean up demo temp directory: {e}")
 
 
-def run_demo(logger: Optional[logging.Logger] = None) -> None:
+def run_demo(
+    logger: Optional[logging.Logger] = None, preserve_results: Optional[bool] = None
+) -> None:
     """
     Run the BEAM demo showcasing supply chain compromise detection.
 
     Args:
         logger: Logger instance for demo execution
+        preserve_results: Whether to preserve demo results (auto-detects Docker if None)
     """
     if logger is None:
         logger = logging.getLogger(__name__)
+
+    # Auto-detect if we're running in Docker and should preserve results
+    if preserve_results is None:
+        import os
+
+        preserve_results = (
+            os.path.exists("/.dockerenv")
+            or os.environ.get("DOCKER_DEMO", "false").lower() == "true"
+        )
 
     print_demo_header()
 
@@ -414,9 +430,11 @@ def run_demo(logger: Optional[logging.Logger] = None) -> None:
         print("Please check the logs for more details.")
 
     finally:
-        # Clean up temporary files
-        if temp_demo_dir is not None:
+        # Clean up temporary files unless preserving results
+        if temp_demo_dir is not None and not preserve_results:
             cleanup_demo_files(temp_demo_dir, logger)
+        elif temp_demo_dir is not None and preserve_results:
+            logger.info(f"Demo results preserved in: {temp_demo_dir}")
 
 
 def check_for_supported_applications(input_dir: Path, model_dir: Path) -> dict:
