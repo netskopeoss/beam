@@ -29,7 +29,7 @@ RUN mkdir -p /app/data/input \
     /app/data/input_parsed
 
 # Copy Zeek processing script
-COPY dockerfiles/scripts/process_pcap.sh /app/process_pcap.sh
+COPY docker/scripts/process_pcap.sh /app/process_pcap.sh
 RUN chmod +x /app/process_pcap.sh
 
 # Default command - keep container running for processing requests

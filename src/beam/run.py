@@ -273,6 +273,7 @@ def enrich_events(file_name: str, parsed_file_path, logger: logging.Logger) -> s
         cloud_domains_file_path=str(constants.CLOUD_DOMAINS_FILE),
         key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
+        use_local_llm=constants.USE_LOCAL_LLM,
     )
     enriched_events_path = f"{DATA_DIR}/enriched_events/{file_name}.json"
     utils.save_json_data(events, enriched_events_path)
@@ -599,6 +600,13 @@ def run(logger: logging.Logger) -> None:
         default=False,
     )
     parser.add_argument(
+        "--use_local_llm",
+        help="Use local Llama model instead of Gemini for user agent mapping.",
+        required=False,
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "mode",
         nargs="?",
         help="Operation mode: 'demo' to run the supply chain compromise detection demo",
@@ -608,6 +616,11 @@ def run(logger: logging.Logger) -> None:
 
     args = vars(parser.parse_args())
     logger.setLevel(args["log_level"])
+    
+    # Set environment variable for local LLM usage
+    if args["use_local_llm"]:
+        import os
+        os.environ["USE_LOCAL_LLM"] = "true"
 
     # Handle demo mode
     if args.get("mode") == "demo":

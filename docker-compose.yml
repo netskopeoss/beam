@@ -3,17 +3,19 @@ services:
   beam-core:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.beam-core
+      dockerfile: docker/Dockerfile.beam-core
     container_name: beam-core
     volumes:
       - beam-data:/app/data
       - beam-models:/app/models
       - beam-predictions:/app/predictions
       - ./data:/app/data:ro  # Mount host data directory as read-only
+      - ./logs:/app/logs  # Mount logs directory to host
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONPATH=/app/src
+      - BEAM_LOG_PATH=/app/logs/beam.log
     depends_on:
       - zeek-processor
       - database
@@ -26,7 +28,7 @@ services:
   zeek-processor:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.zeek
+      dockerfile: docker/Dockerfile.zeek
     container_name: zeek-processor
     volumes:
       - beam-data:/app/data
@@ -38,7 +40,7 @@ services:
   database:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.database
+      dockerfile: docker/Dockerfile.database
     container_name: beam-database
     volumes:
       - beam-data:/app/data
@@ -48,21 +50,39 @@ services:
     environment:
       - PYTHONPATH=/app/src
 
+  # Llama model service container
+  llama-model:
+    build:
+      context: .
+      dockerfile: docker/llama/Dockerfile
+    container_name: beam-llama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - beam-network
+    restart: unless-stopped
+
   # Optional: Single container for simpler deployments
   beam-all-in-one:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.all-in-one
+      dockerfile: docker/Dockerfile.all-in-one
     container_name: beam-all-in-one
     volumes:
       - beam-data:/app/data
       - beam-models:/app/models
       - beam-predictions:/app/predictions
       - ./data:/app/data:ro
+      - ./logs:/app/logs  # Mount logs directory to host
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - PYTHONPATH=/app/src
+      - BEAM_LOG_PATH=/app/logs/beam.log
     networks:
       - beam-network
     stdin_open: true
@@ -75,6 +95,7 @@ volumes:
   beam-models:
   beam-predictions:
   db-data:
+  ollama-data:
 
 networks:
   beam-network:

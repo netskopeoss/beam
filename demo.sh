@@ -14,4 +14,4 @@ if [ ! -f "pyproject.toml" ]; then
 fi
 
 # Run the demo
-exec ./dockerfiles/run-demo.sh "$@"
+exec ./docker/run-demo.sh "$@"

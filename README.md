@@ -13,7 +13,7 @@ git clone git@github.com:netskopeoss/beam.git
 cd beam
 
 # Run the interactive demo (one command!)
-./demo-docker.sh
+./demo.sh
 ```
 
 This will:
@@ -24,7 +24,7 @@ This will:
 
 **What you'll see:** A real-world example of the Box cloud storage app infected with malware, and how BEAM's AI detects the hidden malicious communication.
 
-For more Docker options, see [Docker Setup Guide](dockerfiles/README.md).
+For more Docker options, see [Docker Setup Guide](docker/README.md).
 
 ## Manual Installation
 

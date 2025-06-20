@@ -7,11 +7,18 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     sqlite3 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements for database components
-COPY requirements.txt .
-RUN pip install --no-cache-dir sqlmodel sqlalchemy sqlite
+# Install uv using the official method
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy dependency files first for better Docker layer caching
+COPY pyproject.toml uv.lock ./
+
+# Install Python dependencies using uv with caching (only database-related deps)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
 
 # Copy source code (specifically mapper and database components)
 COPY src/beam/mapper/ ./src/beam/mapper/
@@ -25,9 +32,10 @@ RUN mkdir -p /app/data/mapper \
 # Set environment variables
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy database initialization script
-COPY dockerfiles/scripts/init_database.py /app/init_database.py
+COPY docker/scripts/init_database.py /app/init_database.py
 
 # Default command - initialize database and keep running
 CMD ["python", "/app/init_database.py"]

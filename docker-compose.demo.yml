@@ -1,39 +1,79 @@
 services:
+  # Llama model service (optional - for local LLM)
+  llama-model:
+    build:
+      context: .
+      dockerfile: docker/llama/Dockerfile
+    container_name: beam-demo-llama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    volumes:
+      - ollama-demo-data:/root/.ollama
+    networks:
+      - beam-demo-network
+    restart: unless-stopped
+
   # BEAM Demo - Single container for easy demo experience
   beam-demo:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.demo
+      dockerfile: docker/Dockerfile.demo
     container_name: beam-demo
     volumes:
       # Optional: Mount host directory to save demo results
       - ./demo_results:/app/data/demo_temp
+      # Mount directory to save logs on host
+      - ./logs:/app/logs
     environment:
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
       - DOCKER_DEMO=true
+      - USE_LOCAL_LLM=${USE_LOCAL_LLM:-true}
+      - LLAMA_BASE_URL=${LLAMA_BASE_URL:-http://llama-model:11434}
+      - BEAM_LOG_PATH=/app/logs/beam.log
     stdin_open: true
     tty: true
     command: ["python", "-c", "from beam.demo import run_demo; run_demo()"]
+    networks:
+      - beam-demo-network
+    depends_on:
+      - llama-model
 
   # Alternative: Interactive shell for exploration
   beam-interactive:
     build:
       context: .
-      dockerfile: dockerfiles/Dockerfile.demo
+      dockerfile: docker/Dockerfile.demo
     container_name: beam-interactive
     volumes:
       - ./demo_results:/app/data/demo_temp
+      # Mount directory to save logs on host
+      - ./logs:/app/logs
     environment:
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
       - DOCKER_DEMO=true
+      - USE_LOCAL_LLM=${USE_LOCAL_LLM:-true}
+      - LLAMA_BASE_URL=${LLAMA_BASE_URL:-http://llama-model:11434}
+      - BEAM_LOG_PATH=/app/logs/beam.log
     stdin_open: true
     tty: true
     command: ["/bin/bash"]
+    networks:
+      - beam-demo-network
+    depends_on:
+      - llama-model
     profiles:
       - interactive
 
 volumes:
   demo_results:
     driver: local
+  ollama-demo-data:
+    driver: local
+
+networks:
+  beam-demo-network:
+    driver: bridge

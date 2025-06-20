@@ -37,12 +37,13 @@ from typing import Dict, List, Tuple
 from pydantic import ConfigDict
 from sqlalchemy.orm import Session
 
-from beam.constants import GEMINI_API_KEY
+from beam.constants import GEMINI_API_KEY, LLAMA_BASE_URL, USE_LOCAL_LLM
 from beam.mapper.data_sources import APIDataSource, DataSource
 
 from .agent_parser import query_agent_parser
 from .datastore import DataStoreHandler
 from .gemini import query_gemini
+from .llama import query_llama
 from .llm import LLMDataSource
 
 
@@ -61,11 +62,16 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
         None
     """
     logger.info(f"Mapping {len(user_agents)} user agents...")
+    
+    # Choose LLM selection based on configuration
+    llm_selection = "Llama" if USE_LOCAL_LLM else "Gemini"
+    
     hits, misses = query_user_agent_mapper(
         user_agents=user_agents,
         db_path=str(db_path),
         logger=logger,
         llm_api_key=GEMINI_API_KEY,
+        llm_selection=llm_selection,
         delay=1,
     )
     logger.info(f"Found {len(hits)} hits and {len(misses)} misses.")
@@ -195,15 +201,22 @@ class UserAgentMapper(DataSource):
             self.logger.info(
                 f"Checking LLM source {self.llm_selection} for a total of {len(self.misses)} user agents."
             )
-            if self.llm_api_key:
-                if self.llm_selection == "Gemini":
-                    self.llm = query_gemini(
-                        user_agents=self.misses,
-                        api_key=self.llm_api_key,
-                        logger=self.logger,
-                    )
+            if self.llm_selection == "Llama":
+                self.llm = query_llama(
+                    user_agents=self.misses,
+                    logger=self.logger,
+                )
+            elif self.llm_api_key and self.llm_selection == "Gemini":
+                self.llm = query_gemini(
+                    user_agents=self.misses,
+                    api_key=self.llm_api_key,
+                    logger=self.logger,
+                )
             else:
-                self.logger.info("No LLM API key was provided, skipping LLM check.")
+                if self.llm_selection == "Gemini":
+                    self.logger.info("No LLM API key was provided for Gemini, skipping LLM check.")
+                else:
+                    self.logger.info("Unknown LLM selection, skipping LLM check.")
                 return
 
             if self.llm.hits_found:

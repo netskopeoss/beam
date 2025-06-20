@@ -51,7 +51,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy initialization scripts
-COPY dockerfiles/scripts/ /app/scripts/
+COPY docker/scripts/ /app/scripts/
 RUN chmod +x /app/scripts/*.sh
 
 # Default command

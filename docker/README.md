@@ -12,7 +12,7 @@ git clone <repository-url>
 cd beam
 
 # Run the demo (one command!)
-./dockerfiles/run-demo.sh
+./docker/run-demo.sh
 ```
 
 That's it! The demo will automatically:
@@ -40,7 +40,7 @@ That's it! The demo will automatically:
 docker-compose -f docker-compose.demo.yml run --rm beam-demo
 
 # Or use the convenience script
-./dockerfiles/run-demo.sh demo
+./docker/run-demo.sh demo
 ```
 
 ### 2. Core Application Container
@@ -82,13 +82,13 @@ The demo container is designed to provide a **zero-friction experience**:
 ### Demo Commands
 ```bash
 # Run automated demo
-./dockerfiles/run-demo.sh demo
+./docker/run-demo.sh demo
 
 # Interactive exploration
-./dockerfiles/run-demo.sh interactive
+./docker/run-demo.sh interactive
 
 # Clean up containers
-./dockerfiles/run-demo.sh cleanup
+./docker/run-demo.sh cleanup
 ```
 
 ## 🏗️ Modern Dependencies with uv
@@ -103,7 +103,7 @@ All containers use **uv** for fast, reliable Python dependency management:
 ## 📁 Directory Structure
 
 ```
-dockerfiles/
+docker/
 ├── Dockerfile.demo          # Demo-optimized container
 ├── Dockerfile.beam-core     # Core application container  
 ├── Dockerfile.all-in-one    # Full-featured container
@@ -122,10 +122,10 @@ docker-compose.demo.yml     # Demo-focused setup
 ### For Demo Users
 ```bash
 # Quick start
-./dockerfiles/run-demo.sh
+./docker/run-demo.sh
 
 # Interactive exploration
-./dockerfiles/run-demo.sh interactive
+./docker/run-demo.sh interactive
 ```
 
 ### For Developers
@@ -182,7 +182,7 @@ sudo systemctl start docker
 **"Permission denied"**
 ```bash
 # Make script executable
-chmod +x dockerfiles/run-demo.sh
+chmod +x docker/run-demo.sh
 ```
 
 **"Container build fails"**
@@ -209,7 +209,7 @@ ls -la demo/data/
 
 2. **Interactive debugging:**
    ```bash
-   ./dockerfiles/run-demo.sh interactive
+   ./docker/run-demo.sh interactive
    ```
 
 3. **Report issues:** Include Docker version, OS, and error logs
@@ -217,12 +217,12 @@ ls -la demo/data/
 ## 🎓 Learning Path
 
 ### 1. Start with Demo
-- Run `./dockerfiles/run-demo.sh`
+- Run `./docker/run-demo.sh`
 - Understand the supply chain compromise scenario
 - Review the generated security reports
 
 ### 2. Explore Interactively
-- Use `./dockerfiles/run-demo.sh interactive`
+- Use `./docker/run-demo.sh interactive`
 - Examine the code structure
 - Run individual BEAM components
 

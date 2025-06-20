@@ -116,6 +116,7 @@ def process_demo_data(
         cloud_domains_file_path=str(constants.CLOUD_DOMAINS_FILE),
         key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
+        use_local_llm=constants.USE_LOCAL_LLM,
     )
     utils.save_json_data(enriched_events, str(enriched_output_path))
     print("   ✓ Enriched events with application mapping")
@@ -369,6 +370,34 @@ def cleanup_demo_files(temp_demo_dir: Path, logger: logging.Logger) -> None:
             logger.warning(f"Failed to clean up demo temp directory: {e}")
 
 
+def setup_demo_logging():
+    """Setup logging for demo with custom log path if specified."""
+    import os
+    from pathlib import Path
+    
+    custom_log_path = os.environ.get('BEAM_LOG_PATH')
+    
+    if custom_log_path:
+        # Create the directory if it doesn't exist
+        log_dir = Path(custom_log_path).parent
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup logging programmatically (file only)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(custom_log_path)
+            ],
+            force=True  # Override any existing configuration
+        )
+    else:
+        # Use the default logging configuration
+        import logging.config as log_config
+        from beam.constants import LOG_CONFIG
+        log_config.fileConfig(LOG_CONFIG)
+
+
 def run_demo(
     logger: Optional[logging.Logger] = None, preserve_results: Optional[bool] = None
 ) -> None:
@@ -379,6 +408,9 @@ def run_demo(
         logger: Logger instance for demo execution
         preserve_results: Whether to preserve demo results (auto-detects Docker if None)
     """
+    # Setup logging if not already configured
+    setup_demo_logging()
+    
     if logger is None:
         logger = logging.getLogger(__name__)
 
