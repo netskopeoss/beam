@@ -618,7 +618,7 @@ def run(logger: logging.Logger) -> None:
     logger.setLevel(args["log_level"])
     
     # Set environment variable for local LLM usage
-    if args["use_local_llm"]:
+    if args.get("use_local_llm", False):
         import os
         os.environ["USE_LOCAL_LLM"] = "true"
 
