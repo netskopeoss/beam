@@ -6,11 +6,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Zeek and dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    lsb-release \
-    software-properties-common \
+    curl=7.81.0-1ubuntu1.20 \
+    wget=1.21.2-2ubuntu1.1 \
     && echo 'deb http://download.opensuse.org/repositories/security:/zeek/xUbuntu_22.04/ /' | tee /etc/apt/sources.list.d/security:zeek.list \
     && curl -fsSL https://download.opensuse.org/repositories/security:zeek/xUbuntu_22.04/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null \
     && apt-get update \

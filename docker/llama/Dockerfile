@@ -2,9 +2,9 @@ FROM python:3.12-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    procps \
+    git=1:2.39.5-0+deb12u2 \
+    curl=7.88.1-10+deb12u12 \
+    procps=2:4.0.2-3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

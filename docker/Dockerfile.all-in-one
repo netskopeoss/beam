@@ -6,15 +6,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies and uv
 RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    gnupg \
-    lsb-release \
-    software-properties-common \
-    sqlite3 \
-    build-essential \
-    git \
-    ca-certificates \
+    curl=7.88.1-10+deb12u12 \
+    wget=1.21.3-1+deb12u1 \
+    sqlite3=3.40.1-2+deb12u1 \
+    build-essential=12.9 \
+    git=1:2.39.5-0+deb12u2 \
+    ca-certificates=20230311+deb12u1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv using the official method from uv documentation

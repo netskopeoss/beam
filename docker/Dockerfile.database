@@ -6,8 +6,8 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    curl \
+    sqlite3=3.40.1-2+deb12u1 \
+    curl=7.88.1-10+deb12u12 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv using the official method
