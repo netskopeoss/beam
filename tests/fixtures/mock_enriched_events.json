@@ -1,0 +1,72 @@
+[
+  {
+    "useragent": "TestApp/1.0.0 (Windows NT 10.0; Win64; x64)",
+    "domain": "api.testapp.com",
+    "method": "POST",
+    "status": 200,
+    "request_content_type": "application/json",
+    "response_content_type": "application/json",
+    "time_taken": 150,
+    "client_bytes": 1024,
+    "server_bytes": 2048,
+    "timestamp": "2024-01-01T12:00:00Z",
+    "referer": "https://testapp.com",
+    "path": "/api/v1/sync"
+  },
+  {
+    "useragent": "TestApp/1.0.0 (Windows NT 10.0; Win64; x64)",
+    "domain": "api.testapp.com",
+    "method": "GET",
+    "status": 200,
+    "request_content_type": "application/json",
+    "response_content_type": "application/json",
+    "time_taken": 75,
+    "client_bytes": 512,
+    "server_bytes": 1536,
+    "timestamp": "2024-01-01T12:00:30Z",
+    "referer": "https://testapp.com",
+    "path": "/api/v1/data"
+  },
+  {
+    "useragent": "TestApp/1.0.0 (Windows NT 10.0; Win64; x64)",
+    "domain": "cdn.testapp.com",
+    "method": "GET",
+    "status": 200,
+    "request_content_type": "",
+    "response_content_type": "image/png",
+    "time_taken": 200,
+    "client_bytes": 0,
+    "server_bytes": 65536,
+    "timestamp": "2024-01-01T12:01:00Z",
+    "referer": "https://testapp.com",
+    "path": "/images/logo.png"
+  },
+  {
+    "useragent": "TestApp/1.0.0 (Windows NT 10.0; Win64; x64)",
+    "domain": "api.testapp.com",
+    "method": "PUT",
+    "status": 201,
+    "request_content_type": "application/json",
+    "response_content_type": "application/json",
+    "time_taken": 300,
+    "client_bytes": 2048,
+    "server_bytes": 1024,
+    "timestamp": "2024-01-01T12:01:30Z",
+    "referer": "https://testapp.com",
+    "path": "/api/v1/update"
+  },
+  {
+    "useragent": "TestApp/1.0.0 (Windows NT 10.0; Win64; x64)",
+    "domain": "auth.testapp.com",
+    "method": "POST",
+    "status": 200,
+    "request_content_type": "application/x-www-form-urlencoded",
+    "response_content_type": "application/json",
+    "time_taken": 500,
+    "client_bytes": 256,
+    "server_bytes": 512,
+    "timestamp": "2024-01-01T12:02:00Z",
+    "referer": "https://testapp.com",
+    "path": "/oauth/token"
+  }
+]

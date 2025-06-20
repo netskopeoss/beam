@@ -63,11 +63,14 @@ FEATURE_SUMMARY_OUTPUT_PATH = DATA_DIR / "summaries"
 
 APP_MODEL = MODEL_DIRECTORY / "app_model.pkl"
 DOMAIN_MODEL = MODEL_DIRECTORY / "domain_model.pkl"
+CUSTOM_APP_MODELS_DIR = MODEL_DIRECTORY / "custom_models"
 
 APP_PREDICTIONS_DIR = PREDICTIONS_DIRECTORY / "anomalous_app"
 DOMAIN_PREDICTIONS_DIR = PREDICTIONS_DIRECTORY / "anomalous_domains"
 
 GEMINI_API_KEY = environ["GEMINI_API_KEY"] if "GEMINI_API_KEY" in environ else ""
+LLAMA_BASE_URL = environ.get("LLAMA_BASE_URL", "http://localhost:11434")
+USE_LOCAL_LLM = environ.get("USE_LOCAL_LLM", "false").lower() == "true"
 
 MIN_APP_TRANSACTIONS = 100
 MIN_DOMAIN_TRANSACTION = 5

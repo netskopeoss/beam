@@ -3,8 +3,32 @@
 # Netskope BEAM
 Behavioral Evaluation of Application Metrics (BEAM) is a Python library for detecting supply chain compromises by analyzing network traffic.
 
-## Usage
-### Prequisites
+## 🚀 Quick Start with Docker (Recommended)
+
+**The fastest way to see BEAM in action:**
+
+```bash
+# Clone the repository
+git clone git@github.com:netskopeoss/beam.git
+cd beam
+
+# Run the interactive demo (one command!)
+./demo.sh
+```
+
+This will:
+- Automatically build the Docker container with all dependencies
+- Run the supply chain compromise detection demo
+- Show you how BEAM detects malicious behavior in network traffic
+- Complete in ~30 seconds
+
+**What you'll see:** A real-world example of the Box cloud storage app infected with malware, and how BEAM's AI detects the hidden malicious communication.
+
+For more Docker options, see [Docker Setup Guide](docker/README.md).
+
+## Manual Installation
+
+### Prerequisites
 1. Install Zeek (formerly known as Bro) locally, using the instructions available [here](https://docs.zeek.org/en/current/install.html).
 
 2. Clone the BEAM repo:
@@ -21,8 +45,35 @@ pip install -e .
 2. Navigate to `beam/src` and run:
 
 ```bash
-python beam
+# Run BEAM in standard detection mode
+python -m beam.run
+
+# Run BEAM with custom models (default behavior)
+python -m beam.run --use_custom_models
+
+# Run BEAM with only the pre-trained models
+python -m beam.run --no-use_custom_models
 ```
+
+### Training Custom App Models
+
+BEAM comes with 8 pre-trained application models, but you can train your own custom models for additional applications:
+
+```bash
+# Train a model for a new custom app using input files in the default directory
+python -m beam.run --train --app_name "MyCustomApp"
+
+# Specify a custom input directory
+python -m beam.run --train --app_name "MyCustomApp" -i /path/to/pcap_directory
+
+# Specify a custom output path for the model
+python -m beam.run --train --app_name "MyCustomApp" --model_output /path/to/my_model.pkl
+```
+
+Once trained, custom models are automatically used alongside the pre-trained models during detection.
+
+**For detailed instructions, data requirements, troubleshooting, and advanced configuration options, see the complete guide in [`models/custom_models/README.md`](models/custom_models/README.md).**
+
 ## Output from BEAM
 BEAM generates multiple files and provides the following output:
 
