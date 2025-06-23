@@ -21,8 +21,35 @@ pip install -e .
 2. Navigate to `beam/src` and run:
 
 ```bash
-python beam
+# Run BEAM in standard detection mode
+python -m beam.run
+
+# Run BEAM with custom models (default behavior)
+python -m beam.run --use_custom_models
+
+# Run BEAM with only the pre-trained models
+python -m beam.run --no-use_custom_models
 ```
+
+### Training Custom App Models
+
+BEAM comes with 8 pre-trained application models, but you can train your own custom models for additional applications:
+
+```bash
+# Train a model for a new custom app using input files in the default directory
+python -m beam.run --train --app_name "MyCustomApp"
+
+# Specify a custom input directory
+python -m beam.run --train --app_name "MyCustomApp" -i /path/to/pcap_directory
+
+# Specify a custom output path for the model
+python -m beam.run --train --app_name "MyCustomApp" --model_output /path/to/my_model.pkl
+```
+
+Once trained, custom models are automatically used alongside the pre-trained models during detection.
+
+**For detailed instructions, data requirements, troubleshooting, and advanced configuration options, see the complete guide in [`models/custom_models/README.md`](models/custom_models/README.md).**
+
 ## Output from BEAM
 BEAM generates multiple files and provides the following output:
 

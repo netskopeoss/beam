@@ -27,11 +27,13 @@
 
 import logging
 import logging.config
-from run import MultiHotEncoder, run
+
 from beam.constants import LOG_CONFIG
+from beam.run import MultiHotEncoder, run
 
 if __name__ == "__main__":
     logging.config.fileConfig(LOG_CONFIG)
     logger = logging.getLogger("main")
     _m = MultiHotEncoder()
+    # Main module passes control to the run function which handles command-line arguments
     run(logger=logger)
