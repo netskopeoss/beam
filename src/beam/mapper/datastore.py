@@ -139,7 +139,7 @@ class Database(SQLModel):
         Returns:
             None
         """
-        current_app = self.search_applications(name=app.name)
+        current_app = self.search_applications(session=session, name=app.name)
         if current_app:
             self.logger.info(f"Application {current_app} already exists")
             return
@@ -157,7 +157,7 @@ class Database(SQLModel):
         Returns:
             None
         """
-        current_os = self.search_operating_systems(name=os.name)
+        current_os = self.search_operating_systems(session=session, name=os.name)
         if current_os:
             self.logger.info(f"Operating System {current_os} already exists")
             return
@@ -185,17 +185,19 @@ class Database(SQLModel):
         else:
             # The mapping was NOT found in the database.
             # Check if the application and operating system exist in the database.
-            app = self.search_applications(
-                session=session, name=mapping.application.name
-            )
-            if app:
-                mapping.application = app
-            os = self.search_operating_systems(
-                session=session, name=mapping.operatingsystem.name
-            )
-            if os:
-                mapping.operatingsystem = os
-            session.add(mapping)
+            # Use no_autoflush to prevent warnings when accessing relationships
+            with session.no_autoflush:
+                app = self.search_applications(
+                    session=session, name=mapping.application.name
+                )
+                if app:
+                    mapping.application = app
+                os = self.search_operating_systems(
+                    session=session, name=mapping.operatingsystem.name
+                )
+                if os:
+                    mapping.operatingsystem = os
+                session.add(mapping)
             session.commit()
 
     def open_database(self) -> Session:

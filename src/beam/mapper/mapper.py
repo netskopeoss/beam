@@ -351,18 +351,20 @@ def query_user_agent_mapper(
     hits = []
     if mapper.hits_found:
         hits = []
-        for hit in mapper.hits:
-            if hit not in session:
-                session.add(hit)
-            hits.append(
-                {
-                    "user_agent_string": hit.user_agent_string,
-                    "application": hit.application.name,
-                    "vendor": hit.application.vendor,
-                    "version": hit.version,
-                    "description": hit.application.description,
-                    "operating_system": hit.operatingsystem.name,
-                }
-            )
+        # Use no_autoflush to prevent SQLAlchemy warnings when accessing relationships
+        with session.no_autoflush:
+            for hit in mapper.hits:
+                if hit not in session:
+                    session.add(hit)
+                hits.append(
+                    {
+                        "user_agent_string": hit.user_agent_string,
+                        "application": hit.application.name,
+                        "vendor": hit.application.vendor,
+                        "version": hit.version,
+                        "description": hit.application.description,
+                        "operating_system": hit.operatingsystem.name,
+                    }
+                )
     session.close()
     return hits, mapper.misses
