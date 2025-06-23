@@ -487,44 +487,6 @@ class ModelTrainer:
         else:
             self.logger.error("Failed to create app model for %s", app_name)
 
-    def merge_models(
-        self, existing_model_path: str, new_model_path: str, output_path: str
-    ) -> None:
-        """
-        Merge a newly created model with an existing model file.
-
-        Args:
-            existing_model_path (str): Path to the existing model file.
-            new_model_path (str): Path to the new model file.
-            output_path (str): Path to save the merged model.
-
-        Returns:
-            None
-        """
-        self.logger.info(
-            "Merging models from %s and %s", existing_model_path, new_model_path
-        )
-
-        try:
-            # Load existing models
-            with open(existing_model_path, "rb") as existing_file:
-                existing_models = pickle.load(existing_file)
-
-            # Load new model
-            with open(new_model_path, "rb") as new_file:
-                new_model = pickle.load(new_file)
-
-            # Combine models
-            combined_models = existing_models + new_model
-
-            # Save merged models
-            with open(output_path, "wb") as output_file:
-                pickle.dump(combined_models, output_file)
-
-            self.logger.info("Models merged successfully and saved to %s", output_path)
-
-        except (FileNotFoundError, pickle.PickleError, IOError) as e:
-            self.logger.error("Error merging models: %s", str(e))
 
     def extract_features_for_training(
         self, events_data: List[Dict[str, Any]], app_name: str

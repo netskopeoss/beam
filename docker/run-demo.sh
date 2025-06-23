@@ -62,7 +62,7 @@ run_demo() {
     # Start Llama service if needed
     if [ "$use_llama" == "true" ]; then
         echo -e "${BLUE}🤖 Starting local Llama model service...${NC}"
-        $COMPOSE_CMD -f docker-compose.demo.yml up -d llama-model
+        $COMPOSE_CMD -f docker-compose.demo.yml up -d --remove-orphans llama-model
         
         # Wait for Llama to be ready and download model if needed
         echo -e "${YELLOW}⏳ Waiting for Llama service to start...${NC}"
@@ -76,7 +76,7 @@ run_demo() {
     fi
     
     echo -e "${BLUE}🔍 Running Supply Chain Compromise Detection Demo...${NC}"
-    $COMPOSE_CMD -f docker-compose.demo.yml run --rm beam-demo
+    $COMPOSE_CMD -f docker-compose.demo.yml run --rm --remove-orphans beam-demo
     
     # Stop Llama service
     if [ "$use_llama" == "true" ]; then
@@ -125,7 +125,7 @@ run_interactive() {
     # Start Llama service if needed
     if [ "$use_llama" == "true" ]; then
         echo -e "${BLUE}🤖 Starting local Llama model service...${NC}"
-        $COMPOSE_CMD -f docker-compose.demo.yml up -d llama-model
+        $COMPOSE_CMD -f docker-compose.demo.yml up -d --remove-orphans llama-model
         
         # Wait for Llama to be ready and download model if needed
         echo -e "${YELLOW}⏳ Waiting for Llama service to start...${NC}"
@@ -145,7 +145,7 @@ run_interactive() {
     echo -e "${YELLOW}   • Explore the /app directory${NC}"
     echo ""
     
-    $COMPOSE_CMD -f docker-compose.demo.yml run --rm --profile interactive beam-interactive
+    $COMPOSE_CMD -f docker-compose.demo.yml run --rm --remove-orphans --profile interactive beam-interactive
     
     # Stop Llama service
     if [ "$use_llama" == "true" ]; then

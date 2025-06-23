@@ -6,10 +6,9 @@ services:
       dockerfile: docker/Dockerfile.beam-core
     container_name: beam-core
     volumes:
-      - beam-data:/app/data
-      - beam-models:/app/models
-      - beam-predictions:/app/predictions
-      - ./data:/app/data:ro  # Mount host data directory as read-only
+      - ./data:/app/data  # Mount host data directory as read-write
+      - ./models:/app/models  # Mount host models directory as read-write
+      - ./predictions:/app/predictions  # Mount host predictions directory as read-write
       - ./logs:/app/logs  # Mount logs directory to host
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -31,7 +30,7 @@ services:
       dockerfile: docker/Dockerfile.zeek
     container_name: zeek-processor
     volumes:
-      - beam-data:/app/data
+      - ./data:/app/data
     networks:
       - beam-network
     command: ["tail", "-f", "/dev/null"]  # Keep container running
@@ -43,7 +42,7 @@ services:
       dockerfile: docker/Dockerfile.database
     container_name: beam-database
     volumes:
-      - beam-data:/app/data
+      - ./data:/app/data
       - db-data:/var/lib/beam
     networks:
       - beam-network
@@ -73,10 +72,9 @@ services:
       dockerfile: docker/Dockerfile.all-in-one
     container_name: beam-all-in-one
     volumes:
-      - beam-data:/app/data
-      - beam-models:/app/models
-      - beam-predictions:/app/predictions
-      - ./data:/app/data:ro
+      - ./data:/app/data  # Mount host data directory as read-write
+      - ./models:/app/models  # Mount host models directory as read-write
+      - ./predictions:/app/predictions  # Mount host predictions directory as read-write
       - ./logs:/app/logs  # Mount logs directory to host
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -91,9 +89,6 @@ services:
       - single-container
 
 volumes:
-  beam-data:
-  beam-models:
-  beam-predictions:
   db-data:
   ollama-data:
 

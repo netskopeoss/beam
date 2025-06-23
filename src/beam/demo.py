@@ -322,10 +322,17 @@ def display_available_reports(
         features_output_path: Path to the features data
         prediction_dir: Directory containing predictions
     """
+    # Convert container paths to host paths for user-friendly display
+    def convert_container_path_to_host_path(container_path: str) -> str:
+        """Convert container path to host filesystem path for user-friendly console output."""
+        if container_path.startswith("/app/"):
+            return "./demo_results/" + container_path.split("/")[-1]  # Put demo files in demo_results/
+        return container_path
+    
     print("📄 DETAILED REPORTS AVAILABLE:")
-    print(f"   • Security Analysis: {security_report_path}")
-    print(f"   • Feature Data: {features_output_path}")
-    print(f"   • Predictions: {prediction_dir}")
+    print(f"   • Security Analysis: {convert_container_path_to_host_path(str(security_report_path))}")
+    print(f"   • Feature Data: {convert_container_path_to_host_path(str(features_output_path))}")
+    print(f"   • Predictions: {convert_container_path_to_host_path(str(prediction_dir))}")
     print()
 
     # Demo conclusion

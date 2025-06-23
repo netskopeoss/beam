@@ -41,22 +41,14 @@ cp /path/to/your/app_traffic.pcap data/input/
 cp /path/to/your/app_traffic.har data/input/
 ```
 
-##### Step 2: Set App Name
-Choose a descriptive name for your application:
+##### Step 2: Train the Model
+BEAM automatically discovers applications in your traffic data:
 ```bash
-export APP_NAME="MyCustomApp"  # Replace with your app name
-```
+# Basic training command (auto-discovers all apps)
+python -m beam --train -i data/input/
 
-##### Step 3: Train the Model
-```bash
-# Basic training command
-python -m beam --train --app_name "$APP_NAME" -i data/input/
-
-# With custom output path
-python -m beam --train \
-    --app_name "$APP_NAME" \
-    -i data/input/ \
-    --model_output "models/custom_models/${APP_NAME}_model.pkl"
+# Train from a specific file
+python -m beam --train -i data/input/app_traffic.pcap
 ```
 
 ##### Step 4: Verify Model Creation
@@ -92,10 +84,10 @@ features_path = extract_app_features(
     fields=["useragent"]
 )
 
-# Train custom model
+# Train custom model (app_name will be discovered from features data)
 train_custom_app_model(
     features_path=features_path,
-    app_name="YourAppName",
+    app_name="YourAppName",  # This is read from the features data
     output_model_path="models/custom_models/your_app_model.pkl",
     n_features=150,
     min_transactions=50

@@ -188,8 +188,19 @@ def load_domain_model(domain_model_path: Path) -> Tuple[Set, Dict]:
     Returns:
         Tuple[set, dict]: A set of apps and a dictionary of models.
     """
-    with open(domain_model_path, "rb") as _file:
-        raw_models = pickle.load(_file)
+    try:
+        with open(domain_model_path, "rb") as _file:
+            # Suppress sklearn warnings during model loading
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*__sklearn_tags__.*')
+                raw_models = pickle.load(_file)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to load domain model {domain_model_path}: {e}")
+        logger.error("This may be due to version incompatibility. Try retraining the model.")
+        return set(), dict()
 
     models = dict()
     apps = set()
@@ -350,9 +361,33 @@ def detect_anomalous_domain(
 
             estimator = model["estimator"]
             selected_feature_names = model["selected_features"]
-            classes = estimator.classes_
+            
+            # Get classes from the final classifier in the pipeline
+            try:
+                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb_classifier"].classes_
+                elif hasattr(estimator, "classes_"):
+                    classes = estimator.classes_
+                else:
+                    # Fallback - try to get classes from the last step of the pipeline
+                    classes = estimator.steps[-1][1].classes_
+            except AttributeError as e:
+                logger.error(f"Failed to get classes from estimator: {e}")
+                continue
 
-            predictions = estimator.predict_proba(features_pd)
+            # Make predictions with error handling for sklearn compatibility issues
+            try:
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', category=DeprecationWarning)
+                    predictions = estimator.predict_proba(features_pd)
+            except AttributeError as e:
+                if "__sklearn_tags__" in str(e):
+                    logger.error(f"sklearn compatibility issue with model for {application}: {e}")
+                    logger.error("This indicates a version compatibility problem. The model may need to be retrained with compatible sklearn/xgboost versions.")
+                    continue
+                else:
+                    raise
 
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
@@ -428,8 +463,17 @@ def detect_anomalous_domain_with_custom_model(
     logger = logging.getLogger(__name__)
 
     # Load the individual custom model
-    with open(custom_model_path, "rb") as _file:
-        raw_models = pickle.load(_file)
+    try:
+        with open(custom_model_path, "rb") as _file:
+            # Suppress sklearn warnings during model loading
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning, message='.*__sklearn_tags__.*')
+                raw_models = pickle.load(_file)
+    except Exception as e:
+        logger.error(f"Failed to load custom model {custom_model_path}: {e}")
+        logger.error("This may be due to version incompatibility. Try retraining the model.")
+        return
 
     # Convert single model to the expected format
     models = dict()
@@ -464,9 +508,33 @@ def detect_anomalous_domain_with_custom_model(
 
             estimator = model["estimator"]
             selected_feature_names = model["selected_features"]
-            classes = estimator.classes_
+            
+            # Get classes from the final classifier in the pipeline
+            try:
+                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb_classifier"].classes_
+                elif hasattr(estimator, "classes_"):
+                    classes = estimator.classes_
+                else:
+                    # Fallback - try to get classes from the last step of the pipeline
+                    classes = estimator.steps[-1][1].classes_
+            except AttributeError as e:
+                logger.error(f"Failed to get classes from estimator: {e}")
+                continue
 
-            predictions = estimator.predict_proba(features_pd)
+            # Make predictions with error handling for sklearn compatibility issues
+            try:
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', category=DeprecationWarning)
+                    predictions = estimator.predict_proba(features_pd)
+            except AttributeError as e:
+                if "__sklearn_tags__" in str(e):
+                    logger.error(f"sklearn compatibility issue with model for {application}: {e}")
+                    logger.error("This indicates a version compatibility problem. The model may need to be retrained with compatible sklearn/xgboost versions.")
+                    continue
+                else:
+                    raise
 
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
