@@ -13,6 +13,34 @@ import pytest
 from beam.detector.detect import detect_anomalous_domain_with_custom_model
 
 
+class MockEstimator:
+    """Mock estimator class that can be pickled for testing."""
+    def predict_proba(self, X):
+        return [[0.1, 0.9]] * len(X)
+    
+    def predict(self, X):
+        return [1] * len(X)
+    
+    @property
+    def classes_(self):
+        return [0, 1]
+
+
+def create_simple_mock_model_file(file_path: str):
+    """Create a simple mock model file that can be pickled and loaded for testing."""
+    mock_model = [
+        {
+            "key": "TestApp",
+            "estimator": MockEstimator(),
+            "features": ["feature1", "feature2", "feature3"],
+            "selected_features": ["feature1", "feature2"],
+        }
+    ]
+    
+    with open(file_path, "wb") as f:
+        pickle.dump(mock_model, f)
+
+
 @pytest.fixture
 def temp_workspace():
     """Create temporary workspace for detection testing"""
@@ -64,19 +92,8 @@ def temp_workspace():
     with open(workspace["enriched_events"], "w") as f:
         json.dump(enriched_events, f)
 
-    # Create mock custom model (individual model format)
-    # Use a simple dict instead of MagicMock for pickling
-    mock_model = [
-        {
-            "key": "TestApp",
-            "estimator": "mock_estimator_placeholder",
-            "features": ["feature1", "feature2", "feature3"],
-            "selected_features": ["feature1", "feature2"],
-        }
-    ]
-
-    with open(workspace["custom_model"], "wb") as f:
-        pickle.dump(mock_model, f)
+    # Note: custom_model file is created by individual tests as needed
+    # Most tests mock pickle.load anyway, so we don't need to create a real file here
 
     yield workspace
 
@@ -96,6 +113,9 @@ class TestCustomModelDetection:
         self, mock_pickle_load, mock_load_json, mock_convert_features, temp_workspace
     ):
         """Test detection using individual custom model"""
+        # Create a dummy model file so open() doesn't fail
+        with open(temp_workspace["custom_model"], "wb") as f:
+            f.write(b"dummy content")
         # Mock feature conversion
         mock_features_og = pd.DataFrame(
             [
@@ -158,6 +178,9 @@ class TestCustomModelDetection:
         self, mock_pickle_load, mock_load_json, mock_convert_features, temp_workspace
     ):
         """Test detection with low probability (below cutoff)"""
+        # Create a dummy model file so open() doesn't fail
+        with open(temp_workspace["custom_model"], "wb") as f:
+            f.write(b"dummy content")
         # Mock feature conversion
         mock_features_og = pd.DataFrame(
             [
@@ -214,25 +237,30 @@ class TestCustomModelDetection:
         with open(temp_workspace["custom_model"], "w") as f:
             f.write("invalid model data")
 
-        # Should handle gracefully
-        with pytest.raises((pickle.UnpicklingError, UnicodeDecodeError)):
-            detect_anomalous_domain_with_custom_model(
-                input_path=temp_workspace["input_file"],
-                custom_model_path=Path(temp_workspace["custom_model"]),
-                app_prediction_dir=temp_workspace["prediction_dir"],
-            )
+        # Should handle gracefully by logging error and returning
+        # (no exception should be raised - function handles errors internally)
+        result = detect_anomalous_domain_with_custom_model(
+            input_path=temp_workspace["input_file"],
+            custom_model_path=Path(temp_workspace["custom_model"]),
+            app_prediction_dir=temp_workspace["prediction_dir"],
+        )
+        
+        # Should return None when model loading fails
+        assert result is None
 
     def test_detect_with_nonexistent_model_file(self, temp_workspace):
         """Test detection with non-existent model file"""
         nonexistent_model = Path(temp_workspace["custom_model"] + "_nonexistent")
 
-        # Should handle file not found gracefully
-        with pytest.raises(FileNotFoundError):
-            detect_anomalous_domain_with_custom_model(
-                input_path=temp_workspace["input_file"],
-                custom_model_path=nonexistent_model,
-                app_prediction_dir=temp_workspace["prediction_dir"],
-            )
+        # Should handle file not found gracefully by returning None
+        result = detect_anomalous_domain_with_custom_model(
+            input_path=temp_workspace["input_file"],
+            custom_model_path=nonexistent_model,
+            app_prediction_dir=temp_workspace["prediction_dir"],
+        )
+        
+        # Should return None when model file doesn't exist
+        assert result is None
 
     @patch("beam.detector.detect.convert_supply_chain_summaries_to_features")
     @patch("beam.detector.detect.load_json_file")
@@ -240,6 +268,9 @@ class TestCustomModelDetection:
         self, mock_load_json, mock_convert_features, temp_workspace
     ):
         """Test detection with empty feature set"""
+        # Create a simple model file for this test
+        create_simple_mock_model_file(temp_workspace["custom_model"])
+        
         # Mock empty features
         mock_features_og = pd.DataFrame()
         mock_features_pd = pd.DataFrame()

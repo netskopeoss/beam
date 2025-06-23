@@ -127,7 +127,6 @@ def temp_files():
         "app_features": os.path.join(temp_dir, "app_features.json"),
         "model_output": os.path.join(temp_dir, "test_model.pkl"),
         "existing_model": os.path.join(temp_dir, "existing_model.pkl"),
-        "combined_model": os.path.join(temp_dir, "combined_model.pkl"),
     }
     yield files
 
@@ -242,52 +241,41 @@ class TestModelTrainer:
         assert len(loaded_model) == 1
         assert loaded_model[0]["key"] == "TestApp"
 
-    def test_merge_models(self, temp_files):
-        """Test model merging functionality"""
+    def test_save_multiple_models(self, temp_files):
+        """Test saving multiple individual models"""
         trainer = ModelTrainer()
 
-        # Create existing model
-        existing_models = [
-            {"key": "App1", "estimator": "estimator1"},
-            {"key": "App2", "estimator": "estimator2"},
+        # Create multiple individual models
+        models = [
+            {"key": "App1", "estimator": "estimator1", "features": ["f1"], "selected_features": ["f1"]},
+            {"key": "App2", "estimator": "estimator2", "features": ["f2"], "selected_features": ["f2"]},
+            {"key": "App3", "estimator": "estimator3", "features": ["f3"], "selected_features": ["f3"]},
         ]
-        with open(temp_files["existing_model"], "wb") as f:
-            pickle.dump(existing_models, f)
+        
+        # Save each model individually
+        for i, model_info in enumerate(models):
+            model_path = os.path.join(os.path.dirname(temp_files["model_output"]), f"app{i+1}_model.pkl")
+            trainer.save_model(model_info, model_path)
+            
+            # Verify each model was saved correctly
+            assert os.path.exists(model_path)
+            with open(model_path, "rb") as f:
+                loaded_model = pickle.load(f)
+            assert len(loaded_model) == 1
+            assert loaded_model[0]["key"] == model_info["key"]
 
-        # Create new model
-        new_model = [{"key": "App3", "estimator": "estimator3"}]
-        with open(temp_files["model_output"], "wb") as f:
-            pickle.dump(new_model, f)
-
-        # Merge models
-        trainer.merge_models(
-            temp_files["existing_model"],
-            temp_files["model_output"],
-            temp_files["combined_model"],
-        )
-
-        # Verify merged model
-        assert os.path.exists(temp_files["combined_model"])
-
-        with open(temp_files["combined_model"], "rb") as f:
-            merged_models = pickle.load(f)
-
-        assert len(merged_models) == 3
-        assert merged_models[0]["key"] == "App1"
-        assert merged_models[1]["key"] == "App2"
-        assert merged_models[2]["key"] == "App3"
-
-    def test_merge_models_file_not_found(self, temp_files):
-        """Test model merging with missing files"""
-        trainer = ModelTrainer()
-
-        # Try to merge with non-existent files
-        trainer.merge_models(
-            "nonexistent1.pkl", "nonexistent2.pkl", temp_files["combined_model"]
-        )
-
-        # Should not create output file on error
-        assert not os.path.exists(temp_files["combined_model"])
+    def test_load_model_file_not_found(self, temp_files):
+        """Test loading non-existent model file"""
+        non_existent_path = os.path.join(os.path.dirname(temp_files["model_output"]), "nonexistent.pkl")
+        
+        # Try to load non-existent file
+        try:
+            with open(non_existent_path, "rb") as f:
+                pickle.load(f)
+            assert False, "Should have raised FileNotFoundError"
+        except FileNotFoundError:
+            # Expected behavior
+            pass
 
     @patch("beam.detector.features.aggregate_app_traffic")
     @patch("beam.detector.trainer.load_json_file")
@@ -533,39 +521,35 @@ class TestIntegrationScenarios:
         assert model[0]["key"] == "TestApp"
         assert "estimator" in model[0]
 
-    def test_model_merging_workflow(self, temp_files, mock_app_features):
-        """Test workflow of training and merging models"""
-        # Create existing model
-        existing_model = [{"key": "ExistingApp", "estimator": "existing_estimator"}]
-        with open(temp_files["existing_model"], "wb") as f:
-            pickle.dump(existing_model, f)
-
-        # Create new model features
-        with open(temp_files["app_features"], "w") as f:
-            json.dump(mock_app_features, f)
-
-        # Train new model
-        train_custom_app_model(
-            temp_files["app_features"],
-            "TestApp",
-            temp_files["model_output"],
-            n_features=10,
-            min_transactions=50,
-        )
-
-        # Merge models
-        trainer = ModelTrainer()
-        trainer.merge_models(
-            temp_files["existing_model"],
-            temp_files["model_output"],
-            temp_files["combined_model"],
-        )
-
-        # Verify merged model
-        with open(temp_files["combined_model"], "rb") as f:
-            combined = pickle.load(f)
-
-        assert len(combined) == 2
-        app_names = [model["key"] for model in combined]
-        assert "ExistingApp" in app_names
-        assert "TestApp" in app_names
+    def test_multiple_model_training_workflow(self, temp_files, mock_app_features):
+        """Test workflow of training multiple individual models"""
+        # Create features for multiple apps
+        apps = ["App1", "App2", "TestApp"]
+        
+        for app_name in apps:
+            # Modify features for each app
+            app_specific_features = mock_app_features.copy()
+            app_specific_features[0]["application"] = app_name
+            app_specific_features[0]["key"] = f"{app_name}_1.0.0"
+            
+            # Create features file for this app
+            features_path = os.path.join(os.path.dirname(temp_files["app_features"]), f"{app_name}_features.json")
+            with open(features_path, "w") as f:
+                json.dump(app_specific_features, f)
+            
+            # Train model for this app
+            model_path = os.path.join(os.path.dirname(temp_files["model_output"]), f"{app_name}_model.pkl")
+            train_custom_app_model(
+                features_path,
+                app_name,
+                model_path,
+                n_features=10,
+                min_transactions=50,
+            )
+            
+            # Verify model was created
+            assert os.path.exists(model_path)
+            with open(model_path, "rb") as f:
+                model = pickle.load(f)
+            assert len(model) == 1
+            assert model[0]["key"] == app_name

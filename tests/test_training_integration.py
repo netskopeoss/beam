@@ -25,9 +25,6 @@ def temp_workspace():
         },
         "models": {
             "custom_models": os.path.join(temp_dir, "models", "custom_models"),
-            "combined_model": os.path.join(
-                temp_dir, "models", "combined_app_model.pkl"
-            ),
             "pretrained_model": os.path.join(temp_dir, "models", "domain_model.pkl"),
         },
         "files": {
@@ -310,19 +307,11 @@ class TestEndToEndTrainingWorkflow:
         assert "features" in model[0]
         assert "selected_features" in model[0]
 
-    def test_model_merging_integration(
+    def test_individual_model_creation(
         self, temp_workspace, mock_app_features_sufficient
     ):
-        """Test integration of model merging with existing models"""
-        # Create existing pre-trained model
-        existing_models = [
-            {"key": "PretrainedApp1", "estimator": "estimator1"},
-            {"key": "PretrainedApp2", "estimator": "estimator2"},
-        ]
-        with open(temp_workspace["models"]["pretrained_model"], "wb") as f:
-            pickle.dump(existing_models, f)
-
-        # Create and train new custom model
+        """Test creation of individual custom models"""
+        # Create and train custom model
         with open(temp_workspace["files"]["app_features"], "w") as f:
             json.dump(mock_app_features_sufficient, f)
 
@@ -333,24 +322,17 @@ class TestEndToEndTrainingWorkflow:
             temp_workspace["files"]["custom_model"],
         )
 
-        # Merge models
-        trainer.merge_models(
-            temp_workspace["models"]["pretrained_model"],
-            temp_workspace["files"]["custom_model"],
-            temp_workspace["models"]["combined_model"],
-        )
+        # Verify individual model was created
+        assert os.path.exists(temp_workspace["files"]["custom_model"])
 
-        # Verify merged model
-        assert os.path.exists(temp_workspace["models"]["combined_model"])
+        with open(temp_workspace["files"]["custom_model"], "rb") as f:
+            model = pickle.load(f)
 
-        with open(temp_workspace["models"]["combined_model"], "rb") as f:
-            combined_models = pickle.load(f)
-
-        assert len(combined_models) == 3
-        app_names = [model["key"] for model in combined_models]
-        assert "PretrainedApp1" in app_names
-        assert "PretrainedApp2" in app_names
-        assert "TestApp" in app_names
+        assert len(model) == 1
+        assert model[0]["key"] == "TestApp"
+        assert "estimator" in model[0]
+        assert "features" in model[0]
+        assert "selected_features" in model[0]
 
 
 class TestCommandLineIntegration:
@@ -365,12 +347,11 @@ class TestCommandLineIntegration:
         # Mock command line arguments for training
         mock_args = MagicMock()
         mock_args.train = True
-        mock_args.app_name = "TestApp"
         mock_args.input_dir = "/path/to/input"
-        mock_args.model_output = "/path/to/model.pkl"
         mock_args.use_custom_models = True
         mock_args.mapping_only = None
         mock_args.log_level = "INFO"
+        mock_args.mode = None
         mock_parse_args.return_value = mock_args
 
         # Mock logger
@@ -394,12 +375,11 @@ class TestCommandLineIntegration:
         # Mock command line arguments
         mock_args = MagicMock()
         mock_args.train = True
-        mock_args.app_name = "CustomApp"
         mock_args.input_dir = "/custom/input"
-        mock_args.model_output = "/custom/model.pkl"
         mock_args.use_custom_models = True
         mock_args.mapping_only = None
         mock_args.log_level = "INFO"
+        mock_args.mode = None
         mock_parse_args.return_value = mock_args
 
         # Mock file discovery
@@ -414,8 +394,8 @@ class TestCommandLineIntegration:
         # Verify process_training_data was called with correct parameters
         mock_process_training.assert_called_once_with(
             input_file_path="/custom/input/test.har",
-            app_name="CustomApp",
-            custom_model_path="/custom/model.pkl",
+            app_name=None,
+            custom_model_path=None,
             logger=mock_logger,
         )
 
@@ -477,27 +457,20 @@ class TestErrorHandlingAndEdgeCases:
         # Model should not be created
         assert not os.path.exists(temp_workspace["files"]["custom_model"])
 
-    def test_merge_models_with_corrupted_existing_model(self, temp_workspace):
-        """Test model merging with corrupted existing model file"""
-        # Create corrupted existing model file
-        with open(temp_workspace["models"]["pretrained_model"], "w") as f:
+    def test_load_corrupted_model_file(self, temp_workspace):
+        """Test loading corrupted model file"""
+        # Create corrupted model file
+        with open(temp_workspace["files"]["custom_model"], "w") as f:
             f.write("corrupted pickle data")
 
-        # Create valid new model
-        new_model = [{"key": "TestApp", "estimator": "test_estimator"}]
-        with open(temp_workspace["files"]["custom_model"], "wb") as f:
-            pickle.dump(new_model, f)
-
-        # Attempt to merge
-        trainer = ModelTrainer()
-        trainer.merge_models(
-            temp_workspace["models"]["pretrained_model"],
-            temp_workspace["files"]["custom_model"],
-            temp_workspace["models"]["combined_model"],
-        )
-
-        # Merge should fail and not create combined model
-        assert not os.path.exists(temp_workspace["models"]["combined_model"])
+        # Attempt to load corrupted model
+        try:
+            with open(temp_workspace["files"]["custom_model"], "rb") as f:
+                pickle.load(f)
+            assert False, "Should have raised an exception"
+        except (pickle.UnpicklingError, TypeError, EOFError):
+            # Expected behavior for corrupted file
+            pass
 
     @patch("os.makedirs")
     def test_training_with_permission_errors(self, mock_makedirs, temp_workspace):
