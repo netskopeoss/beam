@@ -1,0 +1,83 @@
+# Add Docker ignore patterns to avoid copying unnecessary files to containers
+
+# Version control
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Jupyter Notebooks
+*.ipynb_checkpoints/
+previous_training/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+beam.log
+
+# Local development
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Test files
+test_*.db
+*test*.py
+tests/
+
+# Large data files (examples)
+*.pcap
+*.har
+data/input/*
+data/enriched_events/*
+data/summaries/*
+predictions/*
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+
+# Documentation images
+*.jpg
+*.png
+*.gif
+
+# Lock files - Keep uv.lock for Docker builds
+# uv.lock

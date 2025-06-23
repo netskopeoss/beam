@@ -94,11 +94,26 @@ def get_numeric_stats(events: List, field: str) -> Dict:
     cv = std_val / (abs(mean_val) + 1e-8) if mean_val != 0 else 0
 
     # Distribution shape measures
-    shape_stats = {
-        f"cv_{field}": cv,
-        f"skewness_{field}": stats.skew(values_array) if len(values) > 2 else 0,
-        f"kurtosis_{field}": stats.kurtosis(values_array) if len(values) > 3 else 0,
-    }
+    # Suppress warnings about precision loss for nearly identical data
+    import warnings
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        warnings.filterwarnings('always', category=RuntimeWarning, message='Precision loss occurred')
+        shape_stats = {
+            f"cv_{field}": cv,
+            f"skewness_{field}": stats.skew(values_array) if len(values) > 2 else 0,
+            f"kurtosis_{field}": stats.kurtosis(values_array) if len(values) > 3 else 0,
+        }
+        
+        # Log any precision loss warnings with explanation
+        if caught_warnings:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(
+                f"Precision loss warning detected when calculating statistics for field '{field}'. "
+                "This typically occurs when analyzing data that is very similar to the training data, "
+                "resulting in nearly identical values that cause numerical instability in skewness/kurtosis calculations. "
+                "This is expected behavior when running detection on samples similar to training data."
+            )
 
     # Outlier detection features
     if iqr > 0:

@@ -7,12 +7,16 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+# Make MultiHotEncoder available in __main__ context for pickle loading
+import __main__
 from beam import constants
 from beam.detector import features, utils
-from beam.detector.detect import detect_anomalous_domain
+from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 from beam.detector.security_report import generate_security_report
 from beam.enrich import enrich_events
 from beam.parser import har
+
+__main__.MultiHotEncoder = MultiHotEncoder
 
 
 def print_demo_header() -> None:
@@ -112,6 +116,7 @@ def process_demo_data(
         cloud_domains_file_path=str(constants.CLOUD_DOMAINS_FILE),
         key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
+        use_local_llm=constants.USE_LOCAL_LLM,
     )
     utils.save_json_data(enriched_events, str(enriched_output_path))
     print("   ✓ Enriched events with application mapping")
@@ -317,10 +322,17 @@ def display_available_reports(
         features_output_path: Path to the features data
         prediction_dir: Directory containing predictions
     """
+    # Convert container paths to host paths for user-friendly display
+    def convert_container_path_to_host_path(container_path: str) -> str:
+        """Convert container path to host filesystem path for user-friendly console output."""
+        if container_path.startswith("/app/"):
+            return "./demo_results/" + container_path.split("/")[-1]  # Put demo files in demo_results/
+        return container_path
+    
     print("📄 DETAILED REPORTS AVAILABLE:")
-    print(f"   • Security Analysis: {security_report_path}")
-    print(f"   • Feature Data: {features_output_path}")
-    print(f"   • Predictions: {prediction_dir}")
+    print(f"   • Security Analysis: {convert_container_path_to_host_path(str(security_report_path))}")
+    print(f"   • Feature Data: {convert_container_path_to_host_path(str(features_output_path))}")
+    print(f"   • Predictions: {convert_container_path_to_host_path(str(prediction_dir))}")
     print()
 
     # Demo conclusion
@@ -365,15 +377,58 @@ def cleanup_demo_files(temp_demo_dir: Path, logger: logging.Logger) -> None:
             logger.warning(f"Failed to clean up demo temp directory: {e}")
 
 
-def run_demo(logger: Optional[logging.Logger] = None) -> None:
+def setup_demo_logging():
+    """Setup logging for demo with custom log path if specified."""
+    import os
+    from pathlib import Path
+    
+    custom_log_path = os.environ.get('BEAM_LOG_PATH')
+    
+    if custom_log_path:
+        # Create the directory if it doesn't exist
+        log_dir = Path(custom_log_path).parent
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup logging programmatically (file only)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(custom_log_path)
+            ],
+            force=True  # Override any existing configuration
+        )
+    else:
+        # Use the default logging configuration
+        import logging.config as log_config
+        from beam.constants import LOG_CONFIG
+        log_config.fileConfig(LOG_CONFIG)
+
+
+def run_demo(
+    logger: Optional[logging.Logger] = None, preserve_results: Optional[bool] = None
+) -> None:
     """
     Run the BEAM demo showcasing supply chain compromise detection.
 
     Args:
         logger: Logger instance for demo execution
+        preserve_results: Whether to preserve demo results (auto-detects Docker if None)
     """
+    # Setup logging if not already configured
+    setup_demo_logging()
+    
     if logger is None:
         logger = logging.getLogger(__name__)
+
+    # Auto-detect if we're running in Docker and should preserve results
+    if preserve_results is None:
+        import os
+
+        preserve_results = (
+            os.path.exists("/.dockerenv")
+            or os.environ.get("DOCKER_DEMO", "false").lower() == "true"
+        )
 
     print_demo_header()
 
@@ -414,9 +469,11 @@ def run_demo(logger: Optional[logging.Logger] = None) -> None:
         print("Please check the logs for more details.")
 
     finally:
-        # Clean up temporary files
-        if temp_demo_dir is not None:
+        # Clean up temporary files unless preserving results
+        if temp_demo_dir is not None and not preserve_results:
             cleanup_demo_files(temp_demo_dir, logger)
+        elif temp_demo_dir is not None and preserve_results:
+            logger.info(f"Demo results preserved in: {temp_demo_dir}")
 
 
 def check_for_supported_applications(input_dir: Path, model_dir: Path) -> dict:

@@ -34,7 +34,6 @@ from os import path
 from pathlib import Path
 from typing import Optional, Tuple
 
-from art import tprint
 
 from beam import constants, enrich
 from beam.detector import features, utils
@@ -67,6 +66,21 @@ def normalize_app_name(app_name: str) -> str:
         str: Normalized name (lowercase, spaces replaced with underscores)
     """
     return app_name.lower().replace(" ", "_").replace("-", "_")
+
+
+def convert_container_path_to_host_path(container_path: str) -> str:
+    """
+    Convert container path to host filesystem path for user-friendly console output.
+    
+    Args:
+        container_path (str): Path inside the container (e.g., /app/data/file.txt)
+        
+    Returns:
+        str: Corresponding host path (e.g., ./data/file.txt)
+    """
+    if container_path.startswith("/app/"):
+        return "./" + container_path[5:]  # Remove "/app/" and add "./"
+    return container_path
 
 
 def discover_apps_in_traffic(
@@ -193,6 +207,7 @@ def run_detection(
         )
     logger.info(f"Features output saved to: {features_output_path}")
 
+    print("📊 Step 4: Generating security analysis report...")
     # Generate security analysis report
     try:
         summaries = utils.load_json_file(features_output_path)
@@ -245,7 +260,7 @@ def run_detection(
             f"🔍 Applications with issues: {analysis['risk_assessment']['applications_with_issues']}"
         )
 
-        print(f"\n📄 Full report available at: {security_report_path}")
+        print(f"\n📄 Full report available at: {convert_container_path_to_host_path(security_report_path)}")
         print("=" * 60)
 
     except Exception as e:
@@ -273,6 +288,7 @@ def enrich_events(file_name: str, parsed_file_path, logger: logging.Logger) -> s
         cloud_domains_file_path=str(constants.CLOUD_DOMAINS_FILE),
         key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
+        use_local_llm=constants.USE_LOCAL_LLM,
     )
     enriched_events_path = f"{DATA_DIR}/enriched_events/{file_name}.json"
     utils.save_json_data(events, enriched_events_path)
@@ -373,12 +389,21 @@ def process_input_file(
     """
     if path.exists(file_path):
         logger.info(f"Processing file: {file_path}")
+        
+        print(f"📁 Processing: {path.basename(file_path)}")
+        print()
+        
+        print("🔍 Step 1: Parsing network traffic data...")
         file_name, parsed_file_path = parse_input_file(
             file_path=file_path, logger=logger
         )
+        
+        print("🔗 Step 2: Enriching events with application intelligence...")
         enriched_events_path = enrich_events(
             file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
         )
+        
+        print("🛡️  Step 3: Running supply chain compromise detection...")
         run_detection(
             file_name=file_name,
             enriched_events_path=enriched_events_path,
@@ -427,16 +452,22 @@ def process_training_data(
 
     logger.info("Processing training data from: %s", input_file_path)
 
+    print(f"📁 Processing training data: {path.basename(input_file_path)}")
+    print()
+
+    print("🔍 Step 1: Parsing network traffic data...")
     # Parse the input file
     file_name, parsed_file_path = parse_input_file(
         file_path=input_file_path, logger=logger
     )
 
+    print("🔗 Step 2: Enriching events with application intelligence...")
     # Enrich the events
     enriched_events_path = enrich_events(
         file_name=file_name, parsed_file_path=parsed_file_path, logger=logger
     )
 
+    print("🔍 Step 3: Discovering applications in traffic...")
     # Discover applications in the traffic
     discovered_apps = discover_apps_in_traffic(
         enriched_events_path, min_transactions=constants.MIN_APP_TRANSACTIONS
@@ -468,29 +499,12 @@ def process_training_data(
 
     logger.info("Applications eligible for training: %s", list(discovered_apps.keys()))
 
-    # Determine which apps to train models for
-    if app_name:
-        # Check if the specified app exists in the traffic
-        if app_name in discovered_apps:
-            apps_to_train = {app_name: discovered_apps[app_name]}
-            logger.info(
-                "Training model for specified app: %s (%d transactions)",
-                app_name,
-                discovered_apps[app_name],
-            )
-        else:
-            logger.error(
-                "Specified app '%s' not found in traffic. Available apps: %s",
-                app_name,
-                list(discovered_apps.keys()),
-            )
-            return
-    else:
-        # Train models for all discovered apps
-        apps_to_train = discovered_apps
-        logger.info(
-            "Training models for all discovered apps: %s", list(apps_to_train.keys())
-        )
+    print("🎓 Step 4: Training machine learning models...")
+    # Train models for all discovered apps
+    apps_to_train = discovered_apps
+    logger.info(
+        "Training models for all discovered apps: %s", list(apps_to_train.keys())
+    )
 
     # Extract features for model training (once for all apps)
     features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
@@ -506,14 +520,10 @@ def process_training_data(
     for original_app_name, transaction_count in apps_to_train.items():
         normalized_app_name = normalize_app_name(original_app_name)
 
-        if custom_model_path and len(apps_to_train) == 1:
-            # Use the provided path if training only one app
-            model_path = custom_model_path
-        else:
-            # Generate path using normalized name
-            model_path = str(
-                constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl"
-            )
+        # Always generate path using normalized name (ignore custom_model_path when training multiple apps)
+        model_path = str(
+            constants.CUSTOM_APP_MODELS_DIR / f"{normalized_app_name}_model.pkl"
+        )
 
         logger.info(
             "Training model for '%s' (%d transactions) -> %s",
@@ -551,7 +561,11 @@ def run(logger: logging.Logger) -> None:
     """
 
     _m = MultiHotEncoder
-    tprint("BEAM", "rand")
+    
+    # Print BEAM header
+    print("🔒 BEAM - Behavioral Evaluation of Application Metrics")
+    print("Analyzing network traffic for supply chain compromise detection...")
+    print()
     parser = argparse.ArgumentParser(description="BEAM")
 
     parser.add_argument(
@@ -582,18 +596,15 @@ def run(logger: logging.Logger) -> None:
         action="store_true",
     )
     parser.add_argument(
-        "--app_name",
-        help="Name of specific application to train model for. If not provided, trains models for all discovered apps with sufficient traffic.",
-        required=False,
-    )
-    parser.add_argument(
-        "--model_output",
-        help="Path to save the trained model. Optional with --train.",
-        required=False,
-    )
-    parser.add_argument(
         "--use_custom_models",
         help="Whether to include custom trained models in detection.",
+        required=False,
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--use_local_llm",
+        help="Use local Llama model instead of Gemini for user agent mapping.",
         required=False,
         action="store_true",
         default=False,
@@ -608,6 +619,11 @@ def run(logger: logging.Logger) -> None:
 
     args = vars(parser.parse_args())
     logger.setLevel(args["log_level"])
+    
+    # Set environment variable for local LLM usage
+    if args.get("use_local_llm", False):
+        import os
+        os.environ["USE_LOCAL_LLM"] = "true"
 
     # Handle demo mode
     if args.get("mode") == "demo":
@@ -655,11 +671,11 @@ def run(logger: logging.Logger) -> None:
         )
         return
     elif args["train"]:
-        app_name = args["app_name"]
-        if app_name:
-            logger.info(f"Running BEAM in training mode for specific app: {app_name}")
-        else:
-            logger.info("Running BEAM in training mode for all discovered apps")
+        logger.info("Running BEAM in training mode for all discovered apps")
+        
+        print("🎓 Training custom models from network traffic...")
+        print("   Automatically discovering applications in traffic data")
+        print()
 
         # Handle both directory and single file inputs
         input_path_str = args["input_dir"]
@@ -683,8 +699,8 @@ def run(logger: logging.Logger) -> None:
         input_file = input_files[0]
         process_training_data(
             input_file_path=input_file,
-            app_name=app_name,
-            custom_model_path=args["model_output"],
+            app_name=None,
+            custom_model_path=None,
             logger=logger,
         )
     else:
@@ -693,6 +709,10 @@ def run(logger: logging.Logger) -> None:
         logger.info(
             f"Custom models will be {'used' if use_custom_models else 'ignored'} during detection"
         )
+        
+        print("🔍 Starting supply chain compromise detection...")
+        print(f"   Custom models: {'enabled' if use_custom_models else 'disabled'}")
+        print()
 
         # Handle both directory and single file inputs
         input_path_str = args["input_dir"]
@@ -787,11 +807,8 @@ def run(logger: logging.Logger) -> None:
                     print()
                     print("📚 TO TRAIN MODELS:")
                     print("   1. Collect clean training data for each application")
-                    print("   2. Run training command for each app:")
-                    for app in sorted(all_discovered_apps):
-                        print(
-                            f'      python -m beam --train --app_name "{app}" -i /path/to/training/data'
-                        )
+                    print("   2. Run training command (auto-discovers apps):")
+                    print("      python -m beam --train -i /path/to/training/data")
                     print()
                     print("   3. Once trained, re-run BEAM for detection")
                     print()

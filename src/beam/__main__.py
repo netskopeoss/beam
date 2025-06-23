@@ -27,12 +27,35 @@
 
 import logging
 import logging.config
+import os
+from pathlib import Path
 
 from beam.constants import LOG_CONFIG
 from beam.run import MultiHotEncoder, run
 
+def setup_logging():
+    """Setup logging with custom log path if specified."""
+    custom_log_path = os.environ.get('BEAM_LOG_PATH')
+    
+    if custom_log_path:
+        # Create the directory if it doesn't exist
+        log_dir = Path(custom_log_path).parent
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Setup logging programmatically (file only)
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler(custom_log_path)
+            ]
+        )
+    else:
+        # Use the default logging configuration
+        logging.config.fileConfig(LOG_CONFIG)
+
 if __name__ == "__main__":
-    logging.config.fileConfig(LOG_CONFIG)
+    setup_logging()
     logger = logging.getLogger("main")
     _m = MultiHotEncoder()
     # Main module passes control to the run function which handles command-line arguments
