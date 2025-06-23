@@ -72,7 +72,7 @@ dependencies = [
     "ua-parser-builtins==0.18.0.post1",
     "ua-parser==0.18.0",
     "uritemplate==4.1.1",
-    "urllib3==2.3.0",
+    "urllib3==2.5.0",
     "user-agents==2.2.0",
     "art==6.4",
     "xgboost==2.1.1",
