@@ -165,7 +165,9 @@ def run_detection(
             enriched_events_path, min_transactions=constants.MIN_DOMAIN_TRANSACTION
         )
 
-        custom_models_used = False
+        apps_with_models = []
+        apps_without_models = []
+        
         for original_app_name in discovered_apps.keys():
             normalized_app_name = normalize_app_name(original_app_name)
             custom_model_path = Path(
@@ -174,29 +176,98 @@ def run_detection(
 
             if custom_model_path.exists():
                 logger.info(
-                    f"Using custom model for '{original_app_name}' -> {custom_model_path}"
+                    f"✓ Found custom model for '{original_app_name}' -> {custom_model_path}"
                 )
-                detect_anomalous_domain_with_custom_model(
+                detection_result = detect_anomalous_domain_with_custom_model(
                     input_path=features_output_path,
                     custom_model_path=custom_model_path,
                     app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
                 )
-                custom_models_used = True
+                apps_with_models.append((original_app_name, detection_result))
             else:
                 logger.info(
-                    f"No custom model found for '{original_app_name}' (looked for: {custom_model_path})"
+                    f"✗ No custom model found for '{original_app_name}' (looked for: {custom_model_path})"
                 )
+                apps_without_models.append(original_app_name)
 
-        if not custom_models_used:
-            logger.warning(
-                "Custom models requested but none found for applications in traffic. Using default domain model."
-            )
-            model_path = Path(constants.DOMAIN_MODEL)
-            detect_anomalous_domain(
-                input_path=features_output_path,
-                domain_model_path=model_path,
-                app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
-            )
+        # Report applications found in traffic - both to logger and console
+        import sys
+        print("\n" + "=" * 60, flush=True)
+        print("🔍 APPLICATION ANALYSIS SUMMARY", flush=True)
+        print("=" * 60, flush=True)
+        sys.stdout.flush()
+        
+        logger.info("=== APPLICATION DETECTION SUMMARY ===")
+        if apps_with_models:
+            apps_analyzed_msg = f"Applications analyzed with custom models ({len(apps_with_models)}):"
+            logger.info(apps_analyzed_msg)
+            print(f"✅ {apps_analyzed_msg}", flush=True)
+            
+            total_domains_analyzed = 0
+            total_anomalies_detected = 0
+            total_normal_domains = 0
+            
+            for app_name, detection_result in apps_with_models:
+                if detection_result and detection_result.get("success", False):
+                    domains_analyzed = detection_result.get("total_domains_analyzed", 0)
+                    anomalies = detection_result.get("anomalies_detected", 0)
+                    normal = detection_result.get("normal_domains", 0)
+                    
+                    total_domains_analyzed += domains_analyzed
+                    total_anomalies_detected += anomalies
+                    total_normal_domains += normal
+                    
+                    if anomalies > 0:
+                        print(f"   🚨 {app_name}: {domains_analyzed} domains analyzed, {anomalies} ANOMALIES detected, {normal} normal", flush=True)
+                        logger.warning(f"ANOMALIES DETECTED in {app_name}: {anomalies} out of {domains_analyzed} domains")
+                    else:
+                        print(f"   ✅ {app_name}: {domains_analyzed} domains analyzed, all normal behavior detected", flush=True)
+                        logger.info(f"Normal behavior confirmed for {app_name}: {domains_analyzed} domains analyzed")
+                else:
+                    print(f"   ❌ {app_name}: Analysis failed", flush=True)
+                    logger.error(f"Detection failed for {app_name}")
+            
+            # Overall summary
+            print("\n📊 DETECTION SUMMARY:", flush=True)
+            print(f"   🔍 Total domains analyzed: {total_domains_analyzed}", flush=True)
+            if total_anomalies_detected > 0:
+                print(f"   🚨 Total anomalies detected: {total_anomalies_detected}", flush=True)
+                print(f"   ✅ Total normal domains: {total_normal_domains}", flush=True)
+            else:
+                print(f"   ✅ All domains showed normal behavior: {total_normal_domains}", flush=True)
+                print("   🎉 No supply chain compromises detected!", flush=True)
+            sys.stdout.flush()
+        
+        if apps_without_models:
+            apps_skipped_msg = f"Applications found but NOT analyzed (no model available) ({len(apps_without_models)}):"
+            logger.info(apps_skipped_msg)
+            print(f"\n📋 {apps_skipped_msg}")
+            for app_name in apps_without_models:
+                app_msg = f"  • {app_name}"
+                logger.info(app_msg)
+                print(f"   ⏭️  {app_name}")
+            
+            train_msg = "To analyze these applications, train custom models using:"
+            command_msg = "  python -m beam --train -i /path/to/training/data"
+            logger.info(train_msg)
+            logger.info(command_msg)
+            print(f"\n💡 {train_msg}")
+            print(f"   {command_msg}")
+        
+        if not apps_with_models:
+            warning_msg = "Custom models requested but none found for applications in traffic. No detection performed."
+            info_msg = "BEAM will not run unsupervised detection on applications without trained models."
+            logger.warning(warning_msg)
+            logger.info(info_msg)
+            print(f"\n⚠️  {warning_msg}")
+            print(f"ℹ️  {info_msg}")
+        else:
+            completion_msg = f"Supply chain compromise detection completed for {len(apps_with_models)} applications."
+            logger.info(completion_msg)
+            print(f"\n🔍 {completion_msg}")
+        
+        logger.info("=======================================")
+        print("=" * 60)
     else:
         model_path = Path(constants.DOMAIN_MODEL)
         logger.info("Using default domain model.")
