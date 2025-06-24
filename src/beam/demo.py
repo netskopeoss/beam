@@ -32,7 +32,7 @@ def print_demo_header() -> None:
     print("   • Hidden malware communicating with hacker-controlled servers")
     print("   • How BEAM's AI detects this suspicious behavior automatically")
     print()
-    print("⏱️  Demo duration: ~5 seconds")
+    print("⏱️  Demo duration: ~20-30 seconds")
     print("=" * 60)
     print()
 

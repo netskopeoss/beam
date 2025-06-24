@@ -1,9 +1,21 @@
 services:
-  # Llama model service (optional - for local LLM)
-  llama-model:
+  # Database services container
+  database:
     build:
       context: .
-      dockerfile: docker/llama/Dockerfile
+      dockerfile: docker/Dockerfile.database
+    container_name: beam-demo-database
+    volumes:
+      - ./data:/app/data
+      - demo-db-data:/var/lib/beam
+    networks:
+      - beam-demo-network
+    environment:
+      - PYTHONPATH=/app/src
+
+  # Llama model service (optional - for local LLM)
+  llama-model:
+    image: ollama/ollama:latest
     container_name: beam-demo-llama
     ports:
       - "11434:11434"
@@ -39,6 +51,7 @@ services:
     networks:
       - beam-demo-network
     depends_on:
+      - database
       - llama-model
 
   # Alternative: Interactive shell for exploration
@@ -64,12 +77,15 @@ services:
     networks:
       - beam-demo-network
     depends_on:
+      - database
       - llama-model
     profiles:
       - interactive
 
 volumes:
   demo_results:
+    driver: local
+  demo-db-data:
     driver: local
   ollama-demo-data:
     driver: local
