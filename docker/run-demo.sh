@@ -16,17 +16,9 @@ echo -e "${BLUE}🔒 BEAM Supply Chain Compromise Detection Demo${NC}"
 echo -e "${BLUE}=================================================${NC}"
 echo ""
 
-# Check if Docker is running
-if ! docker info > /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker is not running. Please start Docker and try again.${NC}"
-    exit 1
-fi
-
-# Check if Docker Compose is available
-if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker Compose is not available. Please install Docker Compose.${NC}"
-    exit 1
-fi
+# Get the directory where this script is located and source shared setup
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/setup-environment.sh"
 
 # Function to run demo
 run_demo() {
@@ -41,39 +33,11 @@ run_demo() {
     fi
     echo ""
     
+    # Setup environment (dependencies + containers + services)
+    setup_environment "demo" "$use_llama"
+    
     # Create demo results and logs directories
     mkdir -p demo_results logs
-    
-    # Use docker compose (new) or docker-compose (legacy)
-    if docker compose version &> /dev/null 2>&1; then
-        COMPOSE_CMD="docker compose"
-    else
-        COMPOSE_CMD="docker-compose"
-    fi
-    
-    # Build containers
-    echo -e "${BLUE}📦 Building BEAM Demo containers...${NC}"
-    if [ "$use_llama" == "true" ]; then
-        $COMPOSE_CMD -f docker-compose.demo.yml build llama-model beam-demo
-    else
-        $COMPOSE_CMD -f docker-compose.demo.yml build beam-demo
-    fi
-    
-    # Start Llama service if needed
-    if [ "$use_llama" == "true" ]; then
-        echo -e "${BLUE}🤖 Starting local Llama model service...${NC}"
-        $COMPOSE_CMD -f docker-compose.demo.yml up -d --remove-orphans llama-model
-        
-        # Wait for Llama to be ready and download model if needed
-        echo -e "${YELLOW}⏳ Waiting for Llama service to start...${NC}"
-        sleep 5
-        
-        # Check if model needs to be downloaded
-        if ! $COMPOSE_CMD -f docker-compose.demo.yml exec llama-model ollama list | grep -q "llama3.2:1b"; then
-            echo -e "${BLUE}📥 Downloading Llama 3.2 model (one-time setup, ~1.3GB)...${NC}"
-            $COMPOSE_CMD -f docker-compose.demo.yml exec llama-model ollama pull llama3.2:1b
-        fi
-    fi
     
     echo -e "${BLUE}🔍 Running Supply Chain Compromise Detection Demo...${NC}"
     $COMPOSE_CMD -f docker-compose.demo.yml run --rm --remove-orphans beam-demo
@@ -107,36 +71,10 @@ run_interactive() {
     fi
     echo ""
     
+    # Setup environment (dependencies + containers + services)
+    setup_environment "demo-interactive" "$use_llama"
+    
     mkdir -p demo_results logs
-    
-    if docker compose version &> /dev/null 2>&1; then
-        COMPOSE_CMD="docker compose"
-    else
-        COMPOSE_CMD="docker-compose"
-    fi
-    
-    echo -e "${BLUE}📦 Building BEAM Demo containers...${NC}"
-    if [ "$use_llama" == "true" ]; then
-        $COMPOSE_CMD -f docker-compose.demo.yml build llama-model beam-demo
-    else
-        $COMPOSE_CMD -f docker-compose.demo.yml build beam-demo
-    fi
-    
-    # Start Llama service if needed
-    if [ "$use_llama" == "true" ]; then
-        echo -e "${BLUE}🤖 Starting local Llama model service...${NC}"
-        $COMPOSE_CMD -f docker-compose.demo.yml up -d --remove-orphans llama-model
-        
-        # Wait for Llama to be ready and download model if needed
-        echo -e "${YELLOW}⏳ Waiting for Llama service to start...${NC}"
-        sleep 5
-        
-        # Check if model needs to be downloaded
-        if ! $COMPOSE_CMD -f docker-compose.demo.yml exec llama-model ollama list | grep -q "llama3.2:1b"; then
-            echo -e "${BLUE}📥 Downloading Llama 3.2 model (one-time setup, ~1.3GB)...${NC}"
-            $COMPOSE_CMD -f docker-compose.demo.yml exec llama-model ollama pull llama3.2:1b
-        fi
-    fi
     
     echo -e "${BLUE}🔍 Starting interactive shell...${NC}"
     echo -e "${YELLOW}💡 Inside the container, you can run:${NC}"
@@ -157,12 +95,6 @@ run_interactive() {
 # Function to clean up
 cleanup() {
     echo -e "${YELLOW}🧹 Cleaning up Docker containers and images...${NC}"
-    
-    if docker compose version &> /dev/null 2>&1; then
-        COMPOSE_CMD="docker compose"
-    else
-        COMPOSE_CMD="docker-compose"
-    fi
     
     $COMPOSE_CMD -f docker-compose.demo.yml down --rmi all --volumes --remove-orphans
     
