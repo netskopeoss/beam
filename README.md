@@ -3,7 +3,7 @@
 # Netskope BEAM
 Behavioral Evaluation of Application Metrics (BEAM) is a Python library for detecting supply chain compromises by analyzing network traffic.
 
-## 🚀 Quick Start with Docker (Recommended)
+## 🚀 Quick Start (Recommended)
 
 **The fastest way to see BEAM in action:**
 
@@ -12,94 +12,122 @@ Behavioral Evaluation of Application Metrics (BEAM) is a Python library for dete
 git clone git@github.com:netskopeoss/beam.git
 cd beam
 
+# Install with uv (recommended)
+uv sync
+
 # Run the interactive demo (one command!)
-./demo.sh
+uv run python -m beam demo
 ```
 
 This will:
-- Automatically build the Docker container with all dependencies
+- Automatically start required Docker services in the background
 - Run the supply chain compromise detection demo
 - Show you how BEAM detects malicious behavior in network traffic
 - Complete in ~30 seconds
 
 **What you'll see:** A real-world example of the Box cloud storage app infected with malware, and how BEAM's AI detects the hidden malicious communication.
 
-## 🐳 Using BEAM with Docker
+## 🔧 Installation & Setup
 
-**Running BEAM is as easy as the demo!** Just use `./beam.sh`:
+### Prerequisites
+1. **Python 3.12+** and **uv** (recommended) or pip
+2. **Docker Desktop** - For infrastructure services (database, optional Zeek processor)
+3. **Zeek** (optional) - Only needed for PCAP file processing
 
-### Training Custom Models
+### Quick Installation
+
+```bash
+# Clone the repository
+git clone git@github.com:netskopeoss/beam.git
+cd beam
+
+# Option 1: Install with uv (recommended)
+uv sync
+
+# Option 2: Install with pip
+pip install -e .
+```
+
+## 🛡️ Running BEAM
+
+BEAM uses a hybrid architecture: Python runs natively for performance while Docker handles infrastructure services automatically.
+
+### Run the Demo
+
+```bash
+# Interactive supply chain compromise detection demo
+uv run python -m beam demo
+```
+
+### Run Detection on Your Data
+
+```bash
+# Run detection with default settings
+uv run python -m beam
+
+# Run detection on a specific file
+uv run python -m beam -i /path/to/traffic.har
+
+# Use custom trained models
+uv run python -m beam --use_custom_models -i /path/to/traffic.har
+```
+
+### Train Custom Models
 
 BEAM automatically discovers applications in your traffic and trains models for any with sufficient data:
 
 ```bash
-# Train models from a specific file (auto-discovers all apps)
+# Train models for all apps found in data/input/
+uv run python -m beam --train
+
+# Train from a specific file (auto-discovers all apps)
+uv run python -m beam --train -i /path/to/traffic.har
+
+# Train from a directory of files
+uv run python -m beam --train -i /path/to/traffic_files/
+```
+
+## 🐳 Alternative: Docker-Only Approach
+
+If you prefer to run everything in Docker:
+
+```bash
+# Run the demo
+./beam.sh --demo
+
+# Run detection
+./beam.sh --use_custom_models --input /path/to/traffic.har
+
+# Train models
 ./beam.sh --train --input /path/to/traffic.har
-
-# Train models from a directory of PCAP/HAR files
-./beam.sh --train --input /path/to/traffic_files/
-
-# Train using files already in data/input/
-./beam.sh --train
 ```
 
-### Running Detection
+## ⚙️ Configuration
+
+### Environment Variables
 
 ```bash
-# Run detection on files in data/input/
-./beam.sh
+# Use Google Gemini for LLM processing (default)
+export GEMINI_API_KEY="your_api_key_here"
 
-# Run detection on a specific file
-./beam.sh --input /path/to/suspicious_traffic.har
+# Or use local Llama model instead
+export USE_LOCAL_LLM=true
 
-# Explicitly use custom models
-./beam.sh --use_custom_models
+# Set log level
+export LOG_LEVEL=INFO
 ```
 
-BEAM automatically uses custom models if available, otherwise falls back to pre-trained models.
+### Local LLM Setup
 
-The `beam.sh` script handles all Docker complexity for you - no need to know Docker commands!
-
-For advanced Docker usage, see [Docker Setup Guide](docker/README.md).
-
-## Manual Installation
-
-### Prerequisites
-1. Install Zeek (formerly known as Bro) locally, using the instructions available [here](https://docs.zeek.org/en/current/install.html).
-
-2. Clone the BEAM repo:
-```bash
-git clone git@github.com:netskopeoss/beam.git
-```
-### Install and run BEAM
-1. Install via pip from the directory where you cloned the repo:
+To use local Llama instead of Gemini:
 
 ```bash
-pip install -e .
+# Start local LLM service
+docker-compose --profile local-llm up -d
+
+# Run BEAM with local LLM
+USE_LOCAL_LLM=true uv run python -m beam demo
 ```
-
-2. Navigate to `beam/src` and run:
-
-```bash
-# Run BEAM in standard detection mode
-python -m beam
-```
-
-BEAM automatically uses custom models if available, otherwise uses pre-trained models.
-
-### Training Custom App Models
-
-BEAM comes with 8 pre-trained application models, but you can train your own custom models for additional applications. BEAM automatically discovers applications in your traffic data:
-
-```bash
-# Train models for all apps found in the default input directory
-python -m beam --train
-
-# Specify a custom input directory
-python -m beam --train -i /path/to/pcap_directory
-```
-
-Once trained, custom models are automatically used alongside the pre-trained models during detection.
 
 **For detailed instructions, data requirements, troubleshooting, and advanced configuration options, see the complete guide in [`models/custom_models/README.md`](models/custom_models/README.md).**
 

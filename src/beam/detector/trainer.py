@@ -64,17 +64,28 @@ class ModelTrainer:
         self.logger = logging.getLogger(__name__)
 
         # Define transformers for feature processing
-        self.columns_to_be_transformed = [
-            ("min_max_scaler", MinMaxScaler(), app_numeric_feature_fields),
-            (
-                "multi_hot_encoder",
-                MultiHotEncoder(),
-                app_arr_non_numeric_feature_fields,
-            ),
-        ]
+        # Note: We'll dynamically filter these based on available columns at training time
+        self.numeric_feature_fields = app_numeric_feature_fields
+        self.array_feature_fields = app_arr_non_numeric_feature_fields
+
+    def get_available_transformers(self, X: pd.DataFrame) -> List[Tuple]:
+        """Get transformers for columns that actually exist in the data."""
+        transformers = []
+        
+        # Filter feature fields to only include columns that actually exist in the data
+        available_numeric_fields = [col for col in self.numeric_feature_fields if col in X.columns]
+        available_array_fields = [col for col in self.array_feature_fields if col in X.columns]
+        
+        # Create transformers only for columns that exist
+        if available_numeric_fields:
+            transformers.append(("min_max_scaler", MinMaxScaler(), available_numeric_fields))
+        if available_array_fields:
+            transformers.append(("multi_hot_encoder", MultiHotEncoder(), available_array_fields))
+            
+        return transformers
 
     def get_pipeline_estimator(
-        self, n_estimators: int = 100, feature_count: int = None
+        self, n_estimators: int = 100, feature_count: int = None, X: pd.DataFrame = None
     ) -> Pipeline:
         """
         Create a pipeline estimator for model training.
@@ -121,12 +132,20 @@ class ModelTrainer:
         )
 
         # Define the steps for the pipeline
+        # Get transformers for available columns
+        if X is not None:
+            transformers = self.get_available_transformers(X)
+        else:
+            # Fallback to all transformers (for backward compatibility)
+            transformers = [
+                ("min_max_scaler", MinMaxScaler(), self.numeric_feature_fields),
+                ("multi_hot_encoder", MultiHotEncoder(), self.array_feature_fields),
+            ]
+        
         steps = [
             (
                 "ct",
-                ColumnTransformer(
-                    transformers=self.columns_to_be_transformed, remainder="drop"
-                ),
+                ColumnTransformer(transformers=transformers, remainder="drop"),
             ),
             ("xgb_feat", xgb_feature_selector),  # Use XGBoost for feature selection
             ("xgb", xgb_classifier),
@@ -272,10 +291,14 @@ class ModelTrainer:
             self.logger.error("No positive examples available for training")
             return None
 
-        # Now we can proceed with feature transformation
-        ct = ColumnTransformer(
-            transformers=self.columns_to_be_transformed, remainder="drop"
-        )
+        # Get transformers for available columns
+        transformers = self.get_available_transformers(X)
+        
+        if not transformers:
+            self.logger.error("No valid feature columns found for transformation")
+            return None
+            
+        ct = ColumnTransformer(transformers=transformers, remainder="drop")
         X_transformed = ct.fit_transform(X)
 
         # Now we can accurately determine the number of transformed features
@@ -295,12 +318,23 @@ class ModelTrainer:
         )
 
         # Now create the full pipeline with our safe max_features value
-        estimator = self.get_pipeline_estimator(feature_count=safe_max_features)
+        estimator = self.get_pipeline_estimator(feature_count=safe_max_features, X=X)
         estimator.fit(X, y)
 
         # Get feature names
         feature_names = self.get_feature_names(ct=estimator.named_steps["ct"])
         selected_feat_ind = estimator.named_steps["xgb_feat"].get_support()
+        
+        # Ensure the feature names and selection mask have the same length
+        if len(feature_names) != len(selected_feat_ind):
+            self.logger.warning(
+                f"Feature names ({len(feature_names)}) and selection mask ({len(selected_feat_ind)}) "
+                f"have different lengths. Using first {min(len(feature_names), len(selected_feat_ind))} features."
+            )
+            min_length = min(len(feature_names), len(selected_feat_ind))
+            feature_names = feature_names[:min_length]
+            selected_feat_ind = selected_feat_ind[:min_length]
+        
         selected_features = np.array(feature_names)[selected_feat_ind]
 
         # Create model information dictionary
@@ -371,9 +405,8 @@ class ModelTrainer:
             )
 
             # Transform features using the same pipeline approach
-            ct = ColumnTransformer(
-                transformers=self.columns_to_be_transformed, remainder="passthrough"
-            )
+            transformers = self.get_available_transformers(X)
+            ct = ColumnTransformer(transformers=transformers, remainder="passthrough")
 
             X_transformed = ct.fit_transform(X)
 

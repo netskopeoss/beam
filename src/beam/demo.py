@@ -127,7 +127,7 @@ def process_demo_data(
         fields=["application", "domain"],
         input_path=str(enriched_output_path),
         output_path=str(features_output_path),
-        min_transactions=1,  # Lower threshold for demo
+        min_transactions=10,  # Minimum needed for statistical features
     )
     print("   ✓ Extracted comprehensive security features")
 

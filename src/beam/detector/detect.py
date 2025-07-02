@@ -87,6 +87,139 @@ app_numeric_feature_fields = [
     "sequence_std_val",
     "sequence_median_val",
     "sequence_range_val",
+    # Additional numeric features
+    "avg_interval_sec",
+    "domain_cnt",
+    "domain_concentration",
+    "response_size_cv",
+    "bot_ratio",
+    "iqr_client_bytes",
+    "suspicious_ua_ratio",
+    "key_hostname_cnt",
+    "path_depth_variance",
+    "domain_entropy",
+    "ua_consistency",
+    "url_entropy",
+    "skewness_server_bytes",
+    "http_version_diversity",
+    "kurtosis_time_taken_ms",
+    "redirect_ratio",
+    "cdn_usage_ratio",
+    "avg_path_depth",
+    "iqr_time_taken_ms",
+    "ua_entropy",
+    "burst_ratio",
+    "error_ratio",
+    "night_activity_ratio",
+    "referer_present_ratio",
+    "median_interval_sec",
+    "std_interval_sec",
+    "range_interval_sec",
+    "ua_diversity",
+    "same_origin_referer_ratio",
+    "hour_entropy",
+    "skewness_client_bytes",
+    "skewness_time_taken_ms",
+    "iqr_server_bytes",
+    "kurtosis_client_bytes",
+    "https_ratio",
+    "kurtosis_server_bytes",
+    "http2_usage_ratio",
+    # More advanced features
+    "p25_time_taken_ms",
+    "p75_time_taken_ms",
+    "p90_time_taken_ms",
+    "p95_time_taken_ms",
+    "p99_time_taken_ms",
+    "cv_time_taken_ms",
+    "outlier_ratio_time_taken_ms",
+    "mad_time_taken_ms",
+    "robust_cv_time_taken_ms",
+    "p25_client_bytes",
+    "p75_client_bytes",
+    "p90_client_bytes",
+    "p95_client_bytes",
+    "p99_client_bytes",
+    "cv_client_bytes",
+    "outlier_ratio_client_bytes",
+    "mad_client_bytes",
+    "robust_cv_client_bytes",
+    "p25_server_bytes",
+    "p75_server_bytes",
+    "p90_server_bytes",
+    "p95_server_bytes",
+    "p99_server_bytes",
+    "cv_server_bytes",
+    "outlier_ratio_server_bytes",
+    "mad_server_bytes",
+    "robust_cv_server_bytes",
+    "p25_time_interval_sec",
+    "p75_time_interval_sec",
+    "p90_time_interval_sec",
+    "p95_time_interval_sec",
+    "p99_time_interval_sec",
+    "iqr_time_interval_sec",
+    "cv_time_interval_sec",
+    "skewness_time_interval_sec",
+    "kurtosis_time_interval_sec",
+    "outlier_ratio_time_interval_sec",
+    "mad_time_interval_sec",
+    "robust_cv_time_interval_sec",
+    "interval_entropy",
+    "interval_regularity",
+    "peak_hour_concentration",
+    "avg_url_length",
+    "status_diversity",
+    "method_diversity",
+    "content_type_mismatch_ratio",
+    "compression_usage_ratio",
+    "avg_compression_ratio",
+    "large_response_ratio",
+    "response_size_entropy",
+    "content_type_diversity",
+    "html_ratio",
+    "css_ratio",
+    "js_ratio",
+    "image_ratio",
+    "json_ratio",
+    "xml_ratio",
+    "domain_diversity",
+    "suspicious_tld_ratio",
+    "avg_subdomain_depth",
+    "max_subdomain_depth",
+    "cross_domain_ratio",
+    "referrer_diversity",
+    "avg_domain_length",
+    "max_domain_length",
+    "numeric_domain_ratio",
+    "tld_diversity",
+    "mixed_content_risk",
+    "cert_chain_depth_estimate",
+    "protocol_consistency",
+    "json_response_ratio",
+    "html_response_ratio",
+    "secure_transport_ratio",
+    "chrome_ratio",
+    "firefox_ratio",
+    "safari_ratio",
+    "external_domain_ratio",
+    "thirdparty_service_ratio",
+    "suspicious_domain_ratio",
+    "new_domain_ratio",
+    "api_endpoint_ratio",
+    "executable_ratio",
+    "script_ratio",
+    "automation_suspicion",
+    "dependency_complexity",
+    "internal_domain_count",
+    "external_domain_count",
+    "ip_diversity",
+    "private_ip_ratio",
+    "avg_bytes_per_request",
+    "error_rate",
+    "non_standard_method_ratio",
+    "total_data_volume",
+    "request_count",
 ]
 
 app_str_non_numeric_feature_fields = ["domain"]
@@ -96,6 +229,7 @@ app_arr_non_numeric_feature_fields = [
     "http_statuses",
     "req_content_types",
     "resp_content_types",
+    "key_hostnames",
 ]
 
 app_feature_fields = (
@@ -308,7 +442,34 @@ def convert_supply_chain_summaries_to_features(
     """
     features_og = pd.json_normalize(input_data)
     features_og.reset_index()
-    features_og = features_og[app_feature_fields]
+    
+    # Handle feature name compatibility issues
+    # Map new feature names to old ones for backward compatibility
+    feature_mapping = {
+        'median_time_interval_sec': 'median_interval_sec',
+        'std_time_interval_sec': 'std_interval_sec', 
+        'range_time_interval_sec': 'range_interval_sec',
+        'avg_interval_sec': 'avg_interval_sec',  # This one might already be correct
+    }
+    
+    # Create mapped columns for backward compatibility
+    for new_name, old_name in feature_mapping.items():
+        if new_name in features_og.columns and old_name not in features_og.columns:
+            features_og[old_name] = features_og[new_name]
+    
+    # Filter to only include columns that actually exist in the data
+    available_columns = [col for col in app_feature_fields if col in features_og.columns]
+    features_og = features_og[available_columns]
+    
+    # Fill NaN values with appropriate defaults
+    # For numeric columns, use 0
+    numeric_columns = features_og.select_dtypes(include=[np.number]).columns
+    features_og[numeric_columns] = features_og[numeric_columns].fillna(0)
+    
+    # For string columns, use empty string
+    string_columns = features_og.select_dtypes(include=['object']).columns
+    for col in string_columns:
+        features_og[col] = features_og[col].fillna('')
 
     feature_start_index = len(app_meta_fields)
     features_pd = pd.DataFrame(
@@ -447,7 +608,7 @@ def detect_anomalous_domain_with_custom_model(
     custom_model_path: Path,
     app_prediction_dir: str,
     prob_cutoff: float = 0.8,
-) -> None:
+) -> Dict[str, Any]:
     """
     Detect anomalous domains using an individual custom model.
 
@@ -458,9 +619,22 @@ def detect_anomalous_domain_with_custom_model(
         prob_cutoff (float): The cutoff for probability to determine if it's anomalous.
 
     Returns:
-        None
+        Dict[str, Any]: Detection results summary containing analyzed domains, anomalies found, etc.
     """
     logger = logging.getLogger(__name__)
+    
+    # Initialize detection results tracking
+    detection_results = {
+        "model_used": str(custom_model_path.name),
+        "total_domains_analyzed": 0,
+        "anomalies_detected": 0,
+        "normal_domains": 0,
+        "applications_found": [],
+        "anomalous_domains": [],
+        "prob_cutoff_used": prob_cutoff,
+        "success": True,
+        "error_message": None
+    }
 
     # Load the individual custom model
     try:
@@ -473,7 +647,9 @@ def detect_anomalous_domain_with_custom_model(
     except Exception as e:
         logger.error(f"Failed to load custom model {custom_model_path}: {e}")
         logger.error("This may be due to version incompatibility. Try retraining the model.")
-        return
+        detection_results["success"] = False
+        detection_results["error_message"] = f"Failed to load model: {e}"
+        return detection_results
 
     # Convert single model to the expected format
     models = dict()
@@ -486,7 +662,9 @@ def detect_anomalous_domain_with_custom_model(
         apps.add(app)
     else:
         logger.error(f"Unexpected model format in {custom_model_path}")
-        return
+        detection_results["success"] = False
+        detection_results["error_message"] = "Unexpected model format"
+        return detection_results
 
     features_og, features_pd = convert_supply_chain_summaries_to_features(
         load_json_file(input_path)
@@ -494,6 +672,12 @@ def detect_anomalous_domain_with_custom_model(
 
     for observation_index, observation_series in features_og.iterrows():
         application = observation_series["application"]
+        domain = observation_series.get("domain", "unknown")
+        
+        # Track applications found
+        if application not in detection_results["applications_found"]:
+            detection_results["applications_found"].append(application)
+            
         if application not in models:
             logger.info(
                 "[x] Application not found in custom models: " + str(application)
@@ -503,6 +687,7 @@ def detect_anomalous_domain_with_custom_model(
                 "[x] Application found to test supply chain compromises against: "
                 + str(application)
             )
+            detection_results["total_domains_analyzed"] += 1
             observation_key = observation_series["key"]
             model = models[application]
 
@@ -566,6 +751,24 @@ def detect_anomalous_domain_with_custom_model(
             predicted_class_proba = predictions[
                 observation_index, predicted_class_index
             ]
+            
+            # Check if this is an anomaly based on probability cutoff
+            is_anomaly = predicted_class_proba >= prob_cutoff
+            if is_anomaly:
+                detection_results["anomalies_detected"] += 1
+                anomaly_info = {
+                    "domain": domain,
+                    "application": application,
+                    "observation_key": observation_key,
+                    "predicted_class": predicted_class_name,
+                    "probability": float(predicted_class_proba),
+                    "prediction_index": observation_index
+                }
+                detection_results["anomalous_domains"].append(anomaly_info)
+                logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (probability: {predicted_class_proba:.3f})")
+            else:
+                detection_results["normal_domains"] += 1
+                logger.info(f"✅ Normal behavior: {domain} for {application} (probability: {predicted_class_proba:.3f})")
 
             obs_file_dir = (
                 str(observation_index)
@@ -587,3 +790,10 @@ def detect_anomalous_domain_with_custom_model(
             )
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
+
+    # Return detection results summary
+    logger.info(f"Detection completed: {detection_results['total_domains_analyzed']} domains analyzed, "
+                f"{detection_results['anomalies_detected']} anomalies detected, "
+                f"{detection_results['normal_domains']} normal domains")
+    
+    return detection_results
