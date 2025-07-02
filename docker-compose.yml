@@ -1,41 +1,14 @@
+# BEAM Hybrid Architecture Docker Services
+# 
+# In the hybrid architecture, BEAM runs natively with Python while Docker
+# provides only the infrastructure services. This simplifies development
+# and debugging while maintaining service isolation.
+#
+# To run BEAM: uv run python -m beam
+# Services will auto-start as needed.
+
 services:
-  # Main BEAM application container
-  beam-core:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.beam-core
-    container_name: beam-core
-    volumes:
-      - ./data:/app/data  # Mount host data directory as read-write
-      - ./models:/app/models  # Mount host models directory as read-write
-      - ./predictions:/app/predictions  # Mount host predictions directory as read-write
-      - ./logs:/app/logs  # Mount logs directory to host
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - PYTHONPATH=/app/src
-      - BEAM_LOG_PATH=/app/logs/beam.log
-    depends_on:
-      - zeek-processor
-      - database
-    networks:
-      - beam-network
-    stdin_open: true
-    tty: true
-
-  # Zeek network analysis container
-  zeek-processor:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.zeek
-    container_name: zeek-processor
-    volumes:
-      - ./data:/app/data
-    networks:
-      - beam-network
-    command: ["tail", "-f", "/dev/null"]  # Keep container running
-
-  # Database services container
+  # Database services container (required for hybrid architecture)
   database:
     build:
       context: .
@@ -49,7 +22,19 @@ services:
     environment:
       - PYTHONPATH=/app/src
 
-  # Llama model service container
+  # Zeek network analysis container (required for PCAP processing)
+  zeek-processor:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.zeek
+    container_name: zeek-processor
+    volumes:
+      - ./data:/app/data
+    networks:
+      - beam-network
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+
+  # Optional: Llama model service for local LLM (if not using Gemini)
   llama-model:
     image: ollama/ollama:latest
     container_name: beam-llama
@@ -62,29 +47,8 @@ services:
     networks:
       - beam-network
     restart: unless-stopped
-
-  # Optional: Single container for simpler deployments
-  beam-all-in-one:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.all-in-one
-    container_name: beam-all-in-one
-    volumes:
-      - ./data:/app/data  # Mount host data directory as read-write
-      - ./models:/app/models  # Mount host models directory as read-write
-      - ./predictions:/app/predictions  # Mount host predictions directory as read-write
-      - ./logs:/app/logs  # Mount logs directory to host
-    environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - PYTHONPATH=/app/src
-      - BEAM_LOG_PATH=/app/logs/beam.log
-    networks:
-      - beam-network
-    stdin_open: true
-    tty: true
     profiles:
-      - single-container
+      - local-llm
 
 volumes:
   db-data:

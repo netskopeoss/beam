@@ -315,7 +315,7 @@ class TestModelFormatCompatibility:
         """Test detection with sklearn pipeline model format"""
         # This would test the pipeline format we're actually using
         from sklearn.pipeline import Pipeline
-        from sklearn.ensemble import RandomForestClassifier
+        import xgboost as xgb
         from sklearn.preprocessing import StandardScaler
 
         # Create a real pipeline model
@@ -324,7 +324,7 @@ class TestModelFormatCompatibility:
                 ("scaler", StandardScaler()),
                 (
                     "classifier",
-                    RandomForestClassifier(n_estimators=10, random_state=42),
+                    xgb.XGBClassifier(n_estimators=10, random_state=42),
                 ),
             ]
         )

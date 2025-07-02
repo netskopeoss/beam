@@ -28,35 +28,72 @@
 import logging
 import logging.config
 import os
+import sys
 from pathlib import Path
 
 from beam.constants import LOG_CONFIG
 from beam.run import MultiHotEncoder, run
+from beam.services import setup_environment
 
 def setup_logging():
-    """Setup logging with custom log path if specified."""
-    custom_log_path = os.environ.get('BEAM_LOG_PATH')
+    """Setup logging to file only."""
+    # Create logs directory if it doesn't exist
+    log_dir = Path(__file__).parent.parent.parent / "logs"
+    log_dir.mkdir(exist_ok=True)
     
-    if custom_log_path:
-        # Create the directory if it doesn't exist
-        log_dir = Path(custom_log_path).parent
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Setup logging programmatically (file only)
-        logging.basicConfig(
-            level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(custom_log_path)
-            ]
-        )
-    else:
-        # Use the default logging configuration
-        logging.config.fileConfig(LOG_CONFIG)
+    # Set up file logging only
+    log_file = log_dir / "beam.log"
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.FileHandler(log_file)]
+    )
 
-if __name__ == "__main__":
+def main():
+    """Main entry point for BEAM."""
     setup_logging()
     logger = logging.getLogger("main")
-    _m = MultiHotEncoder()
-    # Main module passes control to the run function which handles command-line arguments
-    run(logger=logger)
+    
+    # Set up Docker services before running BEAM
+    if not setup_environment():
+        print("❌ Failed to set up BEAM environment")
+        sys.exit(1)
+    
+    # Set up environment for native Python execution
+    setup_native_environment()
+    
+    # Run BEAM natively in Python
+    try:
+        _m = MultiHotEncoder()
+        # Main module passes control to the run function which handles command-line arguments
+        run(logger=logger)
+    except KeyboardInterrupt:
+        print("\n⚠️  BEAM execution interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"BEAM execution failed: {e}")
+        print(f"❌ BEAM failed: {e}")
+        sys.exit(1)
+
+def setup_native_environment():
+    """Set up environment variables for native Python execution."""
+    # Set PYTHONPATH to include src directory if not already set
+    current_dir = Path(__file__).parent.parent.parent  # Go up to project root
+    src_dir = current_dir / "src"
+    
+    if str(src_dir) not in sys.path:
+        sys.path.insert(0, str(src_dir))
+    
+    # Set default environment variables if not already set
+    env_defaults = {
+        'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
+        'LOG_LEVEL': os.environ.get('LOG_LEVEL', 'INFO'),
+        'USE_LOCAL_LLM': os.environ.get('USE_LOCAL_LLM', 'false'),
+    }
+    
+    for key, value in env_defaults.items():
+        if key not in os.environ:
+            os.environ[key] = value
+
+if __name__ == "__main__":
+    main()
