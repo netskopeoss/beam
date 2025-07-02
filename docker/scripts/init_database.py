@@ -14,8 +14,8 @@ from pathlib import Path
 sys.path.insert(0, "/app/src")
 
 try:
-    from beam.constants import USER_AGENT_MAPPING_DB_PATH
-    from beam.mapper.datastore import DataStore
+    from beam.constants import DB_PATH
+    from beam.mapper.datastore import DataStoreHandler
 except ImportError as e:
     logging.error(f"Failed to import BEAM modules: {e}")
     sys.exit(1)
@@ -35,13 +35,13 @@ def initialize_database():
 
     try:
         # Ensure the database directory exists
-        db_path = Path(USER_AGENT_MAPPING_DB_PATH)
+        db_path = Path(DB_PATH)
         db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"Initializing database at: {USER_AGENT_MAPPING_DB_PATH}")
+        logger.info(f"Initializing database at: {DB_PATH}")
 
         # Initialize the datastore
-        datastore = DataStore()
+        datastore = DataStoreHandler(db_path=str(db_path), logger=logger)
 
         # Test the connection
         logger.info("Testing database connection...")
