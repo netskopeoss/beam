@@ -45,28 +45,8 @@ usage() {
     echo "  $0 --use_custom_models"
 }
 
-# Function to check if Docker is running
-check_docker() {
-    if ! docker info >/dev/null 2>&1; then
-        echo -e "${RED}❌ Docker is not running${NC}"
-        echo "Please start Docker Desktop and try again."
-        exit 1
-    fi
-}
-
-# Function to build containers if needed
-ensure_containers() {
-    echo -e "${BLUE}🐳 Preparing BEAM containers...${NC}"
-    
-    # Check if the beam-core image exists
-    if ! docker images | grep -q "beam-beam-core"; then
-        echo -e "${YELLOW}Building containers for the first time (this may take a few minutes)...${NC}"
-        if ! docker-compose -f "$SCRIPT_DIR/docker-compose.yml" build beam-core zeek-processor database; then
-            echo -e "${RED}❌ Failed to build containers${NC}"
-            exit 1
-        fi
-    fi
-}
+# Source the shared environment setup script
+source "$SCRIPT_DIR/docker/setup-environment.sh"
 
 # Function to convert host path to absolute path
 get_absolute_path() {
@@ -121,11 +101,8 @@ if [ "$DEMO_MODE" = true ]; then
     exec ./docker/run-demo.sh
 fi
 
-# Check Docker
-check_docker
-
-# Ensure containers are built
-ensure_containers
+# Setup environment (dependencies + containers)
+setup_environment "main"
 
 # Handle input path
 if [ "$CUSTOM_INPUT" = true ]; then
@@ -167,10 +144,10 @@ echo -e "${BLUE}🚀 Running BEAM...${NC}"
 echo ""
 
 # Start required services in the background
-docker-compose -f "$SCRIPT_DIR/docker-compose.yml" up -d zeek-processor database >/dev/null 2>&1
+$COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" up -d zeek-processor database >/dev/null 2>&1
 
 # Run BEAM in the container
-docker-compose -f "$SCRIPT_DIR/docker-compose.yml" run --rm \
+$COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" run --rm \
     beam-core python -m beam $BEAM_ARGS
 
 # Cleanup
@@ -179,7 +156,7 @@ if [ "$CUSTOM_INPUT" = true ] && [ -d "$TEMP_DIR" ]; then
 fi
 
 # Stop background services
-docker-compose -f "$SCRIPT_DIR/docker-compose.yml" stop zeek-processor database >/dev/null 2>&1
+$COMPOSE_CMD -f "$SCRIPT_DIR/docker-compose.yml" stop zeek-processor database >/dev/null 2>&1
 
 echo ""
 echo -e "${GREEN}✅ BEAM completed successfully!${NC}"

@@ -51,9 +51,7 @@ services:
 
   # Llama model service container
   llama-model:
-    build:
-      context: .
-      dockerfile: docker/llama/Dockerfile
+    image: ollama/ollama:latest
     container_name: beam-llama
     ports:
       - "11434:11434"
