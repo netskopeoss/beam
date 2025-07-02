@@ -282,7 +282,9 @@ def run_detection(
     # Generate security analysis report
     try:
         summaries = utils.load_json_file(features_output_path)
-        security_report = generate_security_report(summaries)
+        # Include prediction directory for ML explanations
+        prediction_dir = Path(constants.DOMAIN_PREDICTIONS_DIR)
+        security_report = generate_security_report(summaries, prediction_dir)
 
         # Save security report
         security_report_path = features_output_path.replace(

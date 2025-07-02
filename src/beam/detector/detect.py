@@ -37,6 +37,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from .utils import load_json_file, safe_create_path, save_json_data
+from .explainer import ModelExplainer
 
 app_meta_fields = ["key", "application"]
 
@@ -590,6 +591,49 @@ def detect_anomalous_domain(
             )
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
+            
+            # Generate text explanation using SHAP
+            try:
+                explainer = ModelExplainer(estimator, selected_feature_names, logger)
+                
+                # Convert observation to dict for the explainer
+                observation_dict = observation_series.to_dict()
+                
+                # Generate text explanation
+                text_explanation = explainer.generate_text_explanation(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    observation_data=observation_dict,
+                    predicted_class=predicted_class_name,
+                    predicted_proba=predicted_class_proba,
+                    top_n_features=5
+                )
+                
+                # Save SHAP waterfall plot
+                shap_plot_path = f"{parent_dir}shap_explanation.png"
+                explainer.save_shap_plot(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    predicted_class_index=predicted_class_index,
+                    save_path=shap_plot_path,
+                    max_display=20
+                )
+                
+                # Save text explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                    
+                # Log if this is an anomaly
+                if predicted_class_proba >= prob_cutoff:
+                    logger.warning(f"🚨 ANOMALY DETECTED: {observation_series.get('domain', observation_key)} for {application} (probability: {predicted_class_proba:.3f})")
+                    logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
+                    
+                logger.info(f"Generated explanation and saved to {parent_dir}")
+                
+            except Exception as e:
+                logger.error(f"Failed to generate explanation: {e}")
+                text_explanation = f"Unable to generate detailed explanation: {e}"
 
             full_predictions = sorted(
                 [
@@ -601,6 +645,36 @@ def detect_anomalous_domain(
             )
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
+            
+            # Save explanation to JSON as well
+            explanation_json = {
+                "domain": observation_series.get("domain", observation_key),
+                "application": application,
+                "predicted_class": predicted_class_name,
+                "probability": float(predicted_class_proba),
+                "is_anomaly": predicted_class_proba >= prob_cutoff,
+                "explanation": text_explanation,
+                "top_features": []
+            }
+            
+            # Try to get top features for JSON
+            try:
+                shap_values, _ = explainer.calculate_shap_values(
+                    features_scaled, observation_index, predicted_class_index
+                )
+                top_features = explainer.get_top_features(shap_values, top_n=10)
+                for feature_name, shap_value, feature_idx in top_features:
+                    feature_value = features_scaled[observation_index, feature_idx]
+                    explanation_json["top_features"].append({
+                        "feature": feature_name,
+                        "shap_value": float(shap_value),
+                        "feature_value": float(feature_value)
+                    })
+            except:
+                pass
+                
+            explanation_json_path = f"{parent_dir}explanation.json"
+            save_json_data(explanation_json, explanation_json_path)
 
 
 def detect_anomalous_domain_with_custom_model(
@@ -752,6 +826,55 @@ def detect_anomalous_domain_with_custom_model(
                 observation_index, predicted_class_index
             ]
             
+            # Create output directory
+            obs_file_dir = (
+                str(observation_index)
+                + "_"
+                + observation_key.replace(" ", "_")
+                .replace("'", "")
+                .replace("/", "")[:35]
+            )
+            parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
+            safe_create_path(parent_dir)
+            
+            # Generate text explanation using SHAP
+            try:
+                explainer = ModelExplainer(estimator, selected_feature_names, logger)
+                
+                # Convert observation to dict for the explainer
+                observation_dict = observation_series.to_dict()
+                
+                # Generate text explanation
+                text_explanation = explainer.generate_text_explanation(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    observation_data=observation_dict,
+                    predicted_class=predicted_class_name,
+                    predicted_proba=predicted_class_proba,
+                    top_n_features=5
+                )
+                
+                # Save SHAP waterfall plot
+                shap_plot_path = f"{parent_dir}shap_explanation.png"
+                explainer.save_shap_plot(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    predicted_class_index=predicted_class_index,
+                    save_path=shap_plot_path,
+                    max_display=20
+                )
+                
+                # Save text explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                    
+                logger.info(f"Generated explanation for {domain}: {text_explanation.split('.')[0]}")
+                
+            except Exception as e:
+                logger.error(f"Failed to generate explanation: {e}")
+                text_explanation = f"Unable to generate detailed explanation: {e}"
+            
             # Check if this is an anomaly based on probability cutoff
             is_anomaly = predicted_class_proba >= prob_cutoff
             if is_anomaly:
@@ -762,23 +885,15 @@ def detect_anomalous_domain_with_custom_model(
                     "observation_key": observation_key,
                     "predicted_class": predicted_class_name,
                     "probability": float(predicted_class_proba),
-                    "prediction_index": observation_index
+                    "prediction_index": observation_index,
+                    "explanation": text_explanation
                 }
                 detection_results["anomalous_domains"].append(anomaly_info)
                 logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (probability: {predicted_class_proba:.3f})")
+                logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
             else:
                 detection_results["normal_domains"] += 1
                 logger.info(f"✅ Normal behavior: {domain} for {application} (probability: {predicted_class_proba:.3f})")
-
-            obs_file_dir = (
-                str(observation_index)
-                + "_"
-                + observation_key.replace(" ", "_")
-                .replace("'", "")
-                .replace("/", "")[:35]
-            )
-            parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
-            safe_create_path(parent_dir)
 
             full_predictions = sorted(
                 [
@@ -790,6 +905,36 @@ def detect_anomalous_domain_with_custom_model(
             )
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
+            
+            # Save explanation to JSON as well
+            explanation_json = {
+                "domain": domain,
+                "application": application,
+                "predicted_class": predicted_class_name,
+                "probability": float(predicted_class_proba),
+                "is_anomaly": is_anomaly,
+                "explanation": text_explanation,
+                "top_features": []
+            }
+            
+            # Try to get top features for JSON
+            try:
+                shap_values, _ = explainer.calculate_shap_values(
+                    features_scaled, observation_index, predicted_class_index
+                )
+                top_features = explainer.get_top_features(shap_values, top_n=10)
+                for feature_name, shap_value, feature_idx in top_features:
+                    feature_value = features_scaled[observation_index, feature_idx]
+                    explanation_json["top_features"].append({
+                        "feature": feature_name,
+                        "shap_value": float(shap_value),
+                        "feature_value": float(feature_value)
+                    })
+            except:
+                pass
+                
+            explanation_json_path = f"{parent_dir}explanation.json"
+            save_json_data(explanation_json, explanation_json_path)
 
     # Return detection results summary
     logger.info(f"Detection completed: {detection_results['total_domains_analyzed']} domains analyzed, "

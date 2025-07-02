@@ -168,7 +168,7 @@ def run_detection_analysis(features_output_path: Path, temp_demo_dir: Path) -> P
     else:
         summaries = summaries_data
 
-    security_report = generate_security_report(summaries)
+    security_report = generate_security_report(summaries, prediction_dir)
 
     # Save security report
     file_name = "beacon_demo"
@@ -208,7 +208,7 @@ def display_demo_results(
         summaries = summaries_data
 
     analyzer = SecurityAnalysisReport()
-    analysis = analyzer.analyze_security_features(summaries)
+    analysis = analyzer.analyze_security_features(summaries, prediction_dir)
 
     # Show key findings
     print("🔍 NETWORK TRAFFIC ANALYSIS:")
@@ -221,19 +221,20 @@ def display_demo_results(
     insights = analysis["security_insights"]
     critical_insights = [i for i in insights if i["severity"] in ["HIGH", "MEDIUM"]]
 
-    display_security_insights(critical_insights)
+    display_security_insights(critical_insights, prediction_dir)
     display_overall_assessment(analysis)
     display_available_reports(
         security_report_path, features_output_path, prediction_dir
     )
 
 
-def display_security_insights(critical_insights: list) -> None:
+def display_security_insights(critical_insights: list, prediction_dir: Path = None) -> None:
     """
     Display security insights and supply chain compromise details.
 
     Args:
         critical_insights: List of critical security insights
+        prediction_dir: Directory containing prediction outputs with explanations
     """
     print("🚨 SECURITY INSIGHTS DETECTED:")
     if critical_insights:
@@ -266,6 +267,31 @@ def display_security_insights(critical_insights: list) -> None:
             print("   This is likely malicious code injected into the Box application")
             print("   that is stealing data or establishing a backdoor connection.")
             print("   This type of attack is called a 'supply chain compromise'")
+            
+            # Try to load and display SHAP-based explanation if available
+            if prediction_dir and prediction_dir.exists():
+                try:
+                    # Find the prediction subdirectory for this domain
+                    for subdir in prediction_dir.iterdir():
+                        if subdir.is_dir():
+                            explanation_file = subdir / "explanation.txt"
+                            if explanation_file.exists():
+                                with open(explanation_file, 'r') as f:
+                                    shap_explanation = f.read()
+                                
+                                print()
+                                print("🤖 AI MODEL EXPLANATION:")
+                                print("-" * 60)
+                                # Display the first part of the explanation
+                                lines = shap_explanation.strip().split('\n')
+                                for line in lines[:10]:  # Show first 10 lines
+                                    if line.strip():
+                                        print(f"   {line}")
+                                print("-" * 60)
+                                break
+                except Exception as e:
+                    # Silently continue if we can't read the explanation
+                    pass
             print("   where legitimate software is modified to include malicious code.")
             print("=" * 60)
             print()
