@@ -283,17 +283,21 @@ class ModelExplainer:
         Returns:
             Human-readable explanation string
         """
+
+        if predicted_class == 0:
+            return ""
+
         # Get application and domain info
         application = observation_data.get("application", "Unknown")
         domain = observation_data.get("domain", observation_data.get("key", "unknown domain"))
         
         # Calculate SHAP values
         # For binary classification, we explain the positive class (anomaly)
-        predicted_class_index = 1 if predicted_class == "1" else 0
+        predicted_class_index = 1
         shap_values, expected_value = self.calculate_shap_values(
             features_scaled, observation_index, predicted_class_index
         )
-        
+
         # Get top contributing features
         top_features = self.get_top_features(shap_values, top_n_features)
         
