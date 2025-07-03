@@ -263,7 +263,7 @@ class SecurityAnalysisReport:
                         "application": app_name,
                         "domain": domain,
                         "key": key,
-                        "details": f"Extremely high automation suspicion ({automation_suspicion:.1f}), indicating very regular request timing patterns typical of automated attacks.",
+                        "details": f"Extremely high automation suspicion ({float(automation_suspicion):.1f}), indicating very regular request timing patterns typical of automated attacks.",
                         "metric": "automation_suspicion",
                         "value": automation_suspicion,
                     }
@@ -279,7 +279,7 @@ class SecurityAnalysisReport:
                         "application": app_name,
                         "domain": domain,
                         "key": key,
-                        "details": f"Suspicious domain patterns detected (ratio: {suspicious_ratio:.1f}), flagging potential infrastructure issues.",
+                        "details": f"Suspicious domain patterns detected (ratio: {float(suspicious_ratio):.1f}), flagging potential infrastructure issues.",
                         "metric": "suspicious_domain_ratio",
                         "value": suspicious_ratio,
                     }
@@ -296,7 +296,7 @@ class SecurityAnalysisReport:
                         "application": app_name,
                         "domain": domain,
                         "key": key,
-                        "details": f"High cross-domain activity (ratio: {cross_domain_ratio:.2f}), same-origin referrers: {same_origin_ratio:.2f}",
+                        "details": f"High cross-domain activity (ratio: {float(cross_domain_ratio):.2f}), same-origin referrers: {float(same_origin_ratio):.2f}",
                         "metric": "cross_domain_ratio",
                         "value": cross_domain_ratio,
                     }
@@ -312,7 +312,7 @@ class SecurityAnalysisReport:
                         "application": app_name,
                         "domain": domain,
                         "key": key,
-                        "details": f"Bot signatures detected in {bot_ratio * 100:.1f}% of requests.",
+                        "details": f"Bot signatures detected in {float(bot_ratio) * 100:.1f}% of requests.",
                         "metric": "bot_ratio",
                         "value": bot_ratio,
                     }
@@ -662,7 +662,7 @@ class SecurityAnalysisReport:
                     report.append(f"  Anomaly {i}:")
                     report.append(f"    Domain: {exp.get('domain', 'unknown')}")
                     report.append(f"    Application: {exp.get('application', 'unknown')}")
-                    report.append(f"    Confidence: {exp.get('probability', 0):.1%}")
+                    report.append(f"    Confidence: {float(exp.get('probability', 0)):.1%}")
                     
                     # Include the explanation text
                     if "explanation" in exp:
