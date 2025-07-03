@@ -166,13 +166,7 @@ class ModelExplainer:
         """Extract the base estimator from a pipeline"""
         if hasattr(self.model, "named_steps"):
             # It's a pipeline - get the final classifier
-            if "xgb_classifier" in self.model.named_steps:
-                return self.model.named_steps["xgb_classifier"]
-            elif "rf" in self.model.named_steps:
-                return self.model.named_steps["rf"]
-            else:
-                # Get the last step
-                return self.model.steps[-1][1]
+            return self.model.named_steps["xgb"]
         else:
             return self.model
             
@@ -196,16 +190,16 @@ class ModelExplainer:
         # Get SHAP values for the specific observation
         chosen_instance = features_scaled[observation_index, :].reshape(1, -1)
         shap_values = self.explainer.shap_values(chosen_instance)
-        
+
         # Handle multi-class output
-        if isinstance(shap_values, list):
-            shap_values_for_class = shap_values[predicted_class_index][0]
-            expected_value = self.explainer.expected_value[predicted_class_index]
+        if isinstance(self.explainer.expected_value, (list, np.ndarray)):
+            base_value = self.explainer.expected_value[predicted_class_index]
+            shap_values_for_class = shap_values[predicted_class_index]
         else:
-            shap_values_for_class = shap_values[0]
-            expected_value = self.explainer.expected_value
-            
-        return shap_values_for_class, expected_value
+            base_value = self.explainer.expected_value
+            shap_values_for_class = shap_values
+
+        return shap_values_for_class, base_value
         
     def get_top_features(self, shap_values: NDArray, top_n: int = 10) -> List[Tuple[str, float, float]]:
         """
@@ -216,13 +210,16 @@ class ModelExplainer:
         """
         # Get absolute values for ranking
         abs_shap_values = np.abs(shap_values)
-        top_indices = np.argsort(abs_shap_values)[-top_n:][::-1]
+        top_indices = np.argsort(abs_shap_values)[0][-top_n:][::-1]
         
         top_features = []
         for idx in top_indices:
             if idx < len(self.feature_names):
                 feature_name = self.feature_names[idx]
-                shap_value = shap_values[idx]
+                try:
+                    shap_value = shap_values[0][idx]
+                except:
+                    shap_value = shap_values[idx]
                 top_features.append((feature_name, shap_value, idx))
                 
         return top_features
@@ -292,7 +289,7 @@ class ModelExplainer:
         
         # Calculate SHAP values
         # For binary classification, we explain the positive class (anomaly)
-        predicted_class_index = 1 if predicted_class == "anomaly" else 0
+        predicted_class_index = 1 if predicted_class == "1" else 0
         shap_values, expected_value = self.calculate_shap_values(
             features_scaled, observation_index, predicted_class_index
         )
@@ -301,9 +298,9 @@ class ModelExplainer:
         top_features = self.get_top_features(shap_values, top_n_features)
         
         # Start building the explanation
-        if predicted_proba >= 0.8:
+        if predicted_proba >= 0.95:
             severity = "high confidence"
-        elif predicted_proba >= 0.6:
+        elif predicted_proba >= 0.9:
             severity = "moderate confidence"
         else:
             severity = "low confidence"
@@ -346,12 +343,12 @@ class ModelExplainer:
                 explanation_parts.append(f"{i}. {factor}")
         
         # Add contextual summary
-        if predicted_proba >= 0.8:
+        if predicted_proba >= 0.95:
             explanation_parts.append(
                 f"\nThis pattern significantly deviates from typical {application} behavior "
                 f"and warrants immediate investigation."
             )
-        elif predicted_proba >= 0.6:
+        elif predicted_proba >= 0.9:
             explanation_parts.append(
                 f"\nThis pattern shows some deviation from typical {application} behavior "
                 f"and should be monitored."
@@ -391,7 +388,10 @@ class ModelExplainer:
         
         # Create waterfall plot
         plt.figure(figsize=(10, 8))
-        shap.waterfall_plot(exp, max_display=max_display, show=False)
+        try:
+            shap.waterfall_plot(exp[0], max_display=max_display, show=False)
+        except IndexError:
+            shap.waterfall_plot(exp, max_display=max_display, show=False)
         plt.tight_layout()
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()

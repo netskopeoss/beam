@@ -15,7 +15,7 @@ sys.path.insert(0, "/app/src")
 
 try:
     from beam.constants import DB_PATH
-    from beam.mapper.datastore import DataStoreHandler
+    from beam.mapper.datastore import DataStore
 except ImportError as e:
     logging.error(f"Failed to import BEAM modules: {e}")
     sys.exit(1)

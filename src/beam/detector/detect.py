@@ -42,185 +42,59 @@ from .explainer import ModelExplainer
 app_meta_fields = ["key", "application"]
 
 app_numeric_feature_fields = [
-    "transactions",
-    "refered_traffic_pct",
-    "referer_domain_cnt",
-    "unique_actions",
-    "http_status_cnt",
-    "http_method_cnt",
-    "req_content_type_cnt",
-    "resp_content_type_cnt",
-    "avg_time_interval_sec",
-    "std_time_interval_sec",
-    "median_time_interval_sec",
-    "range_time_interval_sec",
-    "range_timestamp",
-    "max_time_taken_ms",
-    "min_time_taken_ms",
-    "sum_time_taken_ms",
-    "avg_time_taken_ms",
-    "std_time_taken_ms",
-    "median_time_taken_ms",
-    "range_time_taken_ms",
-    "max_client_bytes",
-    "min_client_bytes",
-    "sum_client_bytes",
-    "avg_client_bytes",
-    "std_client_bytes",
-    "median_client_bytes",
-    "range_client_bytes",
-    "max_server_bytes",
-    "min_server_bytes",
-    "sum_server_bytes",
-    "avg_server_bytes",
-    "std_server_bytes",
-    "median_server_bytes",
-    "range_server_bytes",
-    "web_traffic_pct",
-    "cloud_traffic_pct",
-    "sequence_num_keys",
-    "sequence_max_key_length",
-    "sequence_min_key_length",
-    "sequence_max_val",
-    "sequence_min_val",
-    "sequence_sum_val",
-    "sequence_avg_val",
-    "sequence_std_val",
-    "sequence_median_val",
-    "sequence_range_val",
-    # Additional numeric features
-    "avg_interval_sec",
-    "domain_cnt",
-    "domain_concentration",
-    "response_size_cv",
-    "bot_ratio",
-    "iqr_client_bytes",
-    "suspicious_ua_ratio",
-    "key_hostname_cnt",
-    "path_depth_variance",
-    "domain_entropy",
-    "ua_consistency",
-    "url_entropy",
-    "skewness_server_bytes",
-    "http_version_diversity",
-    "kurtosis_time_taken_ms",
-    "redirect_ratio",
-    "cdn_usage_ratio",
-    "avg_path_depth",
-    "iqr_time_taken_ms",
-    "ua_entropy",
-    "burst_ratio",
-    "error_ratio",
-    "night_activity_ratio",
-    "referer_present_ratio",
-    "median_interval_sec",
-    "std_interval_sec",
-    "range_interval_sec",
-    "ua_diversity",
-    "same_origin_referer_ratio",
-    "hour_entropy",
-    "skewness_client_bytes",
-    "skewness_time_taken_ms",
-    "iqr_server_bytes",
-    "kurtosis_client_bytes",
-    "https_ratio",
-    "kurtosis_server_bytes",
-    "http2_usage_ratio",
-    # More advanced features
-    "p25_time_taken_ms",
-    "p75_time_taken_ms",
-    "p90_time_taken_ms",
-    "p95_time_taken_ms",
-    "p99_time_taken_ms",
-    "cv_time_taken_ms",
-    "outlier_ratio_time_taken_ms",
-    "mad_time_taken_ms",
-    "robust_cv_time_taken_ms",
-    "p25_client_bytes",
-    "p75_client_bytes",
-    "p90_client_bytes",
-    "p95_client_bytes",
-    "p99_client_bytes",
-    "cv_client_bytes",
-    "outlier_ratio_client_bytes",
-    "mad_client_bytes",
-    "robust_cv_client_bytes",
-    "p25_server_bytes",
-    "p75_server_bytes",
-    "p90_server_bytes",
-    "p95_server_bytes",
-    "p99_server_bytes",
-    "cv_server_bytes",
-    "outlier_ratio_server_bytes",
-    "mad_server_bytes",
-    "robust_cv_server_bytes",
-    "p25_time_interval_sec",
-    "p75_time_interval_sec",
-    "p90_time_interval_sec",
-    "p95_time_interval_sec",
-    "p99_time_interval_sec",
-    "iqr_time_interval_sec",
-    "cv_time_interval_sec",
-    "skewness_time_interval_sec",
-    "kurtosis_time_interval_sec",
-    "outlier_ratio_time_interval_sec",
-    "mad_time_interval_sec",
-    "robust_cv_time_interval_sec",
-    "interval_entropy",
-    "interval_regularity",
-    "peak_hour_concentration",
-    "avg_url_length",
-    "status_diversity",
-    "method_diversity",
-    "content_type_mismatch_ratio",
-    "compression_usage_ratio",
-    "avg_compression_ratio",
-    "large_response_ratio",
-    "response_size_entropy",
-    "content_type_diversity",
-    "html_ratio",
-    "css_ratio",
-    "js_ratio",
-    "image_ratio",
-    "json_ratio",
-    "xml_ratio",
-    "domain_diversity",
-    "suspicious_tld_ratio",
-    "avg_subdomain_depth",
-    "max_subdomain_depth",
-    "cross_domain_ratio",
-    "referrer_diversity",
-    "avg_domain_length",
-    "max_domain_length",
-    "numeric_domain_ratio",
-    "tld_diversity",
-    "mixed_content_risk",
-    "cert_chain_depth_estimate",
-    "protocol_consistency",
-    "json_response_ratio",
-    "html_response_ratio",
-    "secure_transport_ratio",
-    "chrome_ratio",
-    "firefox_ratio",
-    "safari_ratio",
-    "external_domain_ratio",
-    "thirdparty_service_ratio",
-    "suspicious_domain_ratio",
-    "new_domain_ratio",
-    "api_endpoint_ratio",
-    "executable_ratio",
-    "script_ratio",
-    "automation_suspicion",
-    "dependency_complexity",
-    "internal_domain_count",
-    "external_domain_count",
-    "ip_diversity",
-    "private_ip_ratio",
-    "avg_bytes_per_request",
-    "error_rate",
-    "non_standard_method_ratio",
-    "total_data_volume",
-    "request_count",
+    "transactions", "refered_traffic_pct", "referer_domain_cnt", "unique_actions",
+
+    "http_status_cnt", "http_method_cnt", "req_content_type_cnt", "resp_content_type_cnt", "range_timestamp",
+
+    "max_time_taken_ms", "min_time_taken_ms", "sum_time_taken_ms", "avg_time_taken_ms", "std_time_taken_ms",
+    "median_time_taken_ms", "range_time_taken_ms",
+    "max_client_bytes", "min_client_bytes", "sum_client_bytes", "avg_client_bytes", "std_client_bytes",
+    "median_client_bytes", "range_client_bytes",
+    "max_server_bytes", "min_server_bytes", "sum_server_bytes", "avg_server_bytes", "std_server_bytes",
+    "median_server_bytes", "range_server_bytes",
+
+    'web_traffic_pct', 'cloud_traffic_pct',
+
+    "sequence_num_keys", "sequence_max_key_length", "sequence_min_key_length", "sequence_max_val", "sequence_min_val",
+    "sequence_sum_val", "sequence_avg_val", "sequence_std_val", "sequence_median_val", "sequence_range_val",
+
+    'key_hostname_cnt', 'domain_cnt', 'avg_interval_sec', 'burst_ratio',
+    'night_activity_ratio', 'hour_entropy', 'redirect_ratio', 'error_ratio', 'avg_path_depth', 'path_depth_variance',
+    'response_size_cv', 'https_ratio', 'http2_usage_ratio', 'http_version_diversity', 'ua_diversity', 'bot_ratio',
+    'suspicious_ua_ratio', 'same_origin_referer_ratio', 'cdn_usage_ratio', 'domain_concentration',
+    'iqr_server_bytes', 'iqr_client_bytes', 'iqr_time_taken_ms', 'skewness_server_bytes', 'skewness_client_bytes',
+    'skewness_time_taken_ms', 'kurtosis_server_bytes', 'kurtosis_client_bytes', 'kurtosis_time_taken_ms', 'url_entropy',
+    'ua_entropy', 'domain_entropy', 'ua_consistency',
+
+    'api_endpoint_ratio', 'automation_suspicion', 'avg_bytes_per_request', 'avg_compression_ratio', 'avg_domain_length',
+    'avg_subdomain_depth', 'avg_time_interval_sec', 'avg_url_length', 'cert_chain_depth_estimate', 'chrome_ratio',
+    'compression_usage_ratio', 'content_type_mismatch_ratio', 'cross_domain_ratio', 'css_ratio', 'cv_client_bytes',
+    'cv_server_bytes', 'cv_time_interval_sec', 'cv_time_taken_ms', 'distinct_key_domain_count', 'error_rate',
+    'executable_ratio',
+    'external_domain_count', 'external_domain_ratio', 'firefox_ratio', 'html_ratio', 'html_response_ratio',
+    'image_ratio',
+    'internal_domain_count', 'interval_entropy', 'interval_regularity', 'iqr_time_interval_sec', 'js_ratio',
+    'json_ratio',
+    'json_response_ratio', 'kurtosis_time_interval_sec', 'large_response_ratio', 'mad_client_bytes',
+    'mad_server_bytes', 'mad_time_interval_sec', 'mad_time_taken_ms', 'max_domain_length', 'max_subdomain_depth',
+    'max_time_interval_sec', 'median_time_interval_sec', 'min_time_interval_sec', 'mixed_content_risk',
+    'new_domain_ratio',
+    'non_standard_method_ratio', 'numeric_domain_ratio', 'outlier_ratio_client_bytes', 'outlier_ratio_server_bytes',
+    'outlier_ratio_time_interval_sec', 'outlier_ratio_time_taken_ms', 'p25_client_bytes', 'p25_server_bytes',
+    'p25_time_interval_sec',
+    'p25_time_taken_ms', 'p75_client_bytes', 'p75_server_bytes', 'p75_time_interval_sec', 'p75_time_taken_ms',
+    'p90_client_bytes',
+    'p90_server_bytes', 'p90_time_interval_sec', 'p90_time_taken_ms', 'p95_client_bytes', 'p95_server_bytes',
+    'p95_time_interval_sec',
+    'p95_time_taken_ms', 'p99_client_bytes', 'p99_server_bytes', 'p99_time_interval_sec', 'p99_time_taken_ms',
+    'peak_hour_concentration',
+    'protocol_consistency', 'range_time_interval_sec', 'response_size_entropy', 'robust_cv_client_bytes',
+    'robust_cv_server_bytes',
+    'robust_cv_time_interval_sec', 'robust_cv_time_taken_ms', 'safari_ratio', 'script_ratio', 'secure_transport_ratio',
+    'skewness_time_interval_sec',
+    'std_time_interval_sec', 'sum_time_interval_sec', 'suspicious_domain_ratio', 'suspicious_tld_ratio',
+    'thirdparty_service_ratio',
+    'tld_diversity', 'total_data_volume', 'xml_ratio'
 ]
 
 app_str_non_numeric_feature_fields = ["domain"]
@@ -228,7 +102,6 @@ app_str_non_numeric_feature_fields = ["domain"]
 app_arr_non_numeric_feature_fields = [
     "http_methods",
     "http_statuses",
-    "req_content_types",
     "resp_content_types",
     "key_hostnames",
 ]
@@ -444,19 +317,19 @@ def convert_supply_chain_summaries_to_features(
     features_og = pd.json_normalize(input_data)
     features_og.reset_index()
     
-    # Handle feature name compatibility issues
-    # Map new feature names to old ones for backward compatibility
-    feature_mapping = {
-        'median_time_interval_sec': 'median_interval_sec',
-        'std_time_interval_sec': 'std_interval_sec', 
-        'range_time_interval_sec': 'range_interval_sec',
-        'avg_interval_sec': 'avg_interval_sec',  # This one might already be correct
-    }
-    
-    # Create mapped columns for backward compatibility
-    for new_name, old_name in feature_mapping.items():
-        if new_name in features_og.columns and old_name not in features_og.columns:
-            features_og[old_name] = features_og[new_name]
+    # # Handle feature name compatibility issues
+    # # Map new feature names to old ones for backward compatibility
+    # feature_mapping = {
+    #     'median_time_interval_sec': 'median_interval_sec',
+    #     'std_time_interval_sec': 'std_interval_sec',
+    #     'range_time_interval_sec': 'range_interval_sec',
+    #     'avg_interval_sec': 'avg_interval_sec',  # This one might already be correct
+    # }
+    #
+    # # Create mapped columns for backward compatibility
+    # for new_name, old_name in feature_mapping.items():
+    #     if new_name in features_og.columns and old_name not in features_og.columns:
+    #         features_og[old_name] = features_og[new_name]
     
     # Filter to only include columns that actually exist in the data
     available_columns = [col for col in app_feature_fields if col in features_og.columns]
@@ -526,8 +399,8 @@ def detect_anomalous_domain(
             
             # Get classes from the final classifier in the pipeline
             try:
-                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
-                    classes = estimator.named_steps["xgb_classifier"].classes_
+                if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb"].classes_
                 elif hasattr(estimator, "classes_"):
                     classes = estimator.classes_
                 else:
@@ -554,25 +427,25 @@ def detect_anomalous_domain(
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
                 hasattr(estimator, "named_steps")
-                and "xgb_feat" in estimator.named_steps
+                and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["xgb_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             elif (
-                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+                hasattr(estimator, "named_steps") and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["rf_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             else:
                 # Try accessing as dictionary for backward compatibility
-                if "xgb_feat" in estimator:
-                    features_scaled = estimator["xgb_feat"].transform(
+                if "feat_sel" in estimator:
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
                 else:
-                    features_scaled = estimator["rf_feat"].transform(
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
 
@@ -637,7 +510,7 @@ def detect_anomalous_domain(
 
             full_predictions = sorted(
                 [
-                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
+                    {"class": str(c), "probability": str(round(float(100.0 * p), 4))}
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -650,9 +523,9 @@ def detect_anomalous_domain(
             explanation_json = {
                 "domain": observation_series.get("domain", observation_key),
                 "application": application,
-                "predicted_class": predicted_class_name,
-                "probability": float(predicted_class_proba),
-                "is_anomaly": predicted_class_proba >= prob_cutoff,
+                "predicted_class": str(predicted_class_name),
+                "probability": str(float(predicted_class_proba)),
+                "is_anomaly": bool(predicted_class_proba >= prob_cutoff),
                 "explanation": text_explanation,
                 "top_features": []
             }
@@ -770,8 +643,8 @@ def detect_anomalous_domain_with_custom_model(
             
             # Get classes from the final classifier in the pipeline
             try:
-                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
-                    classes = estimator.named_steps["xgb_classifier"].classes_
+                if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb"].classes_
                 elif hasattr(estimator, "classes_"):
                     classes = estimator.classes_
                 else:
@@ -798,25 +671,25 @@ def detect_anomalous_domain_with_custom_model(
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
                 hasattr(estimator, "named_steps")
-                and "xgb_feat" in estimator.named_steps
+                and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["xgb_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             elif (
-                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+                hasattr(estimator, "named_steps") and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["rf_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             else:
                 # Try accessing as dictionary for backward compatibility
-                if "xgb_feat" in estimator:
-                    features_scaled = estimator["xgb_feat"].transform(
+                if "feat_sel" in estimator:
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
                 else:
-                    features_scaled = estimator["rf_feat"].transform(
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
 

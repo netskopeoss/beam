@@ -703,7 +703,7 @@ def run(logger: logging.Logger) -> None:
         logger.info("Running BEAM in demo mode...")
         from beam.demo import run_demo
 
-        run_demo(logger)
+        run_demo(logger, preserve_results=True)
         return
 
     # Check if this might be a first-time user with no input files

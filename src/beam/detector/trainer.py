@@ -107,7 +107,7 @@ class ModelTrainer:
             max_features = self.n_features
 
         # Use XGBoost model for feature selection instead of Random Forest
-        xgb_feature_selector = SelectFromModel(
+        feat_selure_selector = SelectFromModel(
             estimator=xgb.XGBClassifier(
                 objective="binary:logistic",
                 eval_metric="logloss",
@@ -147,7 +147,7 @@ class ModelTrainer:
                 "ct",
                 ColumnTransformer(transformers=transformers, remainder="drop"),
             ),
-            ("xgb_feat", xgb_feature_selector),  # Use XGBoost for feature selection
+            ("feat_sel", feat_selure_selector),  # Use XGBoost for feature selection
             ("xgb", xgb_classifier),
         ]
 
@@ -323,7 +323,7 @@ class ModelTrainer:
 
         # Get feature names
         feature_names = self.get_feature_names(ct=estimator.named_steps["ct"])
-        selected_feat_ind = estimator.named_steps["xgb_feat"].get_support()
+        selected_feat_ind = estimator.named_steps["feat_sel"].get_support()
         
         # Ensure the feature names and selection mask have the same length
         if len(feature_names) != len(selected_feat_ind):

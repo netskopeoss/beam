@@ -145,7 +145,7 @@ class TestCustomModelDetection:
         mock_estimator.classes_ = ["normal", "anomalous"]
         # Mock the estimator access for feature transformation
         mock_estimator.__getitem__ = MagicMock(side_effect=lambda x: MagicMock())
-        mock_estimator.named_steps = {"xgb_feat": MagicMock(), "ct": MagicMock()}
+        mock_estimator.named_steps = {"feat_sel": MagicMock(), "ct": MagicMock()}
 
         mock_model_data = [
             {
@@ -208,7 +208,7 @@ class TestCustomModelDetection:
         mock_estimator.classes_ = ["normal", "anomalous"]
         # Mock the estimator access for feature transformation
         mock_estimator.__getitem__ = MagicMock(side_effect=lambda x: MagicMock())
-        mock_estimator.named_steps = {"xgb_feat": MagicMock(), "ct": MagicMock()}
+        mock_estimator.named_steps = {"feat_sel": MagicMock(), "ct": MagicMock()}
 
         mock_model_data = [
             {

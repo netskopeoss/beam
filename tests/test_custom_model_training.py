@@ -159,7 +159,7 @@ class TestModelTrainer:
         assert pipeline is not None
         assert len(pipeline.steps) == 3
         assert pipeline.steps[0][0] == "ct"  # ColumnTransformer
-        assert pipeline.steps[1][0] == "xgb_feat"  # XGBoost feature selector
+        assert pipeline.steps[1][0] == "feat_sel"  # XGBoost feature selector
         assert pipeline.steps[2][0] == "xgb"  # XGBoost classifier
 
     def test_convert_features_to_pd(self, mock_app_features):
