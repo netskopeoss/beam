@@ -498,7 +498,7 @@ def detect_anomalous_domain(
                     f.write(text_explanation)
                     
                 # Log if this is an anomaly
-                if predicted_class_proba >= prob_cutoff:
+                if (predicted_class_name == 1) and (predicted_class_proba >= prob_cutoff):
                     logger.warning(f"🚨 ANOMALY DETECTED: {observation_series.get('domain', observation_key)} for {application} (probability: {predicted_class_proba:.3f})")
                     logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
                     
