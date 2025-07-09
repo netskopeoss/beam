@@ -38,6 +38,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 
 from .utils import load_json_file, safe_create_path, save_json_data
 from .explainer import ModelExplainer
+from beam import constants
 
 app_meta_fields = ["key", "application"]
 
@@ -484,7 +485,7 @@ def detect_anomalous_domain(
                     observation_data=observation_dict,
                     predicted_class=predicted_class_name,
                     predicted_proba=predicted_class_proba,
-                    top_n_features=5
+                    top_n_features=constants.TOP_FEATURES_COUNT
                 )
                 
                 # Save SHAP waterfall plot
@@ -540,7 +541,7 @@ def detect_anomalous_domain(
                 shap_values, _ = explainer.calculate_shap_values(
                     features_scaled, observation_index, predicted_class_index
                 )
-                top_features = explainer.get_top_features(shap_values, top_n=10)
+                top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
                 for feature_name, shap_value, feature_idx in top_features:
                     feature_value = features_scaled[observation_index, feature_idx]
                     explanation_json["top_features"].append({
@@ -729,7 +730,7 @@ def detect_anomalous_domain_with_custom_model(
                     observation_data=observation_dict,
                     predicted_class=predicted_class_name,
                     predicted_proba=predicted_class_proba,
-                    top_n_features=5
+                    top_n_features=constants.TOP_FEATURES_COUNT
                 )
                 
                 # Save SHAP waterfall plot
@@ -800,7 +801,7 @@ def detect_anomalous_domain_with_custom_model(
                 shap_values, _ = explainer.calculate_shap_values(
                     features_scaled, observation_index, predicted_class_index
                 )
-                top_features = explainer.get_top_features(shap_values, top_n=10)
+                top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
                 for feature_name, shap_value, feature_idx in top_features:
                     feature_value = features_scaled[observation_index, feature_idx]
                     explanation_json["top_features"].append({

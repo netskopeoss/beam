@@ -31,6 +31,8 @@ import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 
+from beam import constants
+
 
 # Feature groups for better explanation organization
 FEATURE_GROUPS = {
@@ -145,58 +147,48 @@ FEATURE_INTERPRETATIONS = {
     "burst_ratio": {
         "high_positive": "concentrated burst activity pattern",
         "high_negative": "evenly distributed activity",
-        "threshold": 0.5
     },
     "night_activity_ratio": {
         "high_positive": "unusual nighttime activity",
         "high_negative": "normal daytime activity pattern",
-        "threshold": 0.3
     },
     "interval_regularity": {
         "high_positive": "highly regular/automated timing pattern",
         "high_negative": "irregular human-like timing",
-        "threshold": 0.8
     },
     
     # Domain features
     "suspicious_domain_ratio": {
         "high_positive": "high ratio of suspicious domains",
         "high_negative": "mostly trusted domains",
-        "threshold": 0.1
     },
     "new_domain_ratio": {
         "high_positive": "high ratio of newly registered domains",
         "high_negative": "established domains only",
-        "threshold": 0.2
     },
     "external_domain_ratio": {
         "high_positive": "high ratio of external domain communication",
         "high_negative": "mostly internal domain communication",
-        "threshold": 0.5
     },
     
     # HTTP features
     "error_ratio": {
         "high_positive": "high error rate indicating issues",
         "high_negative": "low error rate indicating normal operation",
-        "threshold": 0.1
     },
     "automation_suspicion": {
         "high_positive": "patterns suggesting automated/bot behavior",
         "high_negative": "normal human interaction patterns",
-        "threshold": 0.5
     },
     
     # Content features
     "executable_ratio": {
         "high_positive": "high ratio of executable content",
         "high_negative": "minimal executable content",
-        "threshold": 0.05
     },
     "script_ratio": {
         "high_positive": "high ratio of script content",
         "high_negative": "minimal script content", 
-        "threshold": 0.1
     },
     
     # Traffic volume statistics
@@ -253,42 +245,34 @@ FEATURE_INTERPRETATIONS = {
     "cv_client_bytes": {
         "high_positive": "high upload size variability relative to mean",
         "high_negative": "low upload size variability",
-        "threshold": 0.5
     },
     "cv_server_bytes": {
         "high_positive": "high download size variability relative to mean",
         "high_negative": "low download size variability",
-        "threshold": 0.5
     },
     "skewness_client_bytes": {
         "high_positive": "upload sizes heavily skewed toward large values",
         "high_negative": "upload sizes skewed toward small values",
-        "threshold": 1.0
     },
     "skewness_server_bytes": {
         "high_positive": "download sizes heavily skewed toward large values",
         "high_negative": "download sizes skewed toward small values",
-        "threshold": 1.0
     },
     "kurtosis_client_bytes": {
         "high_positive": "extreme outliers in upload sizes",
         "high_negative": "upload sizes clustered around mean",
-        "threshold": 3.0
     },
     "kurtosis_server_bytes": {
         "high_positive": "extreme outliers in download sizes",
         "high_negative": "download sizes clustered around mean",
-        "threshold": 3.0
     },
     "outlier_ratio_client_bytes": {
         "high_positive": "high proportion of anomalous upload sizes",
         "high_negative": "all upload sizes within normal range",
-        "threshold": 0.05
     },
     "outlier_ratio_server_bytes": {
         "high_positive": "high proportion of anomalous download sizes",
         "high_negative": "all download sizes within normal range",
-        "threshold": 0.05
     },
     "mad_client_bytes": {
         "high_positive": "high median absolute deviation in upload sizes",
@@ -320,12 +304,10 @@ FEATURE_INTERPRETATIONS = {
     "interval_entropy": {
         "high_positive": "chaotic/random timing patterns",
         "high_negative": "predictable timing patterns",
-        "threshold": 2.0
     },
     "hour_entropy": {
         "high_positive": "activity spread across all hours",
         "high_negative": "activity concentrated in specific hours",
-        "threshold": 2.5
     },
     "avg_interval_sec": {
         "high_positive": "long average delay between requests",
@@ -335,290 +317,234 @@ FEATURE_INTERPRETATIONS = {
     "peak_hour_concentration": {
         "high_positive": "activity highly concentrated in peak hour",
         "high_negative": "activity evenly distributed across hours",
-        "threshold": 0.3
     },
     "cv_time_interval_sec": {
         "high_positive": "highly variable request timing",
         "high_negative": "consistent request timing",
-        "threshold": 0.5
     },
     "skewness_time_interval_sec": {
         "high_positive": "timing skewed toward long delays",
         "high_negative": "timing skewed toward rapid requests",
-        "threshold": 1.0
     },
     "kurtosis_time_interval_sec": {
         "high_positive": "extreme timing outliers present",
         "high_negative": "timing clustered around average",
-        "threshold": 3.0
     },
     "outlier_ratio_time_interval_sec": {
         "high_positive": "many unusual timing intervals",
         "high_negative": "consistent timing patterns",
-        "threshold": 0.05
     },
     
     # Domain characteristics
     "domain_cnt": {
         "high_positive": "communication with many different domains",
         "high_negative": "communication with few domains",
-        "threshold": 10
     },
     "domain_concentration": {
         "high_positive": "requests concentrated on few domains",
         "high_negative": "requests distributed across many domains",
-        "threshold": 5.0
     },
     "domain_entropy": {
         "high_positive": "high randomness in domain names",
         "high_negative": "predictable domain name patterns",
-        "threshold": 3.0
     },
     "domain_diversity": {
         "high_positive": "wide variety of unique domains",
         "high_negative": "limited domain diversity",
-        "threshold": 5
     },
     "suspicious_tld_ratio": {
         "high_positive": "high ratio of suspicious top-level domains",
         "high_negative": "standard TLDs only",
-        "threshold": 0.05
     },
     "avg_subdomain_depth": {
         "high_positive": "deep subdomain nesting on average",
         "high_negative": "simple domain structure",
-        "threshold": 2.0
     },
     "max_subdomain_depth": {
         "high_positive": "extremely deep subdomain detected",
         "high_negative": "no deep subdomains",
-        "threshold": 4
     },
     "cross_domain_ratio": {
         "high_positive": "high cross-domain request activity",
         "high_negative": "mostly same-origin requests",
-        "threshold": 0.3
     },
     "referrer_diversity": {
         "high_positive": "requests from many different referrers",
         "high_negative": "consistent referrer sources",
-        "threshold": 5
     },
     "avg_domain_length": {
         "high_positive": "unusually long domain names on average",
         "high_negative": "short domain names",
-        "threshold": 20
     },
     "max_domain_length": {
         "high_positive": "extremely long domain name detected",
         "high_negative": "all domains have normal length",
-        "threshold": 50
     },
     "numeric_domain_ratio": {
         "high_positive": "high ratio of numeric/IP-based domains",
         "high_negative": "standard alphabetic domains",
-        "threshold": 0.1
     },
     "tld_diversity": {
         "high_positive": "wide variety of top-level domains",
         "high_negative": "limited TLD diversity",
-        "threshold": 3
     },
     "internal_domain_count": {
         "high_positive": "many internal domain communications",
         "high_negative": "few internal domains",
-        "threshold": 5
     },
     "external_domain_count": {
         "high_positive": "many external domain communications",
         "high_negative": "few external domains",
-        "threshold": 10
     },
     "key_hostname_cnt": {
         "high_positive": "many key hostnames identified",
         "high_negative": "few key hostnames",
-        "threshold": 5
     },
     "referer_domain_cnt": {
         "high_positive": "requests from many referrer domains",
         "high_negative": "limited referrer domains",
-        "threshold": 3
     },
     
     # HTTP behavior
     "http_status_cnt": {
         "high_positive": "wide variety of HTTP status codes",
         "high_negative": "limited status code variety",
-        "threshold": 5
     },
     "http_method_cnt": {
         "high_positive": "many different HTTP methods used",
         "high_negative": "limited HTTP methods",
-        "threshold": 3
     },
     "redirect_ratio": {
         "high_positive": "high proportion of redirect responses",
         "high_negative": "few or no redirects",
-        "threshold": 0.1
     },
     "https_ratio": {
         "high_positive": "high HTTPS usage",
         "high_negative": "mostly unencrypted HTTP",
-        "threshold": 0.8
     },
     "http2_usage_ratio": {
         "high_positive": "high HTTP/2 protocol usage",
         "high_negative": "legacy HTTP versions",
-        "threshold": 0.5
     },
     "status_diversity": {
         "high_positive": "many different response status codes",
         "high_negative": "consistent status codes",
-        "threshold": 4
     },
     "method_diversity": {
         "high_positive": "varied HTTP methods in use",
         "high_negative": "limited HTTP method variety",
-        "threshold": 3
     },
     "http_version_diversity": {
         "high_positive": "multiple HTTP protocol versions",
         "high_negative": "single HTTP version",
-        "threshold": 2
     },
     "error_rate": {
         "high_positive": "high proportion of error responses",
         "high_negative": "few errors encountered",
-        "threshold": 0.05
     },
     "non_standard_method_ratio": {
         "high_positive": "unusual HTTP methods detected",
         "high_negative": "standard HTTP methods only",
-        "threshold": 0.01
     },
     "protocol_consistency": {
         "high_positive": "consistent protocol usage",
         "high_negative": "mixed protocol usage",
-        "threshold": 0.8
     },
     
     # Content type features
     "req_content_type_cnt": {
         "high_positive": "many request content types used",
         "high_negative": "consistent request content types",
-        "threshold": 3
     },
     "resp_content_type_cnt": {
         "high_positive": "many response content types",
         "high_negative": "consistent response content types",
-        "threshold": 5
     },
     "json_ratio": {
         "high_positive": "high proportion of JSON responses",
         "high_negative": "minimal JSON content",
-        "threshold": 0.3
     },
     "html_ratio": {
         "high_positive": "high proportion of HTML responses",
         "high_negative": "minimal HTML content",
-        "threshold": 0.5
     },
     "js_ratio": {
         "high_positive": "high proportion of JavaScript responses",
         "high_negative": "minimal JavaScript content",
-        "threshold": 0.2
     },
     "css_ratio": {
         "high_positive": "high proportion of CSS responses",
         "high_negative": "minimal CSS content",
-        "threshold": 0.1
     },
     "image_ratio": {
         "high_positive": "high proportion of image responses",
         "high_negative": "minimal image content",
-        "threshold": 0.2
     },
     "xml_ratio": {
         "high_positive": "high proportion of XML responses",
         "high_negative": "minimal XML content",
-        "threshold": 0.1
     },
     "content_type_diversity": {
         "high_positive": "wide variety of content types",
         "high_negative": "limited content type variety",
-        "threshold": 5
     },
     "content_type_mismatch_ratio": {
         "high_positive": "high content type mismatches detected",
         "high_negative": "content types match expectations",
-        "threshold": 0.05
     },
     "compression_usage_ratio": {
         "high_positive": "high compression usage",
         "high_negative": "minimal compression used",
-        "threshold": 0.5
     },
     "avg_compression_ratio": {
         "high_positive": "high average compression efficiency",
         "high_negative": "poor compression efficiency",
-        "threshold": 0.7
     },
     "response_size_entropy": {
         "high_positive": "high variety in response sizes",
         "high_negative": "consistent response sizes",
-        "threshold": 2.0
     },
     "json_response_ratio": {
         "high_positive": "high proportion of JSON responses",
         "high_negative": "minimal JSON responses",
-        "threshold": 0.3
     },
     "html_response_ratio": {
         "high_positive": "high proportion of HTML responses",
         "high_negative": "minimal HTML responses",
-        "threshold": 0.5
     },
     
     # User agent features
     "ua_diversity": {
         "high_positive": "many different user agents",
         "high_negative": "consistent user agent usage",
-        "threshold": 5
     },
     "ua_entropy": {
         "high_positive": "high randomness in user agent strings",
         "high_negative": "predictable user agent patterns",
-        "threshold": 3.0
     },
     "bot_ratio": {
         "high_positive": "high proportion of bot/automated traffic",
         "high_negative": "minimal bot activity",
-        "threshold": 0.1
     },
     "suspicious_ua_ratio": {
         "high_positive": "high ratio of suspicious user agents",
         "high_negative": "normal user agent patterns",
-        "threshold": 0.05
     },
     "ua_consistency": {
         "high_positive": "consistent user agent usage",
         "high_negative": "highly varied user agents",
-        "threshold": 0.8
     },
     "chrome_ratio": {
         "high_positive": "high proportion of Chrome user agents",
         "high_negative": "minimal Chrome usage",
-        "threshold": 0.5
     },
     "firefox_ratio": {
         "high_positive": "high proportion of Firefox user agents",
         "high_negative": "minimal Firefox usage",
-        "threshold": 0.2
     },
     "safari_ratio": {
         "high_positive": "high proportion of Safari user agents",
         "high_negative": "minimal Safari usage",
-        "threshold": 0.2
     },
     
     # Response characteristics
@@ -655,22 +581,18 @@ FEATURE_INTERPRETATIONS = {
     "cv_time_taken_ms": {
         "high_positive": "high response time variability",
         "high_negative": "consistent response times",
-        "threshold": 0.5
     },
     "skewness_time_taken_ms": {
         "high_positive": "response times skewed toward slow values",
         "high_negative": "response times skewed toward fast values",
-        "threshold": 1.0
     },
     "kurtosis_time_taken_ms": {
         "high_positive": "extreme response time outliers",
         "high_negative": "response times clustered around average",
-        "threshold": 3.0
     },
     "outlier_ratio_time_taken_ms": {
         "high_positive": "many unusual response times",
         "high_negative": "consistent response timing",
-        "threshold": 0.05
     },
     "mad_time_taken_ms": {
         "high_positive": "high response time deviation from median",
@@ -680,155 +602,126 @@ FEATURE_INTERPRETATIONS = {
     "robust_cv_time_taken_ms": {
         "high_positive": "robust high response time variability",
         "high_negative": "robust consistent response times",
-        "threshold": 0.3
     },
     
     # Network topology features
     "url_entropy": {
         "high_positive": "high randomness in URL patterns",
         "high_negative": "predictable URL structures",
-        "threshold": 3.0
     },
     "avg_url_length": {
         "high_positive": "unusually long URLs on average",
         "high_negative": "short URLs",
-        "threshold": 100
     },
     "avg_path_depth": {
         "high_positive": "deep URL path nesting",
         "high_negative": "shallow URL paths",
-        "threshold": 3.0
     },
     "path_depth_variance": {
         "high_positive": "highly variable URL path depths",
         "high_negative": "consistent URL path depths",
-        "threshold": 2.0
     },
     "ip_diversity": {
         "high_positive": "many different source IP addresses",
         "high_negative": "consistent source IPs",
-        "threshold": 5
     },
     "private_ip_ratio": {
         "high_positive": "high proportion of private IP addresses",
         "high_negative": "mostly public IP addresses",
-        "threshold": 0.8
     },
     "cdn_usage_ratio": {
         "high_positive": "high CDN usage",
         "high_negative": "minimal CDN usage",
-        "threshold": 0.3
     },
     "thirdparty_service_ratio": {
         "high_positive": "high third-party service usage",
         "high_negative": "minimal third-party services",
-        "threshold": 0.2
     },
     "dependency_complexity": {
         "high_positive": "high dependency complexity",
         "high_negative": "simple dependency structure",
-        "threshold": 10
     },
     
     # Security indicators
     "mixed_content_risk": {
         "high_positive": "high mixed content security risk",
         "high_negative": "no mixed content issues",
-        "threshold": 0.1
     },
     "cert_chain_depth_estimate": {
         "high_positive": "complex certificate chain structure",
         "high_negative": "simple certificate chain",
-        "threshold": 2.0
     },
     "secure_transport_ratio": {
         "high_positive": "high secure transport usage",
         "high_negative": "mostly insecure transport",
-        "threshold": 0.8
     },
     "referer_present_ratio": {
         "high_positive": "referrer headers usually present",
         "high_negative": "referrer headers often missing",
-        "threshold": 0.5
     },
     "same_origin_referer_ratio": {
         "high_positive": "high same-origin referrer usage",
         "high_negative": "mostly cross-origin referrers",
-        "threshold": 0.7
     },
     "api_endpoint_ratio": {
         "high_positive": "high API endpoint usage",
         "high_negative": "minimal API endpoint usage",
-        "threshold": 0.3
     },
     
     # Sequence patterns
     "sequence_num_keys": {
         "high_positive": "many different sequence patterns",
         "high_negative": "few sequence patterns",
-        "threshold": 5
     },
     "sequence_max_key_length": {
         "high_positive": "very long sequence patterns",
         "high_negative": "short sequence patterns",
-        "threshold": 10
     },
     "sequence_min_key_length": {
         "high_positive": "long minimum sequence patterns",
         "high_negative": "very short sequence patterns",
-        "threshold": 2
     },
     "sequence_max_val": {
         "high_positive": "high maximum sequence frequency",
         "high_negative": "low maximum sequence frequency",
-        "threshold": 100
     },
     "sequence_min_val": {
         "high_positive": "high minimum sequence frequency",
         "high_negative": "very low sequence frequencies",
-        "threshold": 5
     },
     "sequence_sum_val": {
         "high_positive": "high total sequence activity",
         "high_negative": "low total sequence activity",
-        "threshold": 500
     },
     "sequence_avg_val": {
         "high_positive": "high average sequence frequency",
         "high_negative": "low average sequence frequency",
-        "threshold": 50
     },
     "sequence_std_val": {
         "high_positive": "high sequence frequency variability",
         "high_negative": "consistent sequence frequencies",
-        "threshold": 30
     },
     "sequence_median_val": {
         "high_positive": "high median sequence frequency",
         "high_negative": "low median sequence frequency",
-        "threshold": 20
     },
     "sequence_range_val": {
         "high_positive": "wide sequence frequency range",
         "high_negative": "narrow sequence frequency range",
-        "threshold": 100
     },
     "unique_actions": {
         "high_positive": "many different action types",
         "high_negative": "few action types",
-        "threshold": 5
     },
     
     # Aggregate metrics
     "transactions": {
         "high_positive": "high transaction volume",
         "high_negative": "low transaction volume",
-        "threshold": 100
     },
     "request_count": {
         "high_positive": "high request count",
         "high_negative": "low request count",
-        "threshold": 50
     },
     "range_timestamp": {
         "high_positive": "activity over long time period",
@@ -838,17 +731,14 @@ FEATURE_INTERPRETATIONS = {
     "cloud_traffic_pct": {
         "high_positive": "high proportion of cloud traffic",
         "high_negative": "minimal cloud traffic",
-        "threshold": 50.0
     },
     "web_traffic_pct": {
         "high_positive": "high proportion of web traffic",
         "high_negative": "minimal web traffic",
-        "threshold": 50.0
     },
     "refered_traffic_pct": {
         "high_positive": "high proportion of referred traffic",
         "high_negative": "minimal referred traffic",
-        "threshold": 30.0
     }
 }
 
@@ -909,13 +799,16 @@ class ModelExplainer:
 
         return shap_values_for_class, base_value
         
-    def get_top_features(self, shap_values: NDArray, top_n: int = 10) -> List[Tuple[str, float, float]]:
+    def get_top_features(self, shap_values: NDArray, top_n: int = None) -> List[Tuple[str, float, float]]:
         """
         Get top features by absolute SHAP value
         
         Returns:
             List of tuples (feature_name, shap_value, feature_value)
         """
+        if top_n is None:
+            top_n = constants.TOP_FEATURES_COUNT
+            
         # Get absolute values for ranking
         abs_shap_values = np.abs(shap_values)
         top_indices = np.argsort(abs_shap_values)[0][-top_n:][::-1]
@@ -966,18 +859,15 @@ class ModelExplainer:
                         interpretation = interp.get("high_negative", f"low {feature_name}")
                     context = f" ({feature_value:,.0f} {interp['unit']})"
             else:
-                # For threshold-based features
+                # For non-unit features, use SHAP value direction to determine interpretation
                 if shap_value > 0:
                     interpretation = interp.get("high_positive", f"high {feature_name}")
                 else:
                     interpretation = interp.get("high_negative", f"low {feature_name}")
                 
-                # Add quantitative context if available
-                if "threshold" in interp and not np.isnan(feature_value):
-                    if feature_value > interp["threshold"]:
-                        context = f" ({feature_value:.2f}, above threshold {interp['threshold']})"
-                    else:
-                        context = f" ({feature_value:.2f})"
+                # Add quantitative context with just the value
+                if not np.isnan(feature_value):
+                    context = f" ({feature_value:.2f})"
                 else:
                     context = ""
                 
@@ -993,7 +883,7 @@ class ModelExplainer:
                                 observation_data: Dict[str, Any],
                                 predicted_class: str,
                                 predicted_proba: float,
-                                top_n_features: int = 5) -> str:
+                                top_n_features: int = None) -> str:
         """
         Generate a human-readable text explanation for the prediction
         
@@ -1011,6 +901,9 @@ class ModelExplainer:
 
         if predicted_class == 0:
             return ""
+
+        if top_n_features is None:
+            top_n_features = constants.TOP_FEATURES_COUNT
 
         # Get application and domain info
         application = observation_data.get("application", "Unknown")
@@ -1068,7 +961,7 @@ class ModelExplainer:
         # Add key factors to explanation
         if key_factors:
             explanation_parts.append("\nKey indicators:")
-            for i, factor in enumerate(key_factors[:3], 1):  # Limit to top 3 groups
+            for i, factor in enumerate(key_factors[:10], 1):  # Show top 10 groups
                 explanation_parts.append(f"{i}. {factor}")
         
         # Add contextual summary

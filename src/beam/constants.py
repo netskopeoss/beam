@@ -74,3 +74,6 @@ USE_LOCAL_LLM = environ.get("USE_LOCAL_LLM", "false").lower() == "true"
 
 MIN_APP_TRANSACTIONS = 100
 MIN_DOMAIN_TRANSACTION = 5
+
+# SHAP explanation configuration
+TOP_FEATURES_COUNT = int(environ.get("BEAM_TOP_FEATURES_COUNT", "20"))
