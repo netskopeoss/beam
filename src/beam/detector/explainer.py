@@ -958,11 +958,7 @@ class ModelExplainer:
                     else:
                         interpretation = f"zero {feature_name}"
                     context = f" ({feature_value:,.0f} {interp['unit']})"
-                    # Debug print to see if this branch is taken
-                    print(f"DEBUG: Zero value detected for {feature_name}, using: {interpretation}{context}")
                 else:
-                    # Debug print to see if this branch is taken instead
-                    print(f"DEBUG: Non-zero value {feature_value} for {feature_name}, using standard interpretation")
                     # Use standard interpretation based on SHAP value direction
                     if shap_value > 0:
                         interpretation = interp.get("high_positive", f"high {feature_name}")
