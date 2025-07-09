@@ -230,6 +230,57 @@ def display_demo_results(
     )
 
 
+def get_risk_level_from_probability(probability: float) -> tuple[str, str]:
+    """
+    Determine risk level and emoji based on ML model probability.
+    
+    Args:
+        probability: ML model probability (0.0 to 1.0)
+        
+    Returns:
+        Tuple of (risk_level, emoji)
+    """
+    if probability >= 0.95:
+        return "CRITICAL", "🔥"
+    elif probability >= 0.85:
+        return "HIGH", "🔥"
+    elif probability >= 0.70:
+        return "MEDIUM", "⚠️"
+    elif probability >= 0.50:
+        return "LOW", "💛"
+    else:
+        return "MINIMAL", "✅"
+
+
+def get_prediction_probability(prediction_dir: Path, domain: str) -> float:
+    """
+    Extract prediction probability from prediction directory.
+    
+    Args:
+        prediction_dir: Directory containing prediction outputs
+        domain: Domain to look for
+        
+    Returns:
+        Prediction probability (0.0 to 1.0)
+    """
+    if not prediction_dir or not prediction_dir.exists():
+        return 0.0
+        
+    # Search for prediction files containing the domain
+    for subdir in prediction_dir.iterdir():
+        if subdir.is_dir() and domain in subdir.name:
+            explanation_json = subdir / 'explanation.json'
+            if explanation_json.exists():
+                try:
+                    import json
+                    with open(explanation_json, 'r') as f:
+                        data = json.load(f)
+                        return float(data.get('probability', 0.0))
+                except Exception:
+                    pass
+    return 0.0
+
+
 def display_security_insights(critical_insights: list, prediction_dir: Path = None) -> None:
     """
     Display security insights and supply chain compromise details.
@@ -240,29 +291,34 @@ def display_security_insights(critical_insights: list, prediction_dir: Path = No
     """
     print("🚨 SECURITY INSIGHTS DETECTED:")
     if critical_insights:
-        # Check if we have the specific supply chain compromise
-        supply_chain_compromise = None
+        # Find the highest severity insight
+        highest_severity_insight = None
+        highest_probability = 0.0
+        
         for insight in critical_insights:
-            if "xqpt5z.dagmawi.io" in insight["domain"]:
-                supply_chain_compromise = insight
-                break
+            # Get prediction probability for this domain
+            probability = get_prediction_probability(prediction_dir, insight["domain"])
+            if probability > highest_probability:
+                highest_probability = probability
+                highest_severity_insight = insight
 
-        # If we found the supply chain compromise, explain it clearly
-        if supply_chain_compromise:
+        # Display the most critical finding with dynamic risk level
+        if highest_severity_insight:
+            risk_level, emoji = get_risk_level_from_probability(highest_probability)
             print()
-            print("🔥 CRITICAL SUPPLY CHAIN COMPROMISE DETECTED!")
+            print(f"{emoji} {risk_level} RISK SUPPLY CHAIN COMPROMISE DETECTED!")
             print("=" * 60)
             print("📋 WHAT HAPPENED:")
             print(
                 "   The Box application is communicating with an unauthorized server:"
             )
-            print(f"   • Suspicious domain: {supply_chain_compromise['domain']}")
+            print(f"   • Suspicious domain: {highest_severity_insight['domain']}")
             print("   • Expected behavior: Box should only talk to *.box.com servers")
             print("   • Actual behavior: Box is sending data to an unknown domain")
             print()
             print("🔍 WHAT OUR ANALYSIS FOUND:")
             # Show the ML model explanation directly from the insights
-            details = supply_chain_compromise.get("details", "")
+            details = highest_severity_insight.get("details", "")
             if details:
                 # Split the details into lines and format for display
                 lines = details.split('\n')
@@ -301,7 +357,7 @@ def display_overall_assessment(analysis: dict) -> None:
     """
     # Show overall assessment
     risk_level = analysis["risk_assessment"]["overall_risk_level"]
-    risk_emoji = {"HIGH": "🔥", "MEDIUM": "⚠️", "LOW": "💛", "MINIMAL": "✅"}.get(
+    risk_emoji = {"CRITICAL": "🔥", "HIGH": "🔥", "MEDIUM": "⚠️", "LOW": "💛", "MINIMAL": "✅"}.get(
         risk_level, "❓"
     )
 

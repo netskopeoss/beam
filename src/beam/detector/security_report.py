@@ -304,57 +304,99 @@ class SecurityAnalysisReport:
         return insights
 
     def _assess_overall_risk(self, summaries: List[Dict]) -> Dict:
-        """Assess overall security risk level."""
+        """Assess overall security risk level based on ML explanations."""
         risk_factors = []
+        
+        # Generate ML-based security insights first
+        ml_insights = self._generate_security_insights(summaries)
+        
+        # Count applications with detected issues from ML analysis
+        applications_with_issues = 0
+        
+        # Derive risk factors from ML insights
+        for insight in ml_insights:
+            if insight["severity"] == "HIGH":
+                # Extract meaningful risk factors from ML analysis
+                if "supply chain" in insight["type"].lower():
+                    risk_factors.append(("Supply chain compromise detected", "HIGH"))
+                elif "anomalous" in insight["type"].lower():
+                    risk_factors.append(("Anomalous behavior patterns detected", "HIGH"))
+                else:
+                    risk_factors.append((f"{insight['type']} detected", "HIGH"))
+                applications_with_issues += 1
+            elif insight["severity"] == "MEDIUM":
+                risk_factors.append((f"{insight['type']} detected", "MEDIUM"))
+                applications_with_issues += 1
 
-        # Automation suspicion
-        max_automation = max(
-            [s.get("automation_suspicion", 0) for s in summaries], default=0
-        )
-        if max_automation > 10:
-            risk_factors.append(("High automation suspicion detected", "HIGH"))
-        elif max_automation > 5:
-            risk_factors.append(("Moderate automation suspicion detected", "MEDIUM"))
+        # If no ML insights available, fall back to basic feature analysis
+        if not risk_factors:
+            # Basic automation detection
+            max_automation = max(
+                [s.get("automation_suspicion", 0) for s in summaries], default=0
+            )
+            if max_automation > 10:
+                risk_factors.append(("High automation patterns detected", "HIGH"))
+            elif max_automation > 5:
+                risk_factors.append(("Moderate automation patterns detected", "MEDIUM"))
 
-        # Suspicious domains
-        max_suspicious = max(
-            [s.get("suspicious_domain_ratio", 0) for s in summaries], default=0
-        )
-        if max_suspicious > 0.7:
-            risk_factors.append(("High suspicious domain ratio", "HIGH"))
-        elif max_suspicious > 0.3:
-            risk_factors.append(("Moderate suspicious domain activity", "MEDIUM"))
+            # Basic protocol security
+            min_https = min([s.get("https_ratio", 1) for s in summaries], default=1)
+            if min_https < 0.8:
+                risk_factors.append(("Poor HTTPS adoption", "MEDIUM"))
 
-        # Protocol security
-        min_https = min([s.get("https_ratio", 1) for s in summaries], default=1)
-        if min_https < 0.8:
-            risk_factors.append(("Poor HTTPS adoption", "MEDIUM"))
-
-        # Overall risk assessment
-        high_risks = len([r for r in risk_factors if r[1] == "HIGH"])
-        medium_risks = len([r for r in risk_factors if r[1] == "MEDIUM"])
-
-        if high_risks > 0:
-            overall_risk = "HIGH"
-        elif medium_risks > 1:
-            overall_risk = "MEDIUM"
-        elif medium_risks > 0:
-            overall_risk = "LOW"
+        # Overall risk assessment - use highest prediction probability if available
+        overall_risk = "MINIMAL"
+        
+        # Check if we have prediction probabilities to base the assessment on
+        if hasattr(self, 'prediction_dir') and self.prediction_dir and self.prediction_dir.exists():
+            max_probability = 0.0
+            for subdir in self.prediction_dir.iterdir():
+                if subdir.is_dir():
+                    explanation_json = subdir / 'explanation.json'
+                    if explanation_json.exists():
+                        try:
+                            import json
+                            with open(explanation_json, 'r') as f:
+                                data = json.load(f)
+                                probability = float(data.get('probability', 0.0))
+                                if probability > max_probability:
+                                    max_probability = probability
+                        except Exception:
+                            pass
+            
+            # Set overall risk based on highest prediction probability
+            if max_probability >= 0.95:
+                overall_risk = "CRITICAL"
+            elif max_probability >= 0.85:
+                overall_risk = "HIGH"
+            elif max_probability >= 0.70:
+                overall_risk = "MEDIUM"
+            elif max_probability >= 0.50:
+                overall_risk = "LOW"
+            else:
+                overall_risk = "MINIMAL"
         else:
-            overall_risk = "MINIMAL"
+            # Fallback to risk factor counting if no predictions available
+            high_risks = len([r for r in risk_factors if r[1] == "HIGH"])
+            medium_risks = len([r for r in risk_factors if r[1] == "MEDIUM"])
+            critical_risks = len([r for r in risk_factors if r[1] == "CRITICAL"])
+
+            if critical_risks > 0:
+                overall_risk = "CRITICAL"
+            elif high_risks > 0:
+                overall_risk = "HIGH"
+            elif medium_risks > 1:
+                overall_risk = "MEDIUM"
+            elif medium_risks > 0:
+                overall_risk = "LOW"
+            else:
+                overall_risk = "MINIMAL"
 
         return {
             "overall_risk_level": overall_risk,
             "risk_factors": risk_factors,
             "total_applications": len(summaries),
-            "applications_with_issues": len(
-                [
-                    s
-                    for s in summaries
-                    if s.get("automation_suspicion", 0) > 1
-                    or s.get("suspicious_domain_ratio", 0) > 0.1
-                ]
-            ),
+            "applications_with_issues": applications_with_issues,
         }
 
     # Interpretation methods
