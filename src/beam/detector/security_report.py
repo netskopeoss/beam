@@ -36,8 +36,9 @@ class SecurityAnalysisReport:
     Generates human-readable security analysis reports from BEAM feature data.
     """
 
-    def __init__(self):
+    def __init__(self, prediction_dir: Path = None):
         self.logger = logging.getLogger(__name__)
+        self.prediction_dir = prediction_dir
 
         # Thresholds for security analysis
         self.thresholds = {
@@ -245,78 +246,60 @@ class SecurityAnalysisReport:
         }
 
     def _generate_security_insights(self, summaries: List[Dict]) -> List[Dict]:
-        """Generate specific security insights and alerts."""
+        """Generate security insights from ModelExplainer explanations."""
         insights = []
 
-        for summary in summaries:
-            app_name = summary.get("application", "Unknown")
-            key = summary.get("key", "Unknown")
-            domain = summary.get("domain", "")
-
-            # Check for automation suspicion
-            automation_suspicion = summary.get("automation_suspicion", 0)
-            if automation_suspicion > self.thresholds["automation_suspicion"]:
-                insights.append(
-                    {
-                        "type": "Supply Chain Compromise",
-                        "severity": "HIGH",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Extremely high automation suspicion ({float(automation_suspicion):.1f}), indicating very regular request timing patterns typical of automated attacks.",
-                        "metric": "automation_suspicion",
-                        "value": automation_suspicion,
-                    }
-                )
-
-            # Check for suspicious domains
-            suspicious_ratio = summary.get("suspicious_domain_ratio", 0)
-            if suspicious_ratio > self.thresholds["suspicious_domain_ratio"]:
-                insights.append(
-                    {
-                        "type": "Suspicious Infrastructure",
-                        "severity": "MEDIUM" if suspicious_ratio < 0.7 else "HIGH",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Suspicious domain patterns detected (ratio: {float(suspicious_ratio):.1f}), flagging potential infrastructure issues.",
-                        "metric": "suspicious_domain_ratio",
-                        "value": suspicious_ratio,
-                    }
-                )
-
-            # Check for cross-domain patterns
-            same_origin_ratio = summary.get("same_origin_referer_ratio", 1.0)
-            cross_domain_ratio = summary.get("cross_domain_ratio", 0)
-            if cross_domain_ratio > 0.5:
-                insights.append(
-                    {
-                        "type": "Cross-Domain Patterns",
-                        "severity": "LOW",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"High cross-domain activity (ratio: {float(cross_domain_ratio):.2f}), same-origin referrers: {float(same_origin_ratio):.2f}",
-                        "metric": "cross_domain_ratio",
-                        "value": cross_domain_ratio,
-                    }
-                )
-
-            # Check for bot activity
-            bot_ratio = summary.get("bot_ratio", 0)
-            if bot_ratio > self.thresholds["bot_ratio"]:
-                insights.append(
-                    {
-                        "type": "Bot Activity",
-                        "severity": "MEDIUM",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Bot signatures detected in {float(bot_ratio) * 100:.1f}% of requests.",
-                        "metric": "bot_ratio",
-                        "value": bot_ratio,
-                    }
-                )
+        # Load ML explanations from prediction directory if available
+        if hasattr(self, 'prediction_dir') and self.prediction_dir and self.prediction_dir.exists():
+            try:
+                for subdir in self.prediction_dir.iterdir():
+                    if subdir.is_dir():
+                        explanation_txt = subdir / "explanation.txt"
+                        if explanation_txt.exists():
+                            try:
+                                with open(explanation_txt, 'r') as f:
+                                    explanation_text = f.read().strip()
+                                
+                                # Extract domain from directory name (format: index_app_domain)
+                                dir_parts = subdir.name.split('_')
+                                if len(dir_parts) >= 3:
+                                    app_name = dir_parts[1]
+                                    domain = '_'.join(dir_parts[2:]).replace('_on_', ' on ').split(' on ')[0]
+                                    
+                                    # Extract probability from explanation text
+                                    probability = 0.0
+                                    if 'probability:' in explanation_text:
+                                        try:
+                                            prob_text = explanation_text.split('probability:')[1].split(')')[0].strip()
+                                            probability = float(prob_text.replace('%', '')) / 100.0
+                                        except:
+                                            probability = 0.0
+                                    
+                                    # Determine severity based on probability
+                                    if probability >= 0.95:
+                                        severity = "HIGH"
+                                    elif probability >= 0.8:
+                                        severity = "MEDIUM"
+                                    else:
+                                        severity = "LOW"
+                                    
+                                    insights.append({
+                                        "type": "Supply Chain Compromise",
+                                        "severity": severity,
+                                        "application": app_name,
+                                        "domain": domain,
+                                        "key": f"{app_name} - {domain}",
+                                        "details": explanation_text,
+                                        "metric": "ml_prediction",
+                                        "value": probability,
+                                        "source": "ml_model"
+                                    })
+                            except Exception as e:
+                                # Continue if we can't parse this explanation
+                                continue
+            except Exception as e:
+                # If we can't access the prediction directory, return empty insights
+                pass
 
         return insights
 
@@ -696,6 +679,6 @@ def generate_security_report(summaries: List[Dict], prediction_dir: Optional[Pat
     Returns:
         str: Formatted security analysis report
     """
-    analyzer = SecurityAnalysisReport()
+    analyzer = SecurityAnalysisReport(prediction_dir)
     analysis = analyzer.analyze_security_features(summaries, prediction_dir)
     return analyzer.format_security_report(analysis)

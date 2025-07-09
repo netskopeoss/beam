@@ -7,11 +7,13 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-# Make MultiHotEncoder available in __main__ context for pickle loading
-import __main__
 from beam import constants
 from beam.detector import features, utils
 from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
+
+# Make MultiHotEncoder available in __main__ module for pickle loading
+import __main__
+__main__.MultiHotEncoder = MultiHotEncoder
 from beam.detector.security_report import generate_security_report
 from beam.enrich import enrich_events
 from beam.parser import har
@@ -207,7 +209,7 @@ def display_demo_results(
     else:
         summaries = summaries_data
 
-    analyzer = SecurityAnalysisReport()
+    analyzer = SecurityAnalysisReport(prediction_dir)
     analysis = analyzer.analyze_security_features(summaries, prediction_dir)
 
     # Show key findings
@@ -259,50 +261,33 @@ def display_security_insights(critical_insights: list, prediction_dir: Path = No
             print("   • Actual behavior: Box is sending data to an unknown domain")
             print()
             print("🔍 WHAT OUR ANALYSIS FOUND:")
-            print("   • Regular, automated communication pattern (every 5 seconds)")
-            print("   • Not normal user behavior - this is programmatic")
-            print("   • High automation score (22.2) indicates malicious bot activity")
+            # Show the ML model explanation directly from the insights
+            details = supply_chain_compromise.get("details", "")
+            if details:
+                # Split the details into lines and format for display
+                lines = details.split('\n')
+                for line in lines:
+                    if line.strip():
+                        print(f"   {line}")
+            else:
+                print("   • Analysis details not available")
             print()
             print("⚠️  WHAT THIS MEANS:")
             print("   This is likely malicious code injected into the Box application")
             print("   that is stealing data or establishing a backdoor connection.")
             print("   This type of attack is called a 'supply chain compromise'")
             
-            # Try to load and display SHAP-based explanation if available
-            if prediction_dir and prediction_dir.exists():
-                try:
-                    # Find the prediction subdirectory for this domain
-                    for subdir in prediction_dir.iterdir():
-                        if subdir.is_dir():
-                            explanation_file = subdir / "explanation.txt"
-                            if explanation_file.exists():
-                                with open(explanation_file, 'r') as f:
-                                    shap_explanation = f.read()
-                                
-                                print()
-                                print("🤖 AI MODEL EXPLANATION:")
-                                print("-" * 60)
-                                # Display the first part of the explanation
-                                lines = shap_explanation.strip().split('\n')
-                                for line in lines[:10]:  # Show first 10 lines
-                                    if line.strip():
-                                        print(f"   {line}")
-                                print("-" * 60)
-                                break
-                except Exception as e:
-                    # Silently continue if we can't read the explanation
-                    pass
             print("   where legitimate software is modified to include malicious code.")
             print("=" * 60)
             print()
-
-        # Show all insights
-        for insight in critical_insights:
-            severity_emoji = "🔥" if insight["severity"] == "HIGH" else "⚠️"
-            print(f"   {severity_emoji} [{insight['severity']}] {insight['type']}")
-            print(f"      Domain: {insight['domain']}")
-            print(f"      Technical details: {insight['details']}")
-            print()
+        else:
+            # Show all insights if no specific supply chain compromise found
+            for insight in critical_insights:
+                severity_emoji = "🔥" if insight["severity"] == "HIGH" else "⚠️"
+                print(f"   {severity_emoji} [{insight['severity']}] {insight['type']}")
+                print(f"      Domain: {insight['domain']}")
+                print(f"      Technical details: {insight['details']}")
+                print()
     else:
         print("   ✅ No critical security issues detected")
 

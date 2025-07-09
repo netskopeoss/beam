@@ -197,6 +197,11 @@ def load_domain_model(domain_model_path: Path) -> Tuple[Set, Dict]:
         Tuple[set, dict]: A set of apps and a dictionary of models.
     """
     try:
+        # Make MultiHotEncoder available in __main__ module for pickle loading
+        import __main__
+        if not hasattr(__main__, 'MultiHotEncoder'):
+            __main__.MultiHotEncoder = MultiHotEncoder
+        
         with open(domain_model_path, "rb") as _file:
             # Suppress sklearn warnings during model loading
             import warnings

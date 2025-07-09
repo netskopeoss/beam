@@ -947,22 +947,43 @@ class ModelExplainer:
         if feature_name in FEATURE_INTERPRETATIONS:
             interp = FEATURE_INTERPRETATIONS[feature_name]
             
-            # Determine if this is a high positive or negative contribution
-            if shap_value > 0:
-                interpretation = interp.get("high_positive", f"high {feature_name}")
-            else:
-                interpretation = interp.get("high_negative", f"low {feature_name}")
-                
-            # Add quantitative context if available
-            if "threshold" in interp and not np.isnan(feature_value):
-                if feature_value > interp["threshold"]:
-                    context = f" ({feature_value:.2f}, above threshold {interp['threshold']})"
+            # For features with units (bytes, milliseconds, etc.), check if the value makes sense
+            if "unit" in interp and not np.isnan(feature_value):
+                # Special handling for zero or near-zero values
+                if abs(feature_value) < 1e-3:
+                    if "bytes" in interp["unit"]:
+                        interpretation = f"no data transfer detected"
+                    elif "milliseconds" in interp["unit"] or "seconds" in interp["unit"]:
+                        interpretation = f"instantaneous or missing response time"
+                    else:
+                        interpretation = f"zero {feature_name}"
+                    context = f" ({feature_value:,.0f} {interp['unit']})"
+                    # Debug print to see if this branch is taken
+                    print(f"DEBUG: Zero value detected for {feature_name}, using: {interpretation}{context}")
                 else:
-                    context = f" ({feature_value:.2f})"
-            elif "unit" in interp and not np.isnan(feature_value):
-                context = f" ({feature_value:,.0f} {interp['unit']})"
+                    # Debug print to see if this branch is taken instead
+                    print(f"DEBUG: Non-zero value {feature_value} for {feature_name}, using standard interpretation")
+                    # Use standard interpretation based on SHAP value direction
+                    if shap_value > 0:
+                        interpretation = interp.get("high_positive", f"high {feature_name}")
+                    else:
+                        interpretation = interp.get("high_negative", f"low {feature_name}")
+                    context = f" ({feature_value:,.0f} {interp['unit']})"
             else:
-                context = ""
+                # For threshold-based features
+                if shap_value > 0:
+                    interpretation = interp.get("high_positive", f"high {feature_name}")
+                else:
+                    interpretation = interp.get("high_negative", f"low {feature_name}")
+                
+                # Add quantitative context if available
+                if "threshold" in interp and not np.isnan(feature_value):
+                    if feature_value > interp["threshold"]:
+                        context = f" ({feature_value:.2f}, above threshold {interp['threshold']})"
+                    else:
+                        context = f" ({feature_value:.2f})"
+                else:
+                    context = ""
                 
             return f"{interpretation}{context} {impact_direction} anomaly score"
         else:

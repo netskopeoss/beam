@@ -303,7 +303,7 @@ def run_detection(
         # Extract key insights for console display
         from beam.detector.security_report import SecurityAnalysisReport
 
-        analyzer = SecurityAnalysisReport()
+        analyzer = SecurityAnalysisReport(prediction_dir)
         analysis = analyzer.analyze_security_features(summaries)
 
         # Show critical insights
