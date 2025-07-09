@@ -508,6 +508,114 @@ FEATURE_INTERPRETATIONS = {
         "high_positive": "high proportion of JSON responses",
         "high_negative": "minimal JSON responses",
     },
+    
+    # Missing percentile features for client bytes
+    "p25_client_bytes": {
+        "high_positive": "high 25th percentile upload size",
+        "high_negative": "low 25th percentile upload size",
+        "unit": "bytes"
+    },
+    "p75_client_bytes": {
+        "high_positive": "high 75th percentile upload size",
+        "high_negative": "low 75th percentile upload size",
+        "unit": "bytes"
+    },
+    "p90_client_bytes": {
+        "high_positive": "high 90th percentile upload size",
+        "high_negative": "low 90th percentile upload size",
+        "unit": "bytes"
+    },
+    "p95_client_bytes": {
+        "high_positive": "high 95th percentile upload size",
+        "high_negative": "low 95th percentile upload size",
+        "unit": "bytes"
+    },
+    "p99_client_bytes": {
+        "high_positive": "high 99th percentile upload size",
+        "high_negative": "low 99th percentile upload size",
+        "unit": "bytes"
+    },
+    "iqr_client_bytes": {
+        "high_positive": "high interquartile range in upload sizes",
+        "high_negative": "low interquartile range in upload sizes",
+        "unit": "bytes"
+    },
+    
+    # Missing percentile features for server bytes
+    "p25_server_bytes": {
+        "high_positive": "high 25th percentile download size",
+        "high_negative": "low 25th percentile download size",
+        "unit": "bytes"
+    },
+    "p75_server_bytes": {
+        "high_positive": "high 75th percentile download size",
+        "high_negative": "low 75th percentile download size",
+        "unit": "bytes"
+    },
+    "p90_server_bytes": {
+        "high_positive": "high 90th percentile download size",
+        "high_negative": "low 90th percentile download size",
+        "unit": "bytes"
+    },
+    "p95_server_bytes": {
+        "high_positive": "high 95th percentile download size",
+        "high_negative": "low 95th percentile download size",
+        "unit": "bytes"
+    },
+    "p99_server_bytes": {
+        "high_positive": "high 99th percentile download size",
+        "high_negative": "low 99th percentile download size",
+        "unit": "bytes"
+    },
+    "iqr_server_bytes": {
+        "high_positive": "high interquartile range in download sizes",
+        "high_negative": "low interquartile range in download sizes",
+        "unit": "bytes"
+    },
+    
+    # Missing percentile features for time taken
+    "p25_time_taken_ms": {
+        "high_positive": "high 25th percentile response time",
+        "high_negative": "low 25th percentile response time",
+        "unit": "milliseconds"
+    },
+    "p75_time_taken_ms": {
+        "high_positive": "high 75th percentile response time",
+        "high_negative": "low 75th percentile response time",
+        "unit": "milliseconds"
+    },
+    "p90_time_taken_ms": {
+        "high_positive": "high 90th percentile response time",
+        "high_negative": "low 90th percentile response time",
+        "unit": "milliseconds"
+    },
+    "p95_time_taken_ms": {
+        "high_positive": "high 95th percentile response time",
+        "high_negative": "low 95th percentile response time",
+        "unit": "milliseconds"
+    },
+    "p99_time_taken_ms": {
+        "high_positive": "high 99th percentile response time",
+        "high_negative": "low 99th percentile response time",
+        "unit": "milliseconds"
+    },
+    "iqr_time_taken_ms": {
+        "high_positive": "high interquartile range in response times",
+        "high_negative": "low interquartile range in response times",
+        "unit": "milliseconds"
+    },
+    
+    # Missing time interval features
+    "robust_cv_time_interval_sec": {
+        "high_positive": "high robust coefficient of variation in request timing",
+        "high_negative": "low robust coefficient of variation in request timing",
+    },
+    
+    # Missing other features that appear in the data
+    "resp_content_types_application/json": {
+        "high_positive": "high proportion of JSON content type responses",
+        "high_negative": "minimal JSON content type responses",
+    },
     "html_response_ratio": {
         "high_positive": "high proportion of HTML responses",
         "high_negative": "minimal HTML responses",
@@ -840,36 +948,94 @@ class ModelExplainer:
         if feature_name in FEATURE_INTERPRETATIONS:
             interp = FEATURE_INTERPRETATIONS[feature_name]
             
-            # For features with units (bytes, milliseconds, etc.), check if the value makes sense
-            if "unit" in interp and not np.isnan(feature_value):
-                # Special handling for zero or near-zero values
-                if abs(feature_value) < 1e-3:
+            # Special handling for zero or near-zero values
+            if abs(feature_value) < 1e-3:
+                # For features with units (bytes, milliseconds, etc.)
+                if "unit" in interp:
                     if "bytes" in interp["unit"]:
                         interpretation = f"no data transfer detected"
+                        context = f" ({feature_value:,.0f} {interp['unit']})"
                     elif "milliseconds" in interp["unit"] or "seconds" in interp["unit"]:
                         interpretation = f"instantaneous or missing response time"
+                        context = f" ({feature_value:,.0f} {interp['unit']})"
                     else:
                         interpretation = f"zero {feature_name}"
-                    context = f" ({feature_value:,.0f} {interp['unit']})"
+                        context = f" ({feature_value:,.0f} {interp['unit']})"
                 else:
+                    # For ratio/proportion features at zero
+                    if any(word in feature_name.lower() for word in ["ratio", "proportion", "pct", "percentage"]):
+                        if "json" in feature_name.lower():
+                            interpretation = "no JSON responses"
+                        elif "html" in feature_name.lower():
+                            interpretation = "no HTML responses"
+                        elif "chrome" in feature_name.lower():
+                            interpretation = "no Chrome usage"
+                        elif "firefox" in feature_name.lower():
+                            interpretation = "no Firefox usage"
+                        elif "safari" in feature_name.lower():
+                            interpretation = "no Safari usage"
+                        elif "error" in feature_name.lower():
+                            interpretation = "no errors"
+                        elif "referred" in feature_name.lower() or "referer" in feature_name.lower():
+                            interpretation = "no referred traffic"
+                        elif "external" in feature_name.lower():
+                            interpretation = "no external domains"
+                        elif "bot" in feature_name.lower():
+                            interpretation = "no bot activity"
+                        elif "https" in feature_name.lower():
+                            interpretation = "no HTTPS usage"
+                        elif "http2" in feature_name.lower():
+                            interpretation = "no HTTP/2 usage"
+                        elif "suspicious" in feature_name.lower():
+                            interpretation = "no suspicious activity"
+                        elif "cloud" in feature_name.lower():
+                            interpretation = "no cloud traffic"
+                        elif "web" in feature_name.lower():
+                            interpretation = "no web traffic"
+                        elif "api" in feature_name.lower():
+                            interpretation = "no API endpoint usage"
+                        else:
+                            interpretation = f"zero {feature_name}"
+                    # For count/diversity features at zero
+                    elif any(word in feature_name.lower() for word in ["count", "cnt", "diversity", "entropy"]):
+                        if "domain" in feature_name.lower():
+                            interpretation = "no domain diversity"
+                        elif "hostname" in feature_name.lower():
+                            interpretation = "no key hostnames"
+                        elif "transaction" in feature_name.lower():
+                            interpretation = "no transactions"
+                        elif "request" in feature_name.lower():
+                            interpretation = "no requests"
+                        elif "key" in feature_name.lower():
+                            interpretation = "no key elements"
+                        else:
+                            interpretation = f"zero {feature_name}"
+                    else:
+                        interpretation = f"zero {feature_name}"
+                    
+                    context = f" ({feature_value:.2f})"
+                    
+            else:
+                # For non-zero values, use standard interpretation
+                if "unit" in interp:
                     # Use standard interpretation based on SHAP value direction
                     if shap_value > 0:
                         interpretation = interp.get("high_positive", f"high {feature_name}")
                     else:
                         interpretation = interp.get("high_negative", f"low {feature_name}")
                     context = f" ({feature_value:,.0f} {interp['unit']})"
-            else:
-                # For non-unit features, use SHAP value direction to determine interpretation
-                if shap_value > 0:
-                    interpretation = interp.get("high_positive", f"high {feature_name}")
                 else:
-                    interpretation = interp.get("high_negative", f"low {feature_name}")
-                
-                # Add quantitative context with just the value
-                if not np.isnan(feature_value):
-                    context = f" ({feature_value:.2f})"
-                else:
-                    context = ""
+                    # For non-unit features, use SHAP value direction to determine interpretation
+                    if shap_value > 0:
+                        interpretation = interp.get("high_positive", f"high {feature_name}")
+                    else:
+                        interpretation = interp.get("high_negative", f"low {feature_name}")
+                    
+                    # Add quantitative context with just the value
+                    if not np.isnan(feature_value):
+                        context = f" ({feature_value:.2f})"
+                    else:
+                        context = ""
                 
             return f"{interpretation}{context} {impact_direction} anomaly score"
         else:
@@ -942,18 +1108,25 @@ class ModelExplainer:
             feature_value = features_scaled[observation_index, feature_idx]
             feature_groups[group].append((feature_name, shap_value, feature_value))
         
-        # Build grouped explanations
+        # Build grouped explanations with unique interpretations, only showing positive SHAP values
         key_factors = []
         for group, features in feature_groups.items():
             if group and group in FEATURE_GROUPS:
                 group_desc = FEATURE_GROUPS[group]["description"]
                 group_factors = []
+                seen_interpretations = set()
                 
                 for feature_name, shap_value, feature_value in features:
-                    interpretation = self._interpret_feature_impact(
-                        feature_name, shap_value, feature_value
-                    )
-                    group_factors.append(interpretation)
+                    # Only include features that increase anomaly score (positive SHAP values)
+                    if shap_value > 0:
+                        interpretation = self._interpret_feature_impact(
+                            feature_name, shap_value, feature_value
+                        )
+                        
+                        # Only add unique interpretations to avoid repetition
+                        if interpretation not in seen_interpretations:
+                            group_factors.append(interpretation)
+                            seen_interpretations.add(interpretation)
                 
                 if group_factors:
                     key_factors.append(f"{group_desc}: {', '.join(group_factors)}")
