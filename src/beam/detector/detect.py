@@ -39,6 +39,13 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from .utils import load_json_file, safe_create_path, save_json_data
 from .explainer import ModelExplainer
 from beam import constants
+from .models import (
+    PredictionClass, 
+    TopFeature, 
+    ExplanationJson, 
+    AnomalyInfo, 
+    DetectionResults
+)
 
 app_meta_fields = ["key", "application"]
 
@@ -544,16 +551,18 @@ def detect_anomalous_domain(
                 top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
                 for feature_name, shap_value, feature_idx in top_features:
                     feature_value = features_scaled[observation_index, feature_idx]
-                    explanation_json["top_features"].append({
-                        "feature": feature_name,
-                        "shap_value": float(shap_value),
-                        "feature_value": float(feature_value)
-                    })
+                    explanation_json.top_features.append(
+                        TopFeature(
+                            feature=feature_name,
+                            shap_value=shap_value,
+                            feature_value=feature_value
+                        )
+                    )
             except:
                 pass
                 
             explanation_json_path = f"{parent_dir}explanation.json"
-            save_json_data(explanation_json, explanation_json_path)
+            save_json_data(explanation_json.dict(), explanation_json_path)
 
 
 def detect_anomalous_domain_with_custom_model(
@@ -576,18 +585,11 @@ def detect_anomalous_domain_with_custom_model(
     """
     logger = logging.getLogger(__name__)
     
-    # Initialize detection results tracking
-    detection_results = {
-        "model_used": str(custom_model_path.name),
-        "total_domains_analyzed": 0,
-        "anomalies_detected": 0,
-        "normal_domains": 0,
-        "applications_found": [],
-        "anomalous_domains": [],
-        "prob_cutoff_used": prob_cutoff,
-        "success": True,
-        "error_message": None
-    }
+    # Initialize detection results tracking using Pydantic model
+    detection_results = DetectionResults(
+        model_used=str(custom_model_path.name),
+        prob_cutoff_used=prob_cutoff
+    )
 
     # Load the individual custom model
     try:
@@ -600,9 +602,9 @@ def detect_anomalous_domain_with_custom_model(
     except Exception as e:
         logger.error(f"Failed to load custom model {custom_model_path}: {e}")
         logger.error("This may be due to version incompatibility. Try retraining the model.")
-        detection_results["success"] = False
-        detection_results["error_message"] = f"Failed to load model: {e}"
-        return detection_results
+        detection_results.success = False
+        detection_results.error_message = f"Failed to load model: {e}"
+        return detection_results.dict()
 
     # Convert single model to the expected format
     models = dict()
@@ -615,9 +617,9 @@ def detect_anomalous_domain_with_custom_model(
         apps.add(app)
     else:
         logger.error(f"Unexpected model format in {custom_model_path}")
-        detection_results["success"] = False
-        detection_results["error_message"] = "Unexpected model format"
-        return detection_results
+        detection_results.success = False
+        detection_results.error_message = "Unexpected model format"
+        return detection_results.dict()
 
     features_og, features_pd = convert_supply_chain_summaries_to_features(
         load_json_file(input_path)
@@ -628,8 +630,8 @@ def detect_anomalous_domain_with_custom_model(
         domain = observation_series.get("domain", "unknown")
         
         # Track applications found
-        if application not in detection_results["applications_found"]:
-            detection_results["applications_found"].append(application)
+        if application not in detection_results.applications_found:
+            detection_results.applications_found.append(application)
             
         if application not in models:
             logger.info(
@@ -640,7 +642,7 @@ def detect_anomalous_domain_with_custom_model(
                 "[x] Application found to test supply chain compromises against: "
                 + str(application)
             )
-            detection_results["total_domains_analyzed"] += 1
+            detection_results.total_domains_analyzed += 1
             observation_key = observation_series["key"]
             model = models[application]
 
@@ -755,28 +757,28 @@ def detect_anomalous_domain_with_custom_model(
                 text_explanation = f"Unable to generate detailed explanation: {e}"
             
             # Check if this is an anomaly based on probability cutoff
-            is_anomaly = predicted_class_proba >= prob_cutoff
+            is_anomaly = bool(predicted_class_proba >= prob_cutoff)
             if is_anomaly:
-                detection_results["anomalies_detected"] += 1
-                anomaly_info = {
-                    "domain": domain,
-                    "application": application,
-                    "observation_key": observation_key,
-                    "predicted_class": predicted_class_name,
-                    "probability": float(predicted_class_proba),
-                    "prediction_index": observation_index,
-                    "explanation": text_explanation
-                }
-                detection_results["anomalous_domains"].append(anomaly_info)
+                detection_results.anomalies_detected += 1
+                anomaly_info = AnomalyInfo(
+                    domain=domain,
+                    application=application,
+                    observation_key=observation_key,
+                    predicted_class=predicted_class_name,
+                    probability=predicted_class_proba,
+                    prediction_index=observation_index,
+                    explanation=text_explanation
+                )
+                detection_results.anomalous_domains.append(anomaly_info)
                 logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (probability: {predicted_class_proba:.3f})")
                 logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
             else:
-                detection_results["normal_domains"] += 1
+                detection_results.normal_domains += 1
                 logger.info(f"✅ Normal behavior: {domain} for {application} (probability: {predicted_class_proba:.3f})")
 
             full_predictions = sorted(
                 [
-                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
+                    PredictionClass(class_name=c, probability=100.0 * p).dict(by_alias=True)
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -786,15 +788,15 @@ def detect_anomalous_domain_with_custom_model(
             save_json_data(full_predictions, full_predictions_path)
             
             # Save explanation to JSON as well
-            explanation_json = {
-                "domain": domain,
-                "application": application,
-                "predicted_class": predicted_class_name,
-                "probability": float(predicted_class_proba),
-                "is_anomaly": is_anomaly,
-                "explanation": text_explanation,
-                "top_features": []
-            }
+            explanation_json = ExplanationJson(
+                domain=domain,
+                application=application,
+                predicted_class=predicted_class_name,
+                probability=predicted_class_proba,
+                is_anomaly=is_anomaly,
+                explanation=text_explanation,
+                top_features=[]
+            )
             
             # Try to get top features for JSON
             try:
@@ -804,20 +806,22 @@ def detect_anomalous_domain_with_custom_model(
                 top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
                 for feature_name, shap_value, feature_idx in top_features:
                     feature_value = features_scaled[observation_index, feature_idx]
-                    explanation_json["top_features"].append({
-                        "feature": feature_name,
-                        "shap_value": float(shap_value),
-                        "feature_value": float(feature_value)
-                    })
+                    explanation_json.top_features.append(
+                        TopFeature(
+                            feature=feature_name,
+                            shap_value=shap_value,
+                            feature_value=feature_value
+                        )
+                    )
             except:
                 pass
                 
             explanation_json_path = f"{parent_dir}explanation.json"
-            save_json_data(explanation_json, explanation_json_path)
+            save_json_data(explanation_json.dict(), explanation_json_path)
 
     # Return detection results summary
-    logger.info(f"Detection completed: {detection_results['total_domains_analyzed']} domains analyzed, "
-                f"{detection_results['anomalies_detected']} anomalies detected, "
-                f"{detection_results['normal_domains']} normal domains")
+    logger.info(f"Detection completed: {detection_results.total_domains_analyzed} domains analyzed, "
+                f"{detection_results.anomalies_detected} anomalies detected, "
+                f"{detection_results.normal_domains} normal domains")
     
-    return detection_results
+    return detection_results.dict()
