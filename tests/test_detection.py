@@ -245,8 +245,10 @@ class TestCustomModelDetection:
             app_prediction_dir=temp_workspace["prediction_dir"],
         )
         
-        # Should return None when model loading fails
-        assert result is None
+        # Should return error result when model loading fails
+        assert result is not None
+        assert result['success'] is False
+        assert 'Failed to load model' in result['error_message']
 
     def test_detect_with_nonexistent_model_file(self, temp_workspace):
         """Test detection with non-existent model file"""
@@ -259,8 +261,10 @@ class TestCustomModelDetection:
             app_prediction_dir=temp_workspace["prediction_dir"],
         )
         
-        # Should return None when model file doesn't exist
-        assert result is None
+        # Should return error result when model file doesn't exist
+        assert result is not None
+        assert result['success'] is False
+        assert 'Failed to load model' in result['error_message']
 
     @patch("beam.detector.detect.convert_supply_chain_summaries_to_features")
     @patch("beam.detector.detect.load_json_file")

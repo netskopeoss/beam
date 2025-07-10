@@ -171,12 +171,19 @@ class ModelTrainer:
         """
         feature_names = []
 
-        for c in app_numeric_feature_fields:
-            feature_names.append(c[:char_limit])
-
-        for i, c in enumerate(app_arr_non_numeric_feature_fields):
-            for p in ct.named_transformers_["multi_hot_encoder"].classes_[i]:
-                feature_names.append(f"{c}_{p}"[:char_limit])
+        # Get the actual columns used by each transformer
+        for name, transformer, columns in ct.transformers_:
+            if name == "min_max_scaler":
+                for c in columns:
+                    feature_names.append(c[:char_limit])
+            elif name == "multi_hot_encoder":
+                for i, c in enumerate(columns):
+                    if hasattr(transformer, 'classes_') and i < len(transformer.classes_):
+                        for p in transformer.classes_[i]:
+                            feature_names.append(f"{c}_{p}"[:char_limit])
+            elif name == "remainder":
+                # Skip remainder columns
+                pass
 
         return feature_names
 
