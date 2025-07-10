@@ -562,7 +562,7 @@ def detect_anomalous_domain(
                 pass
                 
             explanation_json_path = f"{parent_dir}explanation.json"
-            save_json_data(explanation_json.dict(), explanation_json_path)
+            save_json_data(explanation_json.model_dump(), explanation_json_path)
 
 
 def detect_anomalous_domain_with_custom_model(
@@ -604,7 +604,7 @@ def detect_anomalous_domain_with_custom_model(
         logger.error("This may be due to version incompatibility. Try retraining the model.")
         detection_results.success = False
         detection_results.error_message = f"Failed to load model: {e}"
-        return detection_results.dict()
+        return detection_results.model_dump()
 
     # Convert single model to the expected format
     models = dict()
@@ -619,7 +619,7 @@ def detect_anomalous_domain_with_custom_model(
         logger.error(f"Unexpected model format in {custom_model_path}")
         detection_results.success = False
         detection_results.error_message = "Unexpected model format"
-        return detection_results.dict()
+        return detection_results.model_dump()
 
     features_og, features_pd = convert_supply_chain_summaries_to_features(
         load_json_file(input_path)
@@ -778,7 +778,7 @@ def detect_anomalous_domain_with_custom_model(
 
             full_predictions = sorted(
                 [
-                    PredictionClass(class_name=c, probability=100.0 * p).dict(by_alias=True)
+                    PredictionClass(class_name=c, probability=100.0 * p).model_dump(by_alias=True)
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -817,11 +817,11 @@ def detect_anomalous_domain_with_custom_model(
                 pass
                 
             explanation_json_path = f"{parent_dir}explanation.json"
-            save_json_data(explanation_json.dict(), explanation_json_path)
+            save_json_data(explanation_json.model_dump(), explanation_json_path)
 
     # Return detection results summary
     logger.info(f"Detection completed: {detection_results.total_domains_analyzed} domains analyzed, "
                 f"{detection_results.anomalies_detected} anomalies detected, "
                 f"{detection_results.normal_domains} normal domains")
     
-    return detection_results.dict()
+    return detection_results.model_dump()

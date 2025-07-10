@@ -22,23 +22,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from typing import List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class PredictionClass(BaseModel):
     """Model for individual prediction class results"""
+    model_config = ConfigDict(populate_by_name=True)  # Allow both 'class_name' and 'class' as input
+    
     class_name: str = Field(alias="class")
     probability: str
     
-    class Config:
-        populate_by_name = True  # Allow both 'class_name' and 'class' as input
-    
-    @validator('class_name', pre=True)
+    @field_validator('class_name', mode='before')
+    @classmethod
     def convert_class_name(cls, v):
         """Convert numpy types to native Python types"""
         return str(v)
     
-    @validator('probability', pre=True)
+    @field_validator('probability', mode='before')
+    @classmethod
     def convert_probability(cls, v):
         """Convert probability to string with proper formatting"""
         if isinstance(v, str):
@@ -53,7 +54,8 @@ class TopFeature(BaseModel):
     shap_value: float
     feature_value: float
     
-    @validator('shap_value', 'feature_value', pre=True)
+    @field_validator('shap_value', 'feature_value', mode='before')
+    @classmethod
     def convert_to_float(cls, v):
         """Convert numpy types to native Python float"""
         return float(v)
@@ -69,17 +71,20 @@ class ExplanationJson(BaseModel):
     explanation: str
     top_features: List[TopFeature] = []
     
-    @validator('predicted_class', pre=True)
+    @field_validator('predicted_class', mode='before')
+    @classmethod
     def convert_predicted_class(cls, v):
         """Convert numpy types to native Python types"""
         return str(v)
     
-    @validator('probability', pre=True)
+    @field_validator('probability', mode='before')
+    @classmethod
     def convert_probability(cls, v):
         """Convert numpy types to native Python float"""
         return float(v)
     
-    @validator('is_anomaly', pre=True)
+    @field_validator('is_anomaly', mode='before')
+    @classmethod
     def convert_is_anomaly(cls, v):
         """Convert numpy bool_ to native Python bool"""
         return bool(v)
@@ -95,17 +100,20 @@ class AnomalyInfo(BaseModel):
     prediction_index: int
     explanation: str
     
-    @validator('predicted_class', pre=True)
+    @field_validator('predicted_class', mode='before')
+    @classmethod
     def convert_predicted_class(cls, v):
         """Convert numpy types to native Python types"""
         return str(v)
     
-    @validator('probability', pre=True)
+    @field_validator('probability', mode='before')
+    @classmethod
     def convert_probability(cls, v):
         """Convert numpy types to native Python float"""
         return float(v)
     
-    @validator('prediction_index', pre=True)
+    @field_validator('prediction_index', mode='before')
+    @classmethod
     def convert_prediction_index(cls, v):
         """Convert numpy int64 to native Python int"""
         return int(v)
