@@ -533,15 +533,15 @@ def detect_anomalous_domain(
             save_json_data(full_predictions, full_predictions_path)
             
             # Save explanation to JSON as well
-            explanation_json = {
-                "domain": observation_series.get("domain", observation_key),
-                "application": application,
-                "predicted_class": str(predicted_class_name),
-                "probability": str(float(predicted_class_proba)),
-                "is_anomaly": bool(predicted_class_proba >= prob_cutoff),
-                "explanation": text_explanation,
-                "top_features": []
-            }
+            explanation_json = ExplanationJson(
+                domain=observation_series.get("domain", observation_key),
+                application=application,
+                predicted_class=predicted_class_name,
+                probability=predicted_class_proba,
+                is_anomaly=bool(predicted_class_proba >= prob_cutoff),
+                explanation=text_explanation,
+                top_features=[]
+            )
             
             # Try to get top features for JSON
             try:
