@@ -606,7 +606,7 @@ def process_training_data(
         )
 
         # Train the custom app model
-        train_custom_app_model(
+        saved_model_path = train_custom_app_model(
             features_path=features_output_path,
             app_name=original_app_name,  # Use original name for training (it's used as the key)
             output_model_path=model_path,
@@ -614,9 +614,15 @@ def process_training_data(
             min_transactions=constants.MIN_APP_TRANSACTIONS,
         )
 
-        logger.info(
-            "Custom model for '%s' created at: %s", original_app_name, model_path
-        )
+        if saved_model_path:
+            logger.info(
+                "✅ Custom model for '%s' successfully created at: %s", original_app_name, saved_model_path
+            )
+            print(f"✅ Model saved: {saved_model_path}")
+        else:
+            logger.error(
+                "❌ Failed to create custom model for '%s'", original_app_name
+            )
 
 
 def run(logger: logging.Logger) -> None:
