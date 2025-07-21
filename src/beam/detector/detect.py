@@ -565,6 +565,165 @@ def detect_anomalous_domain(
             save_json_data(explanation_json.model_dump(), explanation_json_path)
 
 
+def detect_anomalous_domain_with_anomaly_model(
+    input_path: str,
+    custom_model_path: Path,
+    app_prediction_dir: str,
+    anomaly_threshold: float = -0.1,
+) -> Dict[str, Any]:
+    """
+    Detect anomalous domains using a custom anomaly detection model.
+    
+    Args:
+        input_path (str): The path to the input JSON file containing the data.
+        custom_model_path (Path): The path to the custom anomaly model file.
+        app_prediction_dir (str): The directory to save the predictions.
+        anomaly_threshold (float): Threshold for anomaly score. Lower values = more anomalous.
+        
+    Returns:
+        Dict[str, Any]: Detection results summary containing analyzed domains, anomalies found, etc.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Initialize detection results tracking
+    detection_results = DetectionResults(
+        model_used=str(custom_model_path.name),
+        prob_cutoff_used=anomaly_threshold
+    )
+    
+    # Load the anomaly detection model
+    try:
+        with open(custom_model_path, "rb") as _file:
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                raw_models = pickle.load(_file)
+    except Exception as e:
+        logger.error(f"Failed to load custom model {custom_model_path}: {e}")
+        detection_results.success = False
+        detection_results.error_message = f"Failed to load model: {e}"
+        return detection_results.model_dump()
+
+    # Convert single model to the expected format
+    models = dict()
+    apps = set()
+
+    if isinstance(raw_models, list) and len(raw_models) > 0:
+        raw_model = raw_models[0].copy()
+        app = raw_model.pop("key")
+        models[app] = raw_model
+        apps.add(app)
+    else:
+        logger.error(f"Unexpected model format in {custom_model_path}")
+        detection_results.success = False
+        detection_results.error_message = "Unexpected model format"
+        return detection_results.model_dump()
+
+    # Load and convert features
+    features_og, features_pd = convert_supply_chain_summaries_to_features(
+        load_json_file(input_path)
+    )
+
+    for observation_index, observation_series in features_og.iterrows():
+        application = observation_series["application"]
+        domain = observation_series.get("domain", "unknown")
+        
+        # Track applications found
+        if application not in detection_results.applications_found:
+            detection_results.applications_found.append(application)
+            
+        if application not in models:
+            logger.info(f"[x] Application not found in custom models: {application}")
+            continue
+        else:
+            logger.info(f"[x] Testing {application} for supply chain anomalies")
+            detection_results.total_domains_analyzed += 1
+            observation_key = observation_series["key"]
+            model = models[application]
+
+            # Check if this is an anomaly detection model
+            if model.get("model_type") != "anomaly_ensemble":
+                logger.warning(f"Model for {application} is not an anomaly detection model. Skipping.")
+                continue
+
+            feature_transformer = model["feature_transformer"]
+            estimator = model["estimator"]
+            
+            # Transform features for this observation
+            observation_df = features_pd.iloc[[observation_index]]
+            features_transformed = feature_transformer.transform(observation_df)
+            
+            # Get anomaly predictions and scores
+            try:
+                # Get prediction (-1 = anomaly, 1 = normal)
+                anomaly_prediction = estimator.predict(features_transformed)[0]
+                # Get anomaly score (lower = more anomalous)
+                anomaly_score = estimator.decision_function(features_transformed)[0]
+                
+                is_anomaly = (anomaly_prediction == -1) or (anomaly_score < anomaly_threshold)
+                
+                # Create output directory
+                obs_file_dir = (
+                    str(observation_index)
+                    + "_"
+                    + observation_key.replace(" ", "_")
+                    .replace("'", "")
+                    .replace("/", "")[:35]
+                )
+                parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
+                safe_create_path(parent_dir)
+                
+                # Generate explanation for anomaly detection
+                if is_anomaly:
+                    detection_results.anomalies_detected += 1
+                    text_explanation = f"Anomaly detected for {domain}. Anomaly score: {anomaly_score:.4f} (threshold: {anomaly_threshold}). This indicates the application behavior deviates significantly from learned normal patterns, possibly indicating a supply chain compromise."
+                    
+                    anomaly_info = AnomalyInfo(
+                        domain=domain,
+                        application=application,
+                        observation_key=observation_key,
+                        predicted_class="anomaly",
+                        probability=abs(anomaly_score),  # Use absolute score as proxy for confidence
+                        prediction_index=observation_index,
+                        explanation=text_explanation
+                    )
+                    detection_results.anomalous_domains.append(anomaly_info)
+                    logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (score: {anomaly_score:.4f})")
+                    logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
+                else:
+                    detection_results.normal_domains += 1
+                    text_explanation = f"Normal behavior detected for {domain}. Anomaly score: {anomaly_score:.4f} (threshold: {anomaly_threshold}). The application behavior matches learned normal patterns."
+                    logger.info(f"✅ Normal behavior: {domain} for {application} (score: {anomaly_score:.4f})")
+                
+                # Save explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                
+                # Save prediction details
+                prediction_details = {
+                    "domain": domain,
+                    "application": application,
+                    "anomaly_score": float(anomaly_score),
+                    "anomaly_prediction": int(anomaly_prediction),
+                    "is_anomaly": bool(is_anomaly),
+                    "threshold_used": float(anomaly_threshold),
+                    "explanation": text_explanation
+                }
+                
+                prediction_path = f"{parent_dir}anomaly_prediction.json"
+                save_json_data(prediction_details, prediction_path)
+                
+            except Exception as e:
+                logger.error(f"Failed to process {domain} for {application}: {e}")
+                continue
+
+    detection_results.success = True
+    logger.info(f"Anomaly detection completed. Analyzed {detection_results.total_domains_analyzed} domains, found {detection_results.anomalies_detected} anomalies")
+    
+    return detection_results.model_dump()
+
+
 def detect_anomalous_domain_with_custom_model(
     input_path: str,
     custom_model_path: Path,

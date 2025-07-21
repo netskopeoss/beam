@@ -41,6 +41,7 @@ from beam.detector.detect import (
     MultiHotEncoder,
     detect_anomalous_domain,
     detect_anomalous_domain_with_custom_model,
+    detect_anomalous_domain_with_anomaly_model,
 )
 from beam.detector.security_report import generate_security_report
 from beam.detector.trainer import (
@@ -81,6 +82,60 @@ def convert_container_path_to_host_path(container_path: str) -> str:
     if container_path.startswith("/app/"):
         return "./" + container_path[5:]  # Remove "/app/" and add "./"
     return container_path
+
+
+def detect_model_type_and_run_detection(
+    input_path: str,
+    custom_model_path: Path,
+    app_prediction_dir: str
+) -> dict:
+    """
+    Detect the type of model and run appropriate detection.
+    Only supports anomaly ensemble models going forward.
+    
+    Args:
+        input_path: Path to features data
+        custom_model_path: Path to the model file
+        app_prediction_dir: Directory for predictions
+        
+    Returns:
+        Detection results dictionary
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Try to load the model to check its type
+    try:
+        with open(custom_model_path, "rb") as f:
+            import pickle
+            model_data = pickle.load(f)
+            
+        if isinstance(model_data, list) and len(model_data) > 0:
+            model_info = model_data[0]
+            model_type = model_info.get("model_type", "unknown")
+            
+            if model_type == "anomaly_ensemble":
+                logger.info(f"Using anomaly detection for model: {custom_model_path.name}")
+                return detect_anomalous_domain_with_anomaly_model(
+                    input_path=input_path,
+                    custom_model_path=custom_model_path,
+                    app_prediction_dir=app_prediction_dir,
+                )
+            else:
+                logger.error(f"Unsupported model type '{model_type}' in {custom_model_path}. Only anomaly_ensemble models are supported.")
+                return {"success": False, "error_message": f"Unsupported model type: {model_type}"}
+        else:
+            logger.error(f"Invalid model format in {custom_model_path}")
+            return {"success": False, "error_message": "Invalid model format"}
+            
+    except Exception as e:
+        error_msg = str(e)
+        # Check if this is a missing TensorFlow/Keras dependency error
+        if "keras" in error_msg.lower() or "tensorflow" in error_msg.lower():
+            logger.info(f"Model requires TensorFlow/Keras: {e}")
+            logger.info("🐳 Custom models require Docker container - this should have been handled automatically")
+        else:
+            logger.error(f"Failed to load model {custom_model_path}: {e}")
+        return {"success": False, "error_message": f"Failed to load model: {e}"}
 
 
 def discover_apps_in_traffic(
@@ -178,7 +233,7 @@ def run_detection(
                 logger.info(
                     f"✓ Found custom model for '{original_app_name}' -> {custom_model_path}"
                 )
-                detection_result = detect_anomalous_domain_with_custom_model(
+                detection_result = detect_model_type_and_run_detection(
                     input_path=features_output_path,
                     custom_model_path=custom_model_path,
                     app_prediction_dir=str(constants.DOMAIN_PREDICTIONS_DIR),
@@ -487,6 +542,241 @@ def process_input_file(
         logger.error(f"File not found: {file_path}")
 
 
+def is_docker_available() -> bool:
+    """Check if Docker and docker-compose are available."""
+    try:
+        import subprocess
+        # Check if docker is available
+        subprocess.run(["docker", "--version"], check=True, capture_output=True)
+        # Check if docker-compose is available
+        subprocess.run(["docker-compose", "--version"], check=True, capture_output=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def run_training_in_container(
+    input_file_path: str,
+    app_name: Optional[str] = None,
+    custom_model_path: Optional[str] = None,
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    """
+    Run model training inside Docker container with TensorFlow support.
+    This function is transparent to the user - they just run the normal training command.
+    """
+    import subprocess
+    import sys
+    import os
+    from pathlib import Path
+    
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    
+    # Check if Docker is available first
+    if not is_docker_available():
+        logger.warning("🐳 Docker not available, falling back to local training")
+        process_training_data(input_file_path, app_name, custom_model_path, logger)
+        return
+    
+    logger.info("🐳 Starting containerized training with TensorFlow support")
+    
+    # Check if we're in the right directory (has docker-compose.yml)
+    project_root = Path.cwd()
+    docker_compose_file = project_root / "docker-compose.yml"
+    
+    if not docker_compose_file.exists():
+        # Try to find project root by looking for docker-compose.yml
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / "docker-compose.yml").exists():
+                project_root = current
+                docker_compose_file = current / "docker-compose.yml"
+                break
+            current = current.parent
+        
+        if not docker_compose_file.exists():
+            logger.error("❌ Could not find docker-compose.yml. Please run from BEAM project directory.")
+            raise FileNotFoundError("docker-compose.yml not found. Run from BEAM project root.")
+    
+    # Change to project root for docker commands
+    original_cwd = os.getcwd()
+    os.chdir(project_root)
+    
+    try:
+        # Start the training container
+        logger.info("📦 Starting training container...")
+        subprocess.run([
+            "docker-compose", "--profile", "training", "up", "-d", "beam-trainer"
+        ], check=True, capture_output=True, text=True)
+        
+        # Wait a moment for container to be ready
+        import time
+        time.sleep(2)
+        
+        # Prepare the training command
+        container_input_path = input_file_path
+        if input_file_path.startswith('./'):
+            container_input_path = input_file_path[2:]  # Remove ./
+        elif input_file_path.startswith(str(project_root)):
+            container_input_path = str(Path(input_file_path).relative_to(project_root))
+        
+        # Build training command using direct training script
+        train_cmd = ["docker", "exec", "-i", "beam-trainer", "python", "-m", "beam.train_direct", "-i", container_input_path]
+        
+        if app_name:
+            train_cmd.extend(["--app_name", app_name])
+        if custom_model_path:
+            train_cmd.extend(["--custom_model_path", custom_model_path])
+        
+        logger.info(f"🎓 Running training: {' '.join(train_cmd[3:])}")  # Show user command without docker prefix
+        logger.info("📁 Training logs will be written to: logs/beam.log")
+        
+        # Execute training in container with real-time output
+        process = subprocess.Popen(
+            train_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Stream output in real-time
+        for line in process.stdout:
+            print(line.rstrip())
+            sys.stdout.flush()
+        
+        process.wait()
+        
+        if process.returncode == 0:
+            logger.info("✅ Containerized training completed successfully!")
+        else:
+            logger.error(f"❌ Training failed with exit code: {process.returncode}")
+            sys.exit(process.returncode)
+            
+    except subprocess.CalledProcessError as e:
+        logger.warning(f"🐳 Docker training failed: {e}")
+        logger.warning("Falling back to local training without TensorFlow...")
+        # Fall back to local training
+        process_training_data(input_file_path, app_name, custom_model_path, logger)
+    except Exception as e:
+        logger.warning(f"🐳 Containerized training failed: {e}")
+        logger.warning("Falling back to local training without TensorFlow...")
+        # Fall back to local training
+        process_training_data(input_file_path, app_name, custom_model_path, logger)
+    finally:
+        # Return to original directory
+        os.chdir(original_cwd)
+
+
+def run_detection_in_container(
+    input_file_path: str,
+    use_custom_models: bool = True,
+    logger: Optional[logging.Logger] = None,
+) -> None:
+    """
+    Run BEAM detection inside Docker container with TensorFlow support for custom models.
+    """
+    import subprocess
+    import sys
+    import os
+    from pathlib import Path
+    
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    
+    # Check if Docker is available first
+    if not is_docker_available():
+        logger.error("🐳 Docker not available but required for custom model detection")
+        logger.error("Custom models need TensorFlow dependencies only available in container")
+        return
+    
+    logger.info("🐳 Running detection with custom models in Docker container")
+    
+    # Check if we're in the right directory (has docker-compose.yml)
+    project_root = Path.cwd()
+    docker_compose_file = project_root / "docker-compose.yml"
+    
+    if not docker_compose_file.exists():
+        # Try to find project root by looking for docker-compose.yml
+        current = Path.cwd()
+        while current != current.parent:
+            if (current / "docker-compose.yml").exists():
+                project_root = current
+                docker_compose_file = current / "docker-compose.yml"
+                break
+            current = current.parent
+        
+        if not docker_compose_file.exists():
+            logger.error("❌ Could not find docker-compose.yml. Please run from BEAM project directory.")
+            raise FileNotFoundError("docker-compose.yml not found. Run from BEAM project root.")
+    
+    # Change to project root for docker commands
+    original_cwd = os.getcwd()
+    os.chdir(project_root)
+    
+    try:
+        # Start the training container (we'll reuse it for detection)
+        logger.info("📦 Starting container for detection...")
+        subprocess.run([
+            "docker-compose", "--profile", "training", "up", "-d", "beam-trainer"
+        ], check=True, capture_output=True, text=True)
+        
+        # Wait a moment for container to be ready
+        import time
+        time.sleep(2)
+        
+        # Prepare the detection command
+        container_input_path = input_file_path
+        if input_file_path.startswith('./'):
+            container_input_path = input_file_path[2:]  # Remove ./
+        elif input_file_path.startswith(str(project_root)):
+            container_input_path = str(Path(input_file_path).relative_to(project_root))
+        
+        # Build detection command - use the containerized detection script
+        detect_cmd = ["docker", "exec", "-i", "beam-trainer", "python", "-m", "beam.detect_direct"]
+        detect_cmd.extend(["-i", container_input_path])
+        
+        if use_custom_models:
+            detect_cmd.append("--use_custom_models")
+        
+        logger.info(f"🔍 Running detection: {' '.join(detect_cmd[3:])}")  # Show user command without docker prefix
+        logger.info("📁 Detection logs will be written to: logs/beam.log")
+        
+        # Execute detection in container with real-time output
+        process = subprocess.Popen(
+            detect_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            bufsize=1
+        )
+        
+        # Stream output in real-time
+        for line in process.stdout:
+            print(line.rstrip())
+            sys.stdout.flush()
+        
+        process.wait()
+        
+        if process.returncode == 0:
+            logger.info("✅ Containerized detection completed successfully!")
+        else:
+            logger.error(f"❌ Detection failed with exit code: {process.returncode}")
+            sys.exit(process.returncode)
+            
+    except subprocess.CalledProcessError as e:
+        logger.error(f"❌ Docker command failed: {e}")
+        logger.error("Make sure Docker is running and you have docker-compose installed")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"❌ Detection failed: {e}")
+        sys.exit(1)
+    finally:
+        # Return to original directory
+        os.chdir(original_cwd)
+
+
 def process_training_data(
     input_file_path: str,
     app_name: Optional[str] = None,
@@ -618,7 +908,9 @@ def process_training_data(
             logger.info(
                 "✅ Custom model for '%s' successfully created at: %s", original_app_name, saved_model_path
             )
-            print(f"✅ Model saved: {saved_model_path}")
+            # Convert container path to host path for user display
+            display_path = convert_container_path_to_host_path(saved_model_path)
+            print(f"✅ Model saved: {display_path}")
         else:
             logger.error(
                 "❌ Failed to create custom model for '%s'", original_app_name
@@ -776,7 +1068,8 @@ def run(logger: logging.Logger) -> None:
 
         # Use the first input file for training
         input_file = input_files[0]
-        process_training_data(
+        # Always use containerized training for TensorFlow support
+        run_training_in_container(
             input_file_path=input_file,
             app_name=None,
             custom_model_path=None,
@@ -900,9 +1193,24 @@ def run(logger: logging.Logger) -> None:
                     if missing_apps:
                         logger.warning(f"Missing models for: {sorted(missing_apps)}")
 
-        for input_file in input_files:
-            process_input_file(
-                file_path=input_file,
-                logger=logger,
+        # Determine execution environment based on custom models flag
+        if use_custom_models and is_docker_available():
+            logger.info("🐳 Custom models enabled - using Docker container for detection")
+            # Run all detection in container when custom models are used
+            run_detection_in_container(
+                input_file_path=input_path_str,
                 use_custom_models=use_custom_models,
+                logger=logger
             )
+        else:
+            # Run detection locally (traditional mode)
+            if use_custom_models:
+                logger.warning("🐳 Custom models requested but Docker not available - running locally")
+                logger.warning("Custom models may fail without TensorFlow dependencies")
+            
+            for input_file in input_files:
+                process_input_file(
+                    file_path=input_file,
+                    logger=logger,
+                    use_custom_models=use_custom_models,
+                )

@@ -231,16 +231,20 @@ class ModelTrainer:
         self, training_data: List[Dict[str, Any]], app_name: str
     ) -> Optional[Dict[str, Any]]:
         """
-        Train a model for a specific app.
+        Train an anomaly detection model for a specific app using ensemble methods.
+        
+        This method learns the normal behavior patterns of an application and creates
+        an anomaly detector that can identify deviations from these patterns, which
+        could indicate supply chain compromises.
 
         Args:
-            training_data (List[Dict[str, Any]]): List of feature dictionaries for training.
+            training_data (List[Dict[str, Any]]): List of feature dictionaries representing normal app behavior.
             app_name (str): Name of the app to train the model for.
 
         Returns:
-            Dict[str, Any]: Trained model information.
+            Dict[str, Any]: Trained anomaly detection model information.
         """
-        self.logger.info("Training model for application: %s", app_name)
+        self.logger.info("Training anomaly detection model for application: %s", app_name)
 
         # Add the app name to each training sample
         for item in training_data:
@@ -259,44 +263,8 @@ class ModelTrainer:
             )
             return None
 
-        # Convert to pandas DataFrame
-        X, y = self.convert_features_to_pd(training_data)
-
-        # For binary classification, we need numeric labels (0 or 1), not string labels
-        # Since we have only one class in training data, we need to create a synthetic negative class
-        # We'll add some negative examples with '0' label
-        self.logger.info(
-            f"Creating binary classification dataset with target class '{app_name}'"
-        )
-
-        # Create synthetic negative examples by copying the first few examples and changing their labels
-        negative_samples = []
-        if len(training_data) > 0:
-            # Use a small number of samples from the training data as templates
-            for i in range(min(5, len(training_data))):
-                neg_sample = training_data[i].copy()
-                neg_sample["application"] = (
-                    "not_" + app_name
-                )  # This will be encoded as 0
-                negative_samples.append(neg_sample)
-
-            # Add the negative samples to the training data
-            combined_data = training_data + negative_samples
-
-            # Re-convert to DataFrame with the combined data
-            X, y = self.convert_features_to_pd(combined_data)
-
-            # Encode labels as 0 and 1
-            y_encoded = np.zeros(len(y), dtype=int)
-            y_encoded[y == app_name] = 1  # Set positive class to 1
-            y = y_encoded
-
-            self.logger.info(
-                f"Created dataset with {len(training_data)} positive examples and {len(negative_samples)} synthetic negative examples"
-            )
-        else:
-            self.logger.error("No positive examples available for training")
-            return None
+        # Convert to pandas DataFrame - no need for synthetic negatives!
+        X, _ = self.convert_features_to_pd(training_data)
 
         # Get transformers for available columns
         transformers = self.get_available_transformers(X)
@@ -308,54 +276,52 @@ class ModelTrainer:
         ct = ColumnTransformer(transformers=transformers, remainder="drop")
         X_transformed = ct.fit_transform(X)
 
-        # Now we can accurately determine the number of transformed features
+        # Log dataset information
         transformed_feature_count = X_transformed.shape[1]
         self.logger.info(
             f"Dataset has {X.shape[1]} raw features, which transform to {transformed_feature_count} features"
         )
-
-        # Use a substantial portion of the available features while still being safe
-        # Use up to 90% of available features with a higher maximum limit of 30
-        safe_max_features = min(30, int(transformed_feature_count * 0.9))
-        safe_max_features = max(
-            5, safe_max_features
-        )  # Ensure at least 5 features are selected
         self.logger.info(
-            f"Setting max_features to {safe_max_features} (out of {transformed_feature_count} available)"
+            f"Training on {len(training_data)} samples of normal {app_name} behavior"
         )
 
-        # Now create the full pipeline with our safe max_features value
-        estimator = self.get_pipeline_estimator(feature_count=safe_max_features, X=X)
-        estimator.fit(X, y)
+        # Initialize ensemble anomaly detector
+        ensemble_detector = EnsembleAnomalyDetector(
+            contamination=0.05,  # Expect 5% anomalies in future data
+            isolation_forest_params={
+                "n_estimators": 100,
+                "contamination": 0.05,
+                "random_state": 42,
+                "n_jobs": -1,
+            },
+            one_class_svm_params={
+                "nu": 0.05,
+                "gamma": "scale",
+                "kernel": "rbf"
+            }
+        )
+        
+        # Train the ensemble on normal behavior
+        ensemble_detector.fit(X_transformed)
 
         # Get feature names
-        feature_names = self.get_feature_names(ct=estimator.named_steps["ct"])
-        selected_feat_ind = estimator.named_steps["feat_sel"].get_support()
-        
-        # Ensure the feature names and selection mask have the same length
-        if len(feature_names) != len(selected_feat_ind):
-            self.logger.warning(
-                f"Feature names ({len(feature_names)}) and selection mask ({len(selected_feat_ind)}) "
-                f"have different lengths. Using first {min(len(feature_names), len(selected_feat_ind))} features."
-            )
-            min_length = min(len(feature_names), len(selected_feat_ind))
-            feature_names = feature_names[:min_length]
-            selected_feat_ind = selected_feat_ind[:min_length]
-        
-        selected_features = np.array(feature_names)[selected_feat_ind]
+        feature_names = self.get_feature_names(ct=ct)
 
         # Create model information dictionary
         model_info = {
             "key": app_name,
-            "estimator": estimator,
+            "model_type": "anomaly_ensemble",
+            "estimator": ensemble_detector,
+            "feature_transformer": ct,
             "features": feature_names,
-            "selected_features": selected_features,
+            "n_training_samples": len(training_data),
+            "contamination": 0.05
         }
 
         self.logger.info(
-            "Model training completed for %s with %d selected features",
+            "Anomaly detection model training completed for %s with %d training samples",
             app_name,
-            len(selected_features),
+            len(training_data)
         )
 
         return model_info

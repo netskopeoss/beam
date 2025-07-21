@@ -1,0 +1,52 @@
+# Model Training Container with TensorFlow Support
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for TensorFlow and model training
+RUN apt-get update && apt-get install -y \
+    curl=7.88.1-10+deb12u12 \
+    build-essential \
+    libhdf5-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv using the official method
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy dependency files first for better Docker layer caching
+COPY pyproject.toml uv.lock ./
+
+# Install Python dependencies using uv with caching (including TensorFlow)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked && \
+    uv pip install tensorflow==2.18.0 keras==3.8.0
+
+# Copy full source code for training
+COPY src/ ./src/
+
+# Copy models and data directories
+COPY models/ ./models/
+COPY data/ ./data/
+
+# Create necessary directories
+RUN mkdir -p /app/models/custom_models \
+    /app/data/app_summaries \
+    /app/data/enriched_events \
+    /app/logs
+
+# Set environment variables
+ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1
+ENV PATH="/app/.venv/bin:$PATH"
+ENV TF_CPP_MIN_LOG_LEVEL=3
+ENV CUDA_VISIBLE_DEVICES=""
+ENV TF_ENABLE_ONEDNN_OPTS=0
+ENV TF_CPP_MIN_VLOG_LEVEL=3
+
+# Expose port for potential web interface (optional)
+EXPOSE 8888
+
+# Default command - wait for training commands
+CMD ["tail", "-f", "/dev/null"]

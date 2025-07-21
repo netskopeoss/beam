@@ -37,12 +37,13 @@ from beam.services import setup_environment
 
 def setup_logging():
     """Setup logging to file only."""
+    from beam.constants import LOG_DIR
+    
     # Create logs directory if it doesn't exist
-    log_dir = Path(__file__).parent.parent.parent / "logs"
-    log_dir.mkdir(exist_ok=True)
+    LOG_DIR.mkdir(exist_ok=True)
     
     # Set up file logging only
-    log_file = log_dir / "beam.log"
+    log_file = LOG_DIR / "beam.log"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

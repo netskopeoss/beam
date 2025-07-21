@@ -42,13 +42,16 @@ cp /path/to/your/app_traffic.har data/input/
 ```
 
 ##### Step 2: Train the Model
-BEAM automatically discovers applications in your traffic data:
+BEAM automatically discovers applications in your traffic data and uses Docker with TensorFlow when available:
 ```bash
 # Basic training command (auto-discovers all apps)
-python -m beam --train -i data/input/
+uv run python -m beam --train -i data/input/
 
 # Train from a specific file
-python -m beam --train -i data/input/app_traffic.pcap
+uv run python -m beam --train -i data/input/app_traffic.pcap
+
+# Note: Training automatically uses Docker container with TensorFlow support if Docker is available.
+# Falls back to local training (without Autoencoder) if Docker is not available.
 ```
 
 ##### Step 4: Verify Model Creation
@@ -249,25 +252,32 @@ cp models/combined_app_model.pkl models/backups/combined_$(date +%Y%m%d).pkl
 
 ### 📈 Model Architecture
 
-BEAM uses a hybrid machine learning approach for optimal performance:
+BEAM uses an ensemble anomaly detection approach for supply chain compromise detection:
 
 ```
-Raw Data → Feature Extraction → ColumnTransformer → RF Feature Selection → XGBoost (Binary) → Trained Model
+Raw Data → Feature Extraction → ColumnTransformer → Ensemble Anomaly Detection → Trained Model
 ```
 
-- **RandomForest Feature Selection**: Robust feature importance ranking and selection
-- **XGBoost Classification**: Advanced gradient boosting for superior accuracy
-- **Binary Classification**: Each model distinguishes one application from all others
+- **Isolation Forest**: Detects anomalies by isolating outliers in tree structures
+- **One-Class SVM**: Learns boundaries around normal application behavior
+- **Autoencoder**: Neural network-based reconstruction error detection (optional)
+- **Ensemble Voting**: Combines multiple methods for robust anomaly detection
 - **150+ Features**: Comprehensive network behavior analysis including timing, content types, domains, and traffic patterns
+
+**Key Advantage**: Instead of learning "what is this app vs others", the model learns "what is normal behavior for this app" and detects deviations that could indicate supply chain compromises.
 
 ### 📊 Model Outputs
 
 The training process produces the following files:
 
-1. **Individual app model** - Saved in this directory with a name based on the app name
-2. **Combined app model** - Saved in the parent models directory as `combined_app_model.pkl`
+1. **Individual anomaly detection models** - Saved in this directory with a name based on the app name
+   - Each model learns normal behavior patterns for a specific application
+   - Models detect deviations from normal patterns (potential supply chain attacks)
+   - Output: Anomaly scores and predictions instead of binary classifications
 
-When custom models are available, BEAM automatically uses the combined model for detection.
+2. **Model Type**: `anomaly_ensemble` - Uses Isolation Forest, One-Class SVM, and optional Autoencoder
+
+When custom models are available, BEAM automatically detects model type and uses appropriate detection logic.
 
 ### 🚀 Using Custom Models
 
