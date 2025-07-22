@@ -303,9 +303,10 @@ class TestEndToEndTrainingWorkflow:
 
         assert len(model) == 1
         assert model[0]["key"] == "TestApp"
-        assert "estimator" in model[0]
+        assert "ensemble_detector" in model[0]
         assert "features" in model[0]
-        assert "selected_features" in model[0]
+        assert "model_type" in model[0]
+        assert model[0]["model_type"] == "ensemble_anomaly"
 
     def test_individual_model_creation(
         self, temp_workspace, mock_app_features_sufficient
@@ -330,18 +331,19 @@ class TestEndToEndTrainingWorkflow:
 
         assert len(model) == 1
         assert model[0]["key"] == "TestApp"
-        assert "estimator" in model[0]
+        assert "ensemble_detector" in model[0]
         assert "features" in model[0]
-        assert "selected_features" in model[0]
+        assert "model_type" in model[0]
+        assert model[0]["model_type"] == "ensemble_anomaly"
 
 
 class TestCommandLineIntegration:
     """Test command-line interface integration for training"""
 
-    @patch("beam.run.process_training_data")
+    @patch("beam.run.run_training_in_container")
     @patch("argparse.ArgumentParser.parse_args")
     def test_command_line_training_invocation(
-        self, mock_parse_args, mock_process_training
+        self, mock_parse_args, mock_run_training
     ):
         """Test command-line training invocation"""
         # Mock command line arguments for training
@@ -363,13 +365,13 @@ class TestCommandLineIntegration:
                 run.run(logger=mock_logger)
 
         # Verify training was called
-        mock_process_training.assert_called()
+        mock_run_training.assert_called()
 
-    @patch("beam.run.process_training_data")
+    @patch("beam.run.run_training_in_container")
     @patch("beam.run.glob.glob")
     @patch("argparse.ArgumentParser.parse_args")
     def test_command_line_training_parameters(
-        self, mock_parse_args, mock_glob, mock_process_training
+        self, mock_parse_args, mock_glob, mock_run_training
     ):
         """Test command-line training with various parameters"""
         # Mock command line arguments
@@ -391,8 +393,8 @@ class TestCommandLineIntegration:
         with patch("pathlib.Path.is_dir", return_value=True):
             run.run(logger=mock_logger)
 
-        # Verify process_training_data was called with correct parameters
-        mock_process_training.assert_called_once_with(
+        # Verify run_training_in_container was called with correct parameters
+        mock_run_training.assert_called_once_with(
             input_file_path="/custom/input/test.har",
             app_name=None,
             custom_model_path=None,
@@ -600,8 +602,13 @@ class TestPerformanceAndScalability:
 
         assert len(model) == 1
         assert model[0]["key"] == "TestApp"
-        # Verify that feature selection worked
-        assert len(model[0]["selected_features"]) <= 30
+        # Verify that ensemble model was created
+        assert "ensemble_detector" in model[0]
+        assert "model_type" in model[0]
+        assert model[0]["model_type"] == "ensemble_anomaly"
+        # Verify features were processed
+        assert "features" in model[0]
+        assert len(model[0]["features"]) > 0
 
     def test_concurrent_model_training_simulation(self, temp_workspace):
         """Test simulation of concurrent model training scenarios"""

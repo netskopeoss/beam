@@ -310,8 +310,8 @@ class ModelTrainer:
         # Create model information dictionary
         model_info = {
             "key": app_name,
-            "model_type": "anomaly_ensemble",
-            "estimator": ensemble_detector,
+            "model_type": "ensemble_anomaly",
+            "ensemble_detector": ensemble_detector,
             "feature_transformer": ct,
             "features": feature_names,
             "n_training_samples": len(training_data),

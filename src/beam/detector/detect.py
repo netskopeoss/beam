@@ -642,12 +642,12 @@ def detect_anomalous_domain_with_anomaly_model(
             model = models[application]
 
             # Check if this is an anomaly detection model
-            if model.get("model_type") != "anomaly_ensemble":
+            if model.get("model_type") != "ensemble_anomaly":
                 logger.warning(f"Model for {application} is not an anomaly detection model. Skipping.")
                 continue
 
             feature_transformer = model["feature_transformer"]
-            estimator = model["estimator"]
+            estimator = model["ensemble_detector"]
             
             # Transform features for this observation
             observation_df = features_pd.iloc[[observation_index]]
