@@ -275,7 +275,7 @@ The training process produces the following files:
    - Models detect deviations from normal patterns (potential supply chain attacks)
    - Output: Anomaly scores and predictions instead of binary classifications
 
-2. **Model Type**: `anomaly_ensemble` - Uses Isolation Forest, One-Class SVM, and optional Autoencoder
+2. **Model Type**: `ensemble_anomaly` - Uses Isolation Forest, One-Class SVM, and optional Autoencoder
 
 When custom models are available, BEAM automatically detects model type and uses appropriate detection logic.
 

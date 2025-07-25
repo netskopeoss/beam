@@ -113,7 +113,7 @@ def detect_model_type_and_run_detection(
             model_info = model_data[0]
             model_type = model_info.get("model_type", "unknown")
             
-            if model_type == "anomaly_ensemble":
+            if model_type == "ensemble_anomaly":
                 logger.info(f"Using anomaly detection for model: {custom_model_path.name}")
                 return detect_anomalous_domain_with_anomaly_model(
                     input_path=input_path,
@@ -121,7 +121,7 @@ def detect_model_type_and_run_detection(
                     app_prediction_dir=app_prediction_dir,
                 )
             else:
-                logger.error(f"Unsupported model type '{model_type}' in {custom_model_path}. Only anomaly_ensemble models are supported.")
+                logger.error(f"Unsupported model type '{model_type}' in {custom_model_path}. Only ensemble_anomaly models are supported.")
                 return {"success": False, "error_message": f"Unsupported model type: {model_type}"}
         else:
             logger.error(f"Invalid model format in {custom_model_path}")
