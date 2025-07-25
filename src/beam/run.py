@@ -40,7 +40,6 @@ from beam.detector import features, utils
 from beam.detector.detect import (
     MultiHotEncoder,
     detect_anomalous_domain,
-    detect_anomalous_domain_with_custom_model,
     detect_anomalous_domain_with_anomaly_model,
 )
 from beam.detector.security_report import generate_security_report
