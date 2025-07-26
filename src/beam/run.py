@@ -194,6 +194,14 @@ def run_detection(
     Raises:
         None
     """
+    # Clear old predictions to ensure fresh results
+    import shutil
+    predictions_dir = Path(constants.DOMAIN_PREDICTIONS_DIR)
+    if predictions_dir.exists():
+        logger.info(f"Clearing old predictions from {predictions_dir}")
+        shutil.rmtree(predictions_dir)
+    predictions_dir.mkdir(parents=True, exist_ok=True)
+    
     # Run app detection with basic and custom models
     logger.info("Analysing applications...")
     app_features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"

@@ -236,6 +236,10 @@ class ModelTrainer:
         This method learns the normal behavior patterns of an application and creates
         an anomaly detector that can identify deviations from these patterns, which
         could indicate supply chain compromises.
+        
+        IMPORTANT: The training data is assumed to be clean (no anomalies/compromises).
+        The contamination rate is set to near-zero (0.01%) to ensure the model doesn't
+        falsely flag training samples as anomalous.
 
         Args:
             training_data (List[Dict[str, Any]]): List of feature dictionaries representing normal app behavior.
@@ -286,19 +290,23 @@ class ModelTrainer:
         )
 
         # Initialize ensemble anomaly detector
+        # Set contamination to minimum value since training data is assumed clean
+        # Using 0.0001 (0.01%) instead of 0 to avoid numerical issues in some algorithms
+        contamination_rate = 0.0001  # 0.01% - essentially zero contamination
         ensemble_detector = EnsembleAnomalyDetector(
-            contamination=0.05,  # Expect 5% anomalies in future data
+            contamination=contamination_rate,
             isolation_forest_params={
                 "n_estimators": 100,
-                "contamination": 0.05,
+                "contamination": contamination_rate,
                 "random_state": 42,
                 "n_jobs": -1,
             },
             one_class_svm_params={
-                "nu": 0.05,
+                "nu": contamination_rate,
                 "gamma": "scale",
                 "kernel": "rbf"
-            }
+            },
+            use_adaptive_threshold=True  # Ensure no training samples are classified as anomalies
         )
         
         # Train the ensemble on normal behavior
@@ -315,7 +323,7 @@ class ModelTrainer:
             "feature_transformer": ct,
             "features": feature_names,
             "n_training_samples": len(training_data),
-            "contamination": 0.05
+            "contamination": contamination_rate
         }
 
         self.logger.info(

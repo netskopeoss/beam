@@ -200,6 +200,7 @@ class EnsembleAnomalyDetector:
         isolation_forest_params: Optional[Dict] = None,
         one_class_svm_params: Optional[Dict] = None,
         autoencoder_params: Optional[Dict] = None,
+        use_adaptive_threshold: bool = False,
     ):
         """
         Initialize the ensemble anomaly detector.
@@ -209,8 +210,11 @@ class EnsembleAnomalyDetector:
             isolation_forest_params (dict): Parameters for Isolation Forest
             one_class_svm_params (dict): Parameters for One-Class SVM
             autoencoder_params (dict): Parameters for Autoencoder
+            use_adaptive_threshold (bool): If True, use adaptive threshold based on training data
         """
         self.contamination = contamination
+        self.use_adaptive_threshold = use_adaptive_threshold
+        self.adaptive_threshold = None
         self.logger = logging.getLogger(__name__)
 
         # Default parameters
@@ -290,7 +294,19 @@ class EnsembleAnomalyDetector:
         else:
             self.logger.info("TensorFlow not available, skipping autoencoder training")
 
+        # Mark as fitted before computing adaptive threshold
         self.is_fitted = True
+        
+        # If using adaptive threshold, compute it based on training data scores
+        if self.use_adaptive_threshold:
+            self.logger.info("Computing adaptive threshold based on training data")
+            train_scores = self.decision_function(X)
+            # Set threshold to be much more lenient than the minimum training score
+            # This ensures no training samples are classified as anomalies
+            # Use a large margin to account for any numerical variations
+            self.adaptive_threshold = np.min(train_scores) - abs(np.min(train_scores)) * 0.1 - 10.0
+            self.logger.info(f"Adaptive threshold set to: {self.adaptive_threshold}")
+        
         self.logger.info("Ensemble training completed")
         return self
 
@@ -327,7 +343,12 @@ class EnsembleAnomalyDetector:
                 self.logger.warning(f"Autoencoder prediction failed: {e}")
                 # Don't append anything if autoencoder fails
 
-        # Weighted ensemble voting
+        # If using adaptive threshold, use decision scores instead of votes
+        if self.use_adaptive_threshold and self.adaptive_threshold is not None:
+            scores = self.decision_function(X)
+            return np.where(scores > self.adaptive_threshold, 1, -1)
+        
+        # Otherwise use weighted ensemble voting
         predictions = np.array(predictions)
         weighted_scores = np.average(predictions, axis=0, weights=self.weights)
 

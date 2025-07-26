@@ -578,7 +578,7 @@ def detect_anomalous_domain_with_anomaly_model(
         input_path (str): The path to the input JSON file containing the data.
         custom_model_path (Path): The path to the custom anomaly model file.
         app_prediction_dir (str): The directory to save the predictions.
-        anomaly_threshold (float): Threshold for anomaly score. Lower values = more anomalous.
+        anomaly_threshold (float): Deprecated parameter, kept for backwards compatibility. Not used in detection.
         
     Returns:
         Dict[str, Any]: Detection results summary containing analyzed domains, anomalies found, etc.
@@ -660,7 +660,7 @@ def detect_anomalous_domain_with_anomaly_model(
                 # Get anomaly score (lower = more anomalous)
                 anomaly_score = estimator.decision_function(features_transformed)[0]
                 
-                is_anomaly = (anomaly_prediction == -1) or (anomaly_score < anomaly_threshold)
+                is_anomaly = (anomaly_prediction == -1)
                 
                 # Create output directory
                 obs_file_dir = (
@@ -676,7 +676,7 @@ def detect_anomalous_domain_with_anomaly_model(
                 # Generate explanation for anomaly detection
                 if is_anomaly:
                     detection_results.anomalies_detected += 1
-                    text_explanation = f"Anomaly detected for {domain}. Anomaly score: {anomaly_score:.4f} (threshold: {anomaly_threshold}). This indicates the application behavior deviates significantly from learned normal patterns, possibly indicating a supply chain compromise."
+                    text_explanation = f"Anomaly detected for {domain}. Anomaly score: {anomaly_score:.4f}. This indicates the application behavior deviates significantly from learned normal patterns, possibly indicating a supply chain compromise."
                     
                     anomaly_info = AnomalyInfo(
                         domain=domain,
@@ -692,7 +692,7 @@ def detect_anomalous_domain_with_anomaly_model(
                     logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
                 else:
                     detection_results.normal_domains += 1
-                    text_explanation = f"Normal behavior detected for {domain}. Anomaly score: {anomaly_score:.4f} (threshold: {anomaly_threshold}). The application behavior matches learned normal patterns."
+                    text_explanation = f"Normal behavior detected for {domain}. Anomaly score: {anomaly_score:.4f}. The application behavior matches learned normal patterns."
                     logger.info(f"✅ Normal behavior: {domain} for {application} (score: {anomaly_score:.4f})")
                 
                 # Save explanation
@@ -707,7 +707,6 @@ def detect_anomalous_domain_with_anomaly_model(
                     "anomaly_score": float(anomaly_score),
                     "anomaly_prediction": int(anomaly_prediction),
                     "is_anomaly": bool(is_anomaly),
-                    "threshold_used": float(anomaly_threshold),
                     "explanation": text_explanation
                 }
                 
