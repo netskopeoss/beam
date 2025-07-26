@@ -213,6 +213,7 @@ def run_detection(
     )
 
     logger.info("Analysing domains...")
+    logger.info(f"Using MIN_DOMAIN_TRANSACTION = {constants.MIN_DOMAIN_TRANSACTION}")
     features_output_path = f"{DATA_DIR}/domain_summaries/{file_name}.json"
     features.aggregate_app_traffic(
         fields=["application", "domain"],
@@ -838,9 +839,12 @@ def process_training_data(
     )
 
     print("🔍 Step 3: Discovering applications in traffic...")
+    # Set up transaction thresholds
+    min_app_transactions = constants.MIN_APP_TRANSACTIONS  # Minimum for app to be eligible for training
+    
     # Discover applications in the traffic
     discovered_apps = discover_apps_in_traffic(
-        enriched_events_path, min_transactions=constants.MIN_APP_TRANSACTIONS
+        enriched_events_path, min_transactions=min_app_transactions
     )
 
     # Report all applications found in traffic (including those below threshold)
@@ -852,12 +856,12 @@ def process_training_data(
     ):
         status = (
             "✓ ELIGIBLE"
-            if count >= constants.MIN_APP_TRANSACTIONS
+            if count >= min_app_transactions
             else "✗ insufficient"
         )
         logger.info(f"  {discovered_app_name}: {count} transactions ({status})")
     logger.info(
-        f"Minimum transactions required for training: {constants.MIN_APP_TRANSACTIONS}"
+        f"Minimum transactions required for training: {min_app_transactions}"
     )
     logger.info("=====================================")
 
@@ -876,14 +880,17 @@ def process_training_data(
         "Training models for all discovered apps: %s", list(apps_to_train.keys())
     )
 
+    min_domain_transactions = constants.MIN_DOMAIN_TRANSACTION  # Minimum per domain within app
+    
     # Extract features for model training (once for all apps)
     features_output_path = f"{DATA_DIR}/app_summaries/{file_name}.json"
-    # Use both useragent and domain fields for feature extraction to satisfy trainer expectations
-    extract_app_features(
-        input_data_path=enriched_events_path,
+    # For custom model training, use same aggregation as detection: ["application", "domain"]
+    from beam.detector.features import aggregate_app_traffic
+    aggregate_app_traffic(
+        fields=["application", "domain"],
+        input_path=enriched_events_path,
         output_path=features_output_path,
-        min_transactions=constants.MIN_APP_TRANSACTIONS,
-        fields=["useragent", "domain"],
+        min_transactions=min_domain_transactions,  # Use domain threshold for feature extraction
     )
 
     # Train models for each app
@@ -908,7 +915,7 @@ def process_training_data(
             app_name=original_app_name,  # Use original name for training (it's used as the key)
             output_model_path=model_path,
             n_features=50,  # Lower default value to avoid exceeding available features
-            min_transactions=constants.MIN_APP_TRANSACTIONS,
+            min_transactions=min_domain_transactions,  # Use domain threshold for individual domain filtering
         )
 
         if saved_model_path:

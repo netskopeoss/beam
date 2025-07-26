@@ -54,8 +54,6 @@ services:
       - TF_ENABLE_ONEDNN_OPTS=0
       - TF_CPP_MIN_VLOG_LEVEL=3
     command: ["tail", "-f", "/dev/null"]  # Keep container running
-    profiles:
-      - training
 
   # Optional: Llama model service for local LLM (if not using Gemini)
   llama-model:
