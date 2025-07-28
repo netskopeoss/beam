@@ -243,17 +243,25 @@ class EnsembleAnomalyDetector:
         )
         
         # Initialize autoencoder only if TensorFlow is available
-        if HAS_TENSORFLOW:
-            self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
-            # Ensemble weights (can be learned or set manually)
-            self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
-        else:
-            self.autoencoder = None
-            # Adjust weights when autoencoder is not available
-            self.weights = np.array([0.5, 0.5])  # IF, SVM only
-            self.logger.warning(
-                "TensorFlow not available. Ensemble will use only Isolation Forest and One-Class SVM."
-            )
+        # COMMENTED OUT: Temporarily disable autoencoder for testing with small datasets
+        # if HAS_TENSORFLOW:
+        #     self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
+        #     # Ensemble weights (can be learned or set manually)
+        #     self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
+        # else:
+        #     self.autoencoder = None
+        #     # Adjust weights when autoencoder is not available
+        #     self.weights = np.array([0.5, 0.5])  # IF, SVM only
+        #     self.logger.warning(
+        #         "TensorFlow not available. Ensemble will use only Isolation Forest and One-Class SVM."
+        #     )
+        
+        # Temporarily disable autoencoder for better performance with small training datasets
+        self.autoencoder = None
+        self.weights = np.array([0.5, 0.5])  # IF, SVM only
+        self.logger.info(
+            "Autoencoder disabled for testing. Ensemble will use only Isolation Forest and One-Class SVM."
+        )
         self.is_fitted = False
 
     def fit(
@@ -282,17 +290,20 @@ class EnsembleAnomalyDetector:
         self.one_class_svm.fit(X)
 
         # Fit Autoencoder (if TensorFlow is available)
-        if HAS_TENSORFLOW and self.autoencoder is not None:
-            self.logger.info("Training Autoencoder...")
-            try:
-                self.autoencoder.fit(X)
-            except Exception as e:
-                self.logger.warning(
-                    f"Autoencoder training failed: {e}. Continuing with other models."
-                )
-                # Already adjusted weights in __init__ if no TensorFlow
-        else:
-            self.logger.info("TensorFlow not available, skipping autoencoder training")
+        # COMMENTED OUT: Autoencoder training disabled for testing
+        # if HAS_TENSORFLOW and self.autoencoder is not None:
+        #     self.logger.info("Training Autoencoder...")
+        #     try:
+        #         self.autoencoder.fit(X)
+        #     except Exception as e:
+        #         self.logger.warning(
+        #             f"Autoencoder training failed: {e}. Continuing with other models."
+        #         )
+        #         # Already adjusted weights in __init__ if no TensorFlow
+        # else:
+        #     self.logger.info("TensorFlow not available, skipping autoencoder training")
+        
+        self.logger.info("Autoencoder training skipped (disabled for testing)")
 
         # Mark as fitted before computing adaptive threshold
         self.is_fitted = True
@@ -380,13 +391,14 @@ class EnsembleAnomalyDetector:
         scores.append(svm_scores)
 
         # Autoencoder (if available and trained)
-        if HAS_TENSORFLOW and self.autoencoder is not None:
-            try:
-                ae_scores = self.autoencoder.decision_function(X)
-                scores.append(ae_scores)
-            except Exception as e:
-                self.logger.warning(f"Autoencoder scoring failed: {e}")
-                # Don't append anything if autoencoder fails
+        # COMMENTED OUT: Autoencoder scoring disabled for testing
+        # if HAS_TENSORFLOW and self.autoencoder is not None:
+        #     try:
+        #         ae_scores = self.autoencoder.decision_function(X)
+        #         scores.append(ae_scores)
+        #     except Exception as e:
+        #         self.logger.warning(f"Autoencoder scoring failed: {e}")
+        #         # Don't append anything if autoencoder fails
 
         # Weighted ensemble scoring
         scores = np.array(scores)

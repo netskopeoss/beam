@@ -228,7 +228,7 @@ class ModelTrainer:
         return features_train, target_label
 
     def train_model(
-        self, training_data: List[Dict[str, Any]], app_name: str
+        self, training_data: List[Dict[str, Any]], app_name: str, all_domains: set = None
     ) -> Optional[Dict[str, Any]]:
         """
         Train an anomaly detection model for a specific app using ensemble methods.
@@ -305,8 +305,7 @@ class ModelTrainer:
                 "nu": contamination_rate,
                 "gamma": "scale",
                 "kernel": "rbf"
-            },
-            use_adaptive_threshold=True  # Ensure no training samples are classified as anomalies
+            }
         )
         
         # Train the ensemble on normal behavior
@@ -314,6 +313,30 @@ class ModelTrainer:
 
         # Get feature names
         feature_names = self.get_feature_names(ct=ct)
+
+        # Collect domain volume information for volume-weighted anomaly scoring
+        domain_volumes = {}
+        if all_domains:
+            # Get volumes from training data for domains that were actually trained on
+            for item in training_data:
+                domain = item.get("domain", "")
+                transactions = item.get("transactions", 0)
+                if domain:
+                    domain_volumes[domain] = transactions
+            domain_list = sorted(list(all_domains))
+            self.logger.info(f"Training includes {len(all_domains)} total domains for {app_name}: {domain_list}")
+            self.logger.info(f"Domain volumes: {domain_volumes}")
+        else:
+            training_domains = set()
+            for item in training_data:
+                domain = item.get("domain", "")
+                transactions = item.get("transactions", 0)
+                if domain:
+                    training_domains.add(domain)
+                    domain_volumes[domain] = transactions
+            domain_list = sorted(list(training_domains))
+            self.logger.info(f"Training includes {len(training_domains)} domains for {app_name}: {domain_list}")
+            self.logger.info(f"Domain volumes: {domain_volumes}")
 
         # Create model information dictionary
         model_info = {
@@ -323,7 +346,8 @@ class ModelTrainer:
             "feature_transformer": ct,
             "features": feature_names,
             "n_training_samples": len(training_data),
-            "contamination": contamination_rate
+            "contamination": contamination_rate,
+            "domain_volumes": domain_volumes,  # Store for volume-weighted scoring
         }
 
         self.logger.info(
@@ -481,18 +505,33 @@ class ModelTrainer:
         )
 
         # Load training data
-        training_data = load_json_file(input_path)
+        all_feature_data = load_json_file(input_path)
 
-        # Ensure training_data is a list
-        if isinstance(training_data, dict):
-            training_data = [training_data]
-        elif not isinstance(training_data, list):
+        # Ensure all_feature_data is a list
+        if isinstance(all_feature_data, dict):
+            all_feature_data = [all_feature_data]
+        elif not isinstance(all_feature_data, list):
             raise ValueError(
-                f"Training data must be a list or dict, got {type(training_data)}"
+                f"Training data must be a list or dict, got {type(all_feature_data)}"
             )
 
+        # Extract ALL domains for this app (including those filtered out during training)
+        all_domains_for_app = set()
+        training_data = []
+        
+        for item in all_feature_data:
+            if item.get("application") == app_name:
+                domain = item.get("domain", "")
+                if domain:
+                    all_domains_for_app.add(domain)
+                # Only include in training_data if it has sufficient transactions
+                if item.get("transactions", 0) >= self.min_transactions:
+                    training_data.append(item)
+
+        self.logger.info(f"Found {len(all_domains_for_app)} total domains for {app_name}, {len(training_data)} meet training criteria")
+
         # Train model
-        model_info = self.train_model(training_data, app_name)
+        model_info = self.train_model(training_data, app_name, all_domains_for_app)
 
         if model_info:
             # Save model

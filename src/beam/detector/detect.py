@@ -657,10 +657,35 @@ def detect_anomalous_domain_with_anomaly_model(
             try:
                 # Get prediction (-1 = anomaly, 1 = normal)
                 anomaly_prediction = estimator.predict(features_transformed)[0]
-                # Get anomaly score (lower = more anomalous)
-                anomaly_score = estimator.decision_function(features_transformed)[0]
+                # Get raw anomaly score (lower = more anomalous)
+                raw_anomaly_score = estimator.decision_function(features_transformed)[0]
                 
-                is_anomaly = (anomaly_prediction == -1)
+                # Apply volume-weighted bias: high-volume training domains should be less anomalous
+                domain = observation_series.get("domain", "")
+                domain_volumes = model.get("domain_volumes", {})
+                
+                if domain in domain_volumes:
+                    # Get the volume for this domain from training
+                    domain_volume = domain_volumes[domain]
+                    max_volume = max(domain_volumes.values()) if domain_volumes else 1
+                    
+                    # Calculate volume bias: higher volume = more bias toward normal
+                    # Volume ratio ranges from 0 to 1, bias ranges from 0 to 0.3
+                    volume_ratio = domain_volume / max_volume
+                    volume_bias = volume_ratio * 0.3  # Max 0.3 bias toward normal
+                    
+                    # Apply bias: increase score (make less anomalous) for high-volume domains
+                    anomaly_score = raw_anomaly_score + volume_bias
+                    
+                    logger.info(f"Domain {domain}: raw_score={raw_anomaly_score:.4f}, volume={domain_volume}, volume_ratio={volume_ratio:.3f}, bias={volume_bias:.4f}, final_score={anomaly_score:.4f}")
+                else:
+                    # No volume information, use raw score
+                    anomaly_score = raw_anomaly_score
+                    logger.info(f"Domain {domain}: raw_score={raw_anomaly_score:.4f}, no volume info, final_score={anomaly_score:.4f}")
+                
+                # For custom models (ensemble_anomaly), use volume-adjusted score for decision
+                # Negative scores indicate anomalies, positive scores indicate normal behavior
+                is_anomaly = (anomaly_score < 0.0)
                 
                 # Create output directory
                 obs_file_dir = (

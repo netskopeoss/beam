@@ -45,6 +45,7 @@ services:
       - ./models:/app/models
       - ./logs:/app/logs
       - ./src:/app/src
+      - ./predictions:/app/predictions
     networks:
       - beam-network
     environment:
@@ -54,8 +55,6 @@ services:
       - TF_ENABLE_ONEDNN_OPTS=0
       - TF_CPP_MIN_VLOG_LEVEL=3
     command: ["tail", "-f", "/dev/null"]  # Keep container running
-    profiles:
-      - training
 
   # Optional: Llama model service for local LLM (if not using Gemini)
   llama-model:
