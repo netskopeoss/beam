@@ -45,6 +45,7 @@ services:
       - ./models:/app/models
       - ./logs:/app/logs
       - ./src:/app/src
+      - ./predictions:/app/predictions
     networks:
       - beam-network
     environment:
