@@ -26,7 +26,9 @@
 # - Dagmawi Mulugeta
 
 import logging
-from typing import Dict, List
+from typing import Dict, List, Optional
+from pathlib import Path
+import json
 
 
 class SecurityAnalysisReport:
@@ -34,8 +36,9 @@ class SecurityAnalysisReport:
     Generates human-readable security analysis reports from BEAM feature data.
     """
 
-    def __init__(self):
+    def __init__(self, prediction_dir: Path = None):
         self.logger = logging.getLogger(__name__)
+        self.prediction_dir = prediction_dir
 
         # Thresholds for security analysis
         self.thresholds = {
@@ -48,12 +51,13 @@ class SecurityAnalysisReport:
             "external_domain_ratio": 0.8,
         }
 
-    def analyze_security_features(self, summaries: List[Dict]) -> Dict:
+    def analyze_security_features(self, summaries: List[Dict], prediction_dir: Optional[Path] = None) -> Dict:
         """
         Analyze security features across all application summaries.
 
         Args:
             summaries (List[Dict]): List of application summary dictionaries
+            prediction_dir (Optional[Path]): Directory containing ML prediction outputs
 
         Returns:
             Dict: Comprehensive security analysis
@@ -66,6 +70,10 @@ class SecurityAnalysisReport:
             "security_insights": self._generate_security_insights(summaries),
             "risk_assessment": self._assess_overall_risk(summaries),
         }
+        
+        # Add ML model explanations if available
+        if prediction_dir:
+            analysis["ml_explanations"] = self._load_ml_explanations(prediction_dir)
 
         return analysis
 
@@ -238,133 +246,157 @@ class SecurityAnalysisReport:
         }
 
     def _generate_security_insights(self, summaries: List[Dict]) -> List[Dict]:
-        """Generate specific security insights and alerts."""
+        """Generate security insights from ModelExplainer explanations."""
         insights = []
 
-        for summary in summaries:
-            app_name = summary.get("application", "Unknown")
-            key = summary.get("key", "Unknown")
-            domain = summary.get("domain", "")
-
-            # Check for automation suspicion
-            automation_suspicion = summary.get("automation_suspicion", 0)
-            if automation_suspicion > self.thresholds["automation_suspicion"]:
-                insights.append(
-                    {
-                        "type": "Supply Chain Compromise",
-                        "severity": "HIGH",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Extremely high automation suspicion ({automation_suspicion:.1f}), indicating very regular request timing patterns typical of automated attacks.",
-                        "metric": "automation_suspicion",
-                        "value": automation_suspicion,
-                    }
-                )
-
-            # Check for suspicious domains
-            suspicious_ratio = summary.get("suspicious_domain_ratio", 0)
-            if suspicious_ratio > self.thresholds["suspicious_domain_ratio"]:
-                insights.append(
-                    {
-                        "type": "Suspicious Infrastructure",
-                        "severity": "MEDIUM" if suspicious_ratio < 0.7 else "HIGH",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Suspicious domain patterns detected (ratio: {suspicious_ratio:.1f}), flagging potential infrastructure issues.",
-                        "metric": "suspicious_domain_ratio",
-                        "value": suspicious_ratio,
-                    }
-                )
-
-            # Check for cross-domain patterns
-            same_origin_ratio = summary.get("same_origin_referer_ratio", 1.0)
-            cross_domain_ratio = summary.get("cross_domain_ratio", 0)
-            if cross_domain_ratio > 0.5:
-                insights.append(
-                    {
-                        "type": "Cross-Domain Patterns",
-                        "severity": "LOW",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"High cross-domain activity (ratio: {cross_domain_ratio:.2f}), same-origin referrers: {same_origin_ratio:.2f}",
-                        "metric": "cross_domain_ratio",
-                        "value": cross_domain_ratio,
-                    }
-                )
-
-            # Check for bot activity
-            bot_ratio = summary.get("bot_ratio", 0)
-            if bot_ratio > self.thresholds["bot_ratio"]:
-                insights.append(
-                    {
-                        "type": "Bot Activity",
-                        "severity": "MEDIUM",
-                        "application": app_name,
-                        "domain": domain,
-                        "key": key,
-                        "details": f"Bot signatures detected in {bot_ratio * 100:.1f}% of requests.",
-                        "metric": "bot_ratio",
-                        "value": bot_ratio,
-                    }
-                )
+        # Load ML explanations from prediction directory if available
+        if hasattr(self, 'prediction_dir') and self.prediction_dir and self.prediction_dir.exists():
+            try:
+                for subdir in self.prediction_dir.iterdir():
+                    if subdir.is_dir():
+                        explanation_txt = subdir / "explanation.txt"
+                        if explanation_txt.exists():
+                            try:
+                                with open(explanation_txt, 'r') as f:
+                                    explanation_text = f.read().strip()
+                                
+                                # Extract domain from directory name (format: index_app_domain)
+                                dir_parts = subdir.name.split('_')
+                                if len(dir_parts) >= 3:
+                                    app_name = dir_parts[1]
+                                    domain = '_'.join(dir_parts[2:]).replace('_on_', ' on ').split(' on ')[0]
+                                    
+                                    # Extract probability from explanation text
+                                    probability = 0.0
+                                    if 'probability:' in explanation_text:
+                                        try:
+                                            prob_text = explanation_text.split('probability:')[1].split(')')[0].strip()
+                                            probability = float(prob_text.replace('%', '')) / 100.0
+                                        except:
+                                            probability = 0.0
+                                    
+                                    # Determine severity based on probability
+                                    if probability >= 0.95:
+                                        severity = "HIGH"
+                                    elif probability >= 0.8:
+                                        severity = "MEDIUM"
+                                    else:
+                                        severity = "LOW"
+                                    
+                                    insights.append({
+                                        "type": "Supply Chain Compromise",
+                                        "severity": severity,
+                                        "application": app_name,
+                                        "domain": domain,
+                                        "key": f"{app_name} - {domain}",
+                                        "details": explanation_text,
+                                        "metric": "ml_prediction",
+                                        "value": probability,
+                                        "source": "ml_model"
+                                    })
+                            except Exception as e:
+                                # Continue if we can't parse this explanation
+                                continue
+            except Exception as e:
+                # If we can't access the prediction directory, return empty insights
+                pass
 
         return insights
 
     def _assess_overall_risk(self, summaries: List[Dict]) -> Dict:
-        """Assess overall security risk level."""
+        """Assess overall security risk level based on ML explanations."""
         risk_factors = []
+        
+        # Generate ML-based security insights first
+        ml_insights = self._generate_security_insights(summaries)
+        
+        # Count applications with detected issues from ML analysis
+        applications_with_issues = 0
+        
+        # Derive risk factors from ML insights
+        for insight in ml_insights:
+            if insight["severity"] == "HIGH":
+                # Extract meaningful risk factors from ML analysis
+                if "supply chain" in insight["type"].lower():
+                    risk_factors.append(("Supply chain compromise detected", "HIGH"))
+                elif "anomalous" in insight["type"].lower():
+                    risk_factors.append(("Anomalous behavior patterns detected", "HIGH"))
+                else:
+                    risk_factors.append((f"{insight['type']} detected", "HIGH"))
+                applications_with_issues += 1
+            elif insight["severity"] == "MEDIUM":
+                risk_factors.append((f"{insight['type']} detected", "MEDIUM"))
+                applications_with_issues += 1
 
-        # Automation suspicion
-        max_automation = max(
-            [s.get("automation_suspicion", 0) for s in summaries], default=0
-        )
-        if max_automation > 10:
-            risk_factors.append(("High automation suspicion detected", "HIGH"))
-        elif max_automation > 5:
-            risk_factors.append(("Moderate automation suspicion detected", "MEDIUM"))
+        # If no ML insights available, fall back to basic feature analysis
+        if not risk_factors:
+            # Basic automation detection
+            max_automation = max(
+                [s.get("automation_suspicion", 0) for s in summaries], default=0
+            )
+            if max_automation > 10:
+                risk_factors.append(("High automation patterns detected", "HIGH"))
+            elif max_automation > 5:
+                risk_factors.append(("Moderate automation patterns detected", "MEDIUM"))
 
-        # Suspicious domains
-        max_suspicious = max(
-            [s.get("suspicious_domain_ratio", 0) for s in summaries], default=0
-        )
-        if max_suspicious > 0.7:
-            risk_factors.append(("High suspicious domain ratio", "HIGH"))
-        elif max_suspicious > 0.3:
-            risk_factors.append(("Moderate suspicious domain activity", "MEDIUM"))
+            # Basic protocol security
+            min_https = min([s.get("https_ratio", 1) for s in summaries], default=1)
+            if min_https < 0.8:
+                risk_factors.append(("Poor HTTPS adoption", "MEDIUM"))
 
-        # Protocol security
-        min_https = min([s.get("https_ratio", 1) for s in summaries], default=1)
-        if min_https < 0.8:
-            risk_factors.append(("Poor HTTPS adoption", "MEDIUM"))
-
-        # Overall risk assessment
-        high_risks = len([r for r in risk_factors if r[1] == "HIGH"])
-        medium_risks = len([r for r in risk_factors if r[1] == "MEDIUM"])
-
-        if high_risks > 0:
-            overall_risk = "HIGH"
-        elif medium_risks > 1:
-            overall_risk = "MEDIUM"
-        elif medium_risks > 0:
-            overall_risk = "LOW"
+        # Overall risk assessment - use highest prediction probability if available
+        overall_risk = "MINIMAL"
+        
+        # Check if we have prediction probabilities to base the assessment on
+        if hasattr(self, 'prediction_dir') and self.prediction_dir and self.prediction_dir.exists():
+            max_probability = 0.0
+            for subdir in self.prediction_dir.iterdir():
+                if subdir.is_dir():
+                    explanation_json = subdir / 'explanation.json'
+                    if explanation_json.exists():
+                        try:
+                            import json
+                            with open(explanation_json, 'r') as f:
+                                data = json.load(f)
+                                probability = float(data.get('probability', 0.0))
+                                if probability > max_probability:
+                                    max_probability = probability
+                        except Exception:
+                            pass
+            
+            # Set overall risk based on highest prediction probability
+            if max_probability >= 0.95:
+                overall_risk = "CRITICAL"
+            elif max_probability >= 0.85:
+                overall_risk = "HIGH"
+            elif max_probability >= 0.70:
+                overall_risk = "MEDIUM"
+            elif max_probability >= 0.50:
+                overall_risk = "LOW"
+            else:
+                overall_risk = "MINIMAL"
         else:
-            overall_risk = "MINIMAL"
+            # Fallback to risk factor counting if no predictions available
+            high_risks = len([r for r in risk_factors if r[1] == "HIGH"])
+            medium_risks = len([r for r in risk_factors if r[1] == "MEDIUM"])
+            critical_risks = len([r for r in risk_factors if r[1] == "CRITICAL"])
+
+            if critical_risks > 0:
+                overall_risk = "CRITICAL"
+            elif high_risks > 0:
+                overall_risk = "HIGH"
+            elif medium_risks > 1:
+                overall_risk = "MEDIUM"
+            elif medium_risks > 0:
+                overall_risk = "LOW"
+            else:
+                overall_risk = "MINIMAL"
 
         return {
             "overall_risk_level": overall_risk,
             "risk_factors": risk_factors,
             "total_applications": len(summaries),
-            "applications_with_issues": len(
-                [
-                    s
-                    for s in summaries
-                    if s.get("automation_suspicion", 0) > 1
-                    or s.get("suspicious_domain_ratio", 0) > 0.1
-                ]
-            ),
+            "applications_with_issues": applications_with_issues,
         }
 
     # Interpretation methods
@@ -489,6 +521,45 @@ class SecurityAnalysisReport:
             return "moderate error activity"
         else:
             return "low error rates - normal behavior"
+    
+    def _load_ml_explanations(self, prediction_dir: Path) -> List[Dict]:
+        """Load ML model explanations from prediction directory."""
+        explanations = []
+        
+        if not prediction_dir or not isinstance(prediction_dir, Path):
+            return explanations
+            
+        try:
+            # Iterate through prediction subdirectories
+            for subdir in prediction_dir.iterdir():
+                if subdir.is_dir():
+                    # Try to load explanation.json
+                    explanation_json = subdir / "explanation.json"
+                    explanation_txt = subdir / "explanation.txt"
+                    
+                    if explanation_json.exists():
+                        try:
+                            with open(explanation_json, 'r') as f:
+                                exp_data = json.load(f)
+                                explanations.append(exp_data)
+                        except Exception as e:
+                            self.logger.debug(f"Failed to load {explanation_json}: {e}")
+                    elif explanation_txt.exists():
+                        # Fallback to text explanation
+                        try:
+                            with open(explanation_txt, 'r') as f:
+                                text = f.read()
+                                explanations.append({
+                                    "domain": subdir.name.split('_', 1)[-1] if '_' in subdir.name else "unknown",
+                                    "explanation": text,
+                                    "source": "text"
+                                })
+                        except Exception as e:
+                            self.logger.debug(f"Failed to load {explanation_txt}: {e}")
+        except Exception as e:
+            self.logger.debug(f"Failed to load ML explanations from {prediction_dir}: {e}")
+            
+        return explanations
 
     def format_security_report(self, analysis: Dict) -> str:
         """Format the security analysis into a human-readable report."""
@@ -604,20 +675,52 @@ class SecurityAnalysisReport:
             report.append("  - Risk factors identified:")
             for factor, severity in risk["risk_factors"]:
                 report.append(f"    • {factor} [{severity}]")
+        
+        # ML Model Explanations
+        if "ml_explanations" in analysis and analysis["ml_explanations"]:
+            report.append("")
+            report.append("🤖 Machine Learning Model Analysis:")
+            report.append("-" * 50)
+            
+            for i, exp in enumerate(analysis["ml_explanations"], 1):
+                if exp.get("is_anomaly", False):
+                    report.append(f"  Anomaly {i}:")
+                    report.append(f"    Domain: {exp.get('domain', 'unknown')}")
+                    report.append(f"    Application: {exp.get('application', 'unknown')}")
+                    report.append(f"    Confidence: {float(exp.get('probability', 0)):.1%}")
+                    
+                    # Include the explanation text
+                    if "explanation" in exp:
+                        report.append("    Explanation:")
+                        # Split and indent the explanation
+                        explanation_lines = exp["explanation"].strip().split('\n')
+                        for line in explanation_lines[:5]:  # First 5 lines
+                            if line.strip():
+                                report.append(f"      {line.strip()}")
+                    
+                    # Include top features if available
+                    if "top_features" in exp and exp["top_features"]:
+                        report.append("    Top Contributing Features:")
+                        for j, feature in enumerate(exp["top_features"][:3], 1):
+                            report.append(f"      {j}. {feature['feature']}: {feature['feature_value']:.2f} "
+                                        f"(SHAP: {feature['shap_value']:+.3f})")
+                    
+                    report.append("")
 
         return "\n".join(report)
 
 
-def generate_security_report(summaries: List[Dict]) -> str:
+def generate_security_report(summaries: List[Dict], prediction_dir: Optional[Path] = None) -> str:
     """
     Generate a comprehensive security analysis report from BEAM summaries.
 
     Args:
         summaries (List[Dict]): List of application summary dictionaries
+        prediction_dir (Optional[Path]): Directory containing ML prediction outputs
 
     Returns:
         str: Formatted security analysis report
     """
-    analyzer = SecurityAnalysisReport()
-    analysis = analyzer.analyze_security_features(summaries)
+    analyzer = SecurityAnalysisReport(prediction_dir)
+    analysis = analyzer.analyze_security_features(summaries, prediction_dir)
     return analyzer.format_security_report(analysis)

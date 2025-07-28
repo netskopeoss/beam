@@ -37,189 +37,72 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from .utils import load_json_file, safe_create_path, save_json_data
+from .explainer import ModelExplainer
+from beam import constants
+from .models import (
+    PredictionClass, 
+    TopFeature, 
+    ExplanationJson, 
+    AnomalyInfo, 
+    DetectionResults
+)
 
 app_meta_fields = ["key", "application"]
 
 app_numeric_feature_fields = [
-    "transactions",
-    "refered_traffic_pct",
-    "referer_domain_cnt",
-    "unique_actions",
-    "http_status_cnt",
-    "http_method_cnt",
-    "req_content_type_cnt",
-    "resp_content_type_cnt",
-    "avg_time_interval_sec",
-    "std_time_interval_sec",
-    "median_time_interval_sec",
-    "range_time_interval_sec",
-    "range_timestamp",
-    "max_time_taken_ms",
-    "min_time_taken_ms",
-    "sum_time_taken_ms",
-    "avg_time_taken_ms",
-    "std_time_taken_ms",
-    "median_time_taken_ms",
-    "range_time_taken_ms",
-    "max_client_bytes",
-    "min_client_bytes",
-    "sum_client_bytes",
-    "avg_client_bytes",
-    "std_client_bytes",
-    "median_client_bytes",
-    "range_client_bytes",
-    "max_server_bytes",
-    "min_server_bytes",
-    "sum_server_bytes",
-    "avg_server_bytes",
-    "std_server_bytes",
-    "median_server_bytes",
-    "range_server_bytes",
-    "web_traffic_pct",
-    "cloud_traffic_pct",
-    "sequence_num_keys",
-    "sequence_max_key_length",
-    "sequence_min_key_length",
-    "sequence_max_val",
-    "sequence_min_val",
-    "sequence_sum_val",
-    "sequence_avg_val",
-    "sequence_std_val",
-    "sequence_median_val",
-    "sequence_range_val",
-    # Additional numeric features
-    "avg_interval_sec",
-    "domain_cnt",
-    "domain_concentration",
-    "response_size_cv",
-    "bot_ratio",
-    "iqr_client_bytes",
-    "suspicious_ua_ratio",
-    "key_hostname_cnt",
-    "path_depth_variance",
-    "domain_entropy",
-    "ua_consistency",
-    "url_entropy",
-    "skewness_server_bytes",
-    "http_version_diversity",
-    "kurtosis_time_taken_ms",
-    "redirect_ratio",
-    "cdn_usage_ratio",
-    "avg_path_depth",
-    "iqr_time_taken_ms",
-    "ua_entropy",
-    "burst_ratio",
-    "error_ratio",
-    "night_activity_ratio",
-    "referer_present_ratio",
-    "median_interval_sec",
-    "std_interval_sec",
-    "range_interval_sec",
-    "ua_diversity",
-    "same_origin_referer_ratio",
-    "hour_entropy",
-    "skewness_client_bytes",
-    "skewness_time_taken_ms",
-    "iqr_server_bytes",
-    "kurtosis_client_bytes",
-    "https_ratio",
-    "kurtosis_server_bytes",
-    "http2_usage_ratio",
-    # More advanced features
-    "p25_time_taken_ms",
-    "p75_time_taken_ms",
-    "p90_time_taken_ms",
-    "p95_time_taken_ms",
-    "p99_time_taken_ms",
-    "cv_time_taken_ms",
-    "outlier_ratio_time_taken_ms",
-    "mad_time_taken_ms",
-    "robust_cv_time_taken_ms",
-    "p25_client_bytes",
-    "p75_client_bytes",
-    "p90_client_bytes",
-    "p95_client_bytes",
-    "p99_client_bytes",
-    "cv_client_bytes",
-    "outlier_ratio_client_bytes",
-    "mad_client_bytes",
-    "robust_cv_client_bytes",
-    "p25_server_bytes",
-    "p75_server_bytes",
-    "p90_server_bytes",
-    "p95_server_bytes",
-    "p99_server_bytes",
-    "cv_server_bytes",
-    "outlier_ratio_server_bytes",
-    "mad_server_bytes",
-    "robust_cv_server_bytes",
-    "p25_time_interval_sec",
-    "p75_time_interval_sec",
-    "p90_time_interval_sec",
-    "p95_time_interval_sec",
-    "p99_time_interval_sec",
-    "iqr_time_interval_sec",
-    "cv_time_interval_sec",
-    "skewness_time_interval_sec",
-    "kurtosis_time_interval_sec",
-    "outlier_ratio_time_interval_sec",
-    "mad_time_interval_sec",
-    "robust_cv_time_interval_sec",
-    "interval_entropy",
-    "interval_regularity",
-    "peak_hour_concentration",
-    "avg_url_length",
-    "status_diversity",
-    "method_diversity",
-    "content_type_mismatch_ratio",
-    "compression_usage_ratio",
-    "avg_compression_ratio",
-    "large_response_ratio",
-    "response_size_entropy",
-    "content_type_diversity",
-    "html_ratio",
-    "css_ratio",
-    "js_ratio",
-    "image_ratio",
-    "json_ratio",
-    "xml_ratio",
-    "domain_diversity",
-    "suspicious_tld_ratio",
-    "avg_subdomain_depth",
-    "max_subdomain_depth",
-    "cross_domain_ratio",
-    "referrer_diversity",
-    "avg_domain_length",
-    "max_domain_length",
-    "numeric_domain_ratio",
-    "tld_diversity",
-    "mixed_content_risk",
-    "cert_chain_depth_estimate",
-    "protocol_consistency",
-    "json_response_ratio",
-    "html_response_ratio",
-    "secure_transport_ratio",
-    "chrome_ratio",
-    "firefox_ratio",
-    "safari_ratio",
-    "external_domain_ratio",
-    "thirdparty_service_ratio",
-    "suspicious_domain_ratio",
-    "new_domain_ratio",
-    "api_endpoint_ratio",
-    "executable_ratio",
-    "script_ratio",
-    "automation_suspicion",
-    "dependency_complexity",
-    "internal_domain_count",
-    "external_domain_count",
-    "ip_diversity",
-    "private_ip_ratio",
-    "avg_bytes_per_request",
-    "error_rate",
-    "non_standard_method_ratio",
-    "total_data_volume",
-    "request_count",
+    "transactions", "refered_traffic_pct", "referer_domain_cnt", "unique_actions",
+
+    "http_status_cnt", "http_method_cnt", "req_content_type_cnt", "resp_content_type_cnt", "range_timestamp",
+
+    "max_time_taken_ms", "min_time_taken_ms", "sum_time_taken_ms", "avg_time_taken_ms", "std_time_taken_ms",
+    "median_time_taken_ms", "range_time_taken_ms",
+    "max_client_bytes", "min_client_bytes", "sum_client_bytes", "avg_client_bytes", "std_client_bytes",
+    "median_client_bytes", "range_client_bytes",
+    "max_server_bytes", "min_server_bytes", "sum_server_bytes", "avg_server_bytes", "std_server_bytes",
+    "median_server_bytes", "range_server_bytes",
+
+    'web_traffic_pct', 'cloud_traffic_pct',
+
+    "sequence_num_keys", "sequence_max_key_length", "sequence_min_key_length", "sequence_max_val", "sequence_min_val",
+    "sequence_sum_val", "sequence_avg_val", "sequence_std_val", "sequence_median_val", "sequence_range_val",
+
+    'key_hostname_cnt', 'domain_cnt', 'avg_interval_sec', 'burst_ratio',
+    'night_activity_ratio', 'hour_entropy', 'redirect_ratio', 'error_ratio', 'avg_path_depth', 'path_depth_variance',
+    'response_size_cv', 'https_ratio', 'http2_usage_ratio', 'http_version_diversity', 'ua_diversity', 'bot_ratio',
+    'suspicious_ua_ratio', 'same_origin_referer_ratio', 'cdn_usage_ratio', 'domain_concentration',
+    'iqr_server_bytes', 'iqr_client_bytes', 'iqr_time_taken_ms', 'skewness_server_bytes', 'skewness_client_bytes',
+    'skewness_time_taken_ms', 'kurtosis_server_bytes', 'kurtosis_client_bytes', 'kurtosis_time_taken_ms', 'url_entropy',
+    'ua_entropy', 'domain_entropy', 'ua_consistency',
+
+    'api_endpoint_ratio', 'automation_suspicion', 'avg_bytes_per_request', 'avg_compression_ratio', 'avg_domain_length',
+    'avg_subdomain_depth', 'avg_time_interval_sec', 'avg_url_length', 'cert_chain_depth_estimate', 'chrome_ratio',
+    'compression_usage_ratio', 'content_type_mismatch_ratio', 'cross_domain_ratio', 'css_ratio', 'cv_client_bytes',
+    'cv_server_bytes', 'cv_time_interval_sec', 'cv_time_taken_ms', 'distinct_key_domain_count', 'error_rate',
+    'executable_ratio',
+    'external_domain_count', 'external_domain_ratio', 'firefox_ratio', 'html_ratio', 'html_response_ratio',
+    'image_ratio',
+    'internal_domain_count', 'interval_entropy', 'interval_regularity', 'iqr_time_interval_sec', 'js_ratio',
+    'json_ratio',
+    'json_response_ratio', 'kurtosis_time_interval_sec', 'large_response_ratio', 'mad_client_bytes',
+    'mad_server_bytes', 'mad_time_interval_sec', 'mad_time_taken_ms', 'max_domain_length', 'max_subdomain_depth',
+    'max_time_interval_sec', 'median_time_interval_sec', 'min_time_interval_sec', 'mixed_content_risk',
+    'new_domain_ratio',
+    'non_standard_method_ratio', 'numeric_domain_ratio', 'outlier_ratio_client_bytes', 'outlier_ratio_server_bytes',
+    'outlier_ratio_time_interval_sec', 'outlier_ratio_time_taken_ms', 'p25_client_bytes', 'p25_server_bytes',
+    'p25_time_interval_sec',
+    'p25_time_taken_ms', 'p75_client_bytes', 'p75_server_bytes', 'p75_time_interval_sec', 'p75_time_taken_ms',
+    'p90_client_bytes',
+    'p90_server_bytes', 'p90_time_interval_sec', 'p90_time_taken_ms', 'p95_client_bytes', 'p95_server_bytes',
+    'p95_time_interval_sec',
+    'p95_time_taken_ms', 'p99_client_bytes', 'p99_server_bytes', 'p99_time_interval_sec', 'p99_time_taken_ms',
+    'peak_hour_concentration',
+    'protocol_consistency', 'range_time_interval_sec', 'response_size_entropy', 'robust_cv_client_bytes',
+    'robust_cv_server_bytes',
+    'robust_cv_time_interval_sec', 'robust_cv_time_taken_ms', 'safari_ratio', 'script_ratio', 'secure_transport_ratio',
+    'skewness_time_interval_sec',
+    'std_time_interval_sec', 'sum_time_interval_sec', 'suspicious_domain_ratio', 'suspicious_tld_ratio',
+    'thirdparty_service_ratio',
+    'tld_diversity', 'total_data_volume', 'xml_ratio'
 ]
 
 app_str_non_numeric_feature_fields = ["domain"]
@@ -227,7 +110,6 @@ app_str_non_numeric_feature_fields = ["domain"]
 app_arr_non_numeric_feature_fields = [
     "http_methods",
     "http_statuses",
-    "req_content_types",
     "resp_content_types",
     "key_hostnames",
 ]
@@ -323,6 +205,11 @@ def load_domain_model(domain_model_path: Path) -> Tuple[Set, Dict]:
         Tuple[set, dict]: A set of apps and a dictionary of models.
     """
     try:
+        # Make MultiHotEncoder available in __main__ module for pickle loading
+        import __main__
+        if not hasattr(__main__, 'MultiHotEncoder'):
+            __main__.MultiHotEncoder = MultiHotEncoder
+        
         with open(domain_model_path, "rb") as _file:
             # Suppress sklearn warnings during model loading
             import warnings
@@ -443,19 +330,19 @@ def convert_supply_chain_summaries_to_features(
     features_og = pd.json_normalize(input_data)
     features_og.reset_index()
     
-    # Handle feature name compatibility issues
-    # Map new feature names to old ones for backward compatibility
-    feature_mapping = {
-        'median_time_interval_sec': 'median_interval_sec',
-        'std_time_interval_sec': 'std_interval_sec', 
-        'range_time_interval_sec': 'range_interval_sec',
-        'avg_interval_sec': 'avg_interval_sec',  # This one might already be correct
-    }
-    
-    # Create mapped columns for backward compatibility
-    for new_name, old_name in feature_mapping.items():
-        if new_name in features_og.columns and old_name not in features_og.columns:
-            features_og[old_name] = features_og[new_name]
+    # # Handle feature name compatibility issues
+    # # Map new feature names to old ones for backward compatibility
+    # feature_mapping = {
+    #     'median_time_interval_sec': 'median_interval_sec',
+    #     'std_time_interval_sec': 'std_interval_sec',
+    #     'range_time_interval_sec': 'range_interval_sec',
+    #     'avg_interval_sec': 'avg_interval_sec',  # This one might already be correct
+    # }
+    #
+    # # Create mapped columns for backward compatibility
+    # for new_name, old_name in feature_mapping.items():
+    #     if new_name in features_og.columns and old_name not in features_og.columns:
+    #         features_og[old_name] = features_og[new_name]
     
     # Filter to only include columns that actually exist in the data
     available_columns = [col for col in app_feature_fields if col in features_og.columns]
@@ -525,8 +412,8 @@ def detect_anomalous_domain(
             
             # Get classes from the final classifier in the pipeline
             try:
-                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
-                    classes = estimator.named_steps["xgb_classifier"].classes_
+                if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb"].classes_
                 elif hasattr(estimator, "classes_"):
                     classes = estimator.classes_
                 else:
@@ -553,25 +440,25 @@ def detect_anomalous_domain(
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
                 hasattr(estimator, "named_steps")
-                and "xgb_feat" in estimator.named_steps
+                and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["xgb_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             elif (
-                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+                hasattr(estimator, "named_steps") and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["rf_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             else:
                 # Try accessing as dictionary for backward compatibility
-                if "xgb_feat" in estimator:
-                    features_scaled = estimator["xgb_feat"].transform(
+                if "feat_sel" in estimator:
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
                 else:
-                    features_scaled = estimator["rf_feat"].transform(
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
 
@@ -590,10 +477,53 @@ def detect_anomalous_domain(
             )
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
+            
+            # Generate text explanation using SHAP
+            try:
+                explainer = ModelExplainer(estimator, selected_feature_names, logger)
+                
+                # Convert observation to dict for the explainer
+                observation_dict = observation_series.to_dict()
+                
+                # Generate text explanation
+                text_explanation = explainer.generate_text_explanation(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    observation_data=observation_dict,
+                    predicted_class=predicted_class_name,
+                    predicted_proba=predicted_class_proba,
+                    top_n_features=constants.TOP_FEATURES_COUNT
+                )
+                
+                # Save SHAP waterfall plot
+                shap_plot_path = f"{parent_dir}shap_explanation.png"
+                explainer.save_shap_plot(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    predicted_class_index=predicted_class_index,
+                    save_path=shap_plot_path,
+                    max_display=20
+                )
+                
+                # Save text explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                    
+                # Log if this is an anomaly
+                if (predicted_class_name == 1) and (predicted_class_proba >= prob_cutoff):
+                    logger.warning(f"🚨 ANOMALY DETECTED: {observation_series.get('domain', observation_key)} for {application} (probability: {predicted_class_proba:.3f})")
+                    logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
+                    
+                logger.info(f"Generated explanation and saved to {parent_dir}")
+                
+            except Exception as e:
+                logger.error(f"Failed to generate explanation: {e}")
+                text_explanation = f"Unable to generate detailed explanation: {e}"
 
             full_predictions = sorted(
                 [
-                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
+                    {"class": str(c), "probability": str(round(float(100.0 * p), 4))}
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -601,6 +531,196 @@ def detect_anomalous_domain(
             )
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
+            
+            # Save explanation to JSON as well
+            explanation_json = ExplanationJson(
+                domain=observation_series.get("domain", observation_key),
+                application=application,
+                predicted_class=predicted_class_name,
+                probability=predicted_class_proba,
+                is_anomaly=bool(predicted_class_proba >= prob_cutoff),
+                explanation=text_explanation,
+                top_features=[]
+            )
+            
+            # Try to get top features for JSON
+            try:
+                shap_values, _ = explainer.calculate_shap_values(
+                    features_scaled, observation_index, predicted_class_index
+                )
+                top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
+                for feature_name, shap_value, feature_idx in top_features:
+                    feature_value = features_scaled[observation_index, feature_idx]
+                    explanation_json.top_features.append(
+                        TopFeature(
+                            feature=feature_name,
+                            shap_value=shap_value,
+                            feature_value=feature_value
+                        )
+                    )
+            except:
+                pass
+                
+            explanation_json_path = f"{parent_dir}explanation.json"
+            save_json_data(explanation_json.model_dump(), explanation_json_path)
+
+
+def detect_anomalous_domain_with_anomaly_model(
+    input_path: str,
+    custom_model_path: Path,
+    app_prediction_dir: str,
+    anomaly_threshold: float = -0.1,
+) -> Dict[str, Any]:
+    """
+    Detect anomalous domains using a custom anomaly detection model.
+    
+    Args:
+        input_path (str): The path to the input JSON file containing the data.
+        custom_model_path (Path): The path to the custom anomaly model file.
+        app_prediction_dir (str): The directory to save the predictions.
+        anomaly_threshold (float): Deprecated parameter, kept for backwards compatibility. Not used in detection.
+        
+    Returns:
+        Dict[str, Any]: Detection results summary containing analyzed domains, anomalies found, etc.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Initialize detection results tracking
+    detection_results = DetectionResults(
+        model_used=str(custom_model_path.name),
+        prob_cutoff_used=anomaly_threshold
+    )
+    
+    # Load the anomaly detection model
+    try:
+        with open(custom_model_path, "rb") as _file:
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                raw_models = pickle.load(_file)
+    except Exception as e:
+        logger.error(f"Failed to load custom model {custom_model_path}: {e}")
+        detection_results.success = False
+        detection_results.error_message = f"Failed to load model: {e}"
+        return detection_results.model_dump()
+
+    # Convert single model to the expected format
+    models = dict()
+    apps = set()
+
+    if isinstance(raw_models, list) and len(raw_models) > 0:
+        raw_model = raw_models[0].copy()
+        app = raw_model.pop("key")
+        models[app] = raw_model
+        apps.add(app)
+    else:
+        logger.error(f"Unexpected model format in {custom_model_path}")
+        detection_results.success = False
+        detection_results.error_message = "Unexpected model format"
+        return detection_results.model_dump()
+
+    # Load and convert features
+    features_og, features_pd = convert_supply_chain_summaries_to_features(
+        load_json_file(input_path)
+    )
+
+    for observation_index, observation_series in features_og.iterrows():
+        application = observation_series["application"]
+        domain = observation_series.get("domain", "unknown")
+        
+        # Track applications found
+        if application not in detection_results.applications_found:
+            detection_results.applications_found.append(application)
+            
+        if application not in models:
+            logger.info(f"[x] Application not found in custom models: {application}")
+            continue
+        else:
+            logger.info(f"[x] Testing {application} for supply chain anomalies")
+            detection_results.total_domains_analyzed += 1
+            observation_key = observation_series["key"]
+            model = models[application]
+
+            # Check if this is an anomaly detection model
+            if model.get("model_type") != "ensemble_anomaly":
+                logger.warning(f"Model for {application} is not an anomaly detection model. Skipping.")
+                continue
+
+            feature_transformer = model["feature_transformer"]
+            estimator = model["ensemble_detector"]
+            
+            # Transform features for this observation
+            observation_df = features_pd.iloc[[observation_index]]
+            features_transformed = feature_transformer.transform(observation_df)
+            
+            # Get anomaly predictions and scores
+            try:
+                # Get prediction (-1 = anomaly, 1 = normal)
+                anomaly_prediction = estimator.predict(features_transformed)[0]
+                # Get anomaly score (lower = more anomalous)
+                anomaly_score = estimator.decision_function(features_transformed)[0]
+                
+                is_anomaly = (anomaly_prediction == -1)
+                
+                # Create output directory
+                obs_file_dir = (
+                    str(observation_index)
+                    + "_"
+                    + observation_key.replace(" ", "_")
+                    .replace("'", "")
+                    .replace("/", "")[:35]
+                )
+                parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
+                safe_create_path(parent_dir)
+                
+                # Generate explanation for anomaly detection
+                if is_anomaly:
+                    detection_results.anomalies_detected += 1
+                    text_explanation = f"Anomaly detected for {domain}. Anomaly score: {anomaly_score:.4f}. This indicates the application behavior deviates significantly from learned normal patterns, possibly indicating a supply chain compromise."
+                    
+                    anomaly_info = AnomalyInfo(
+                        domain=domain,
+                        application=application,
+                        observation_key=observation_key,
+                        predicted_class="anomaly",
+                        probability=abs(anomaly_score),  # Use absolute score as proxy for confidence
+                        prediction_index=observation_index,
+                        explanation=text_explanation
+                    )
+                    detection_results.anomalous_domains.append(anomaly_info)
+                    logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (score: {anomaly_score:.4f})")
+                    logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
+                else:
+                    detection_results.normal_domains += 1
+                    text_explanation = f"Normal behavior detected for {domain}. Anomaly score: {anomaly_score:.4f}. The application behavior matches learned normal patterns."
+                    logger.info(f"✅ Normal behavior: {domain} for {application} (score: {anomaly_score:.4f})")
+                
+                # Save explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                
+                # Save prediction details
+                prediction_details = {
+                    "domain": domain,
+                    "application": application,
+                    "anomaly_score": float(anomaly_score),
+                    "anomaly_prediction": int(anomaly_prediction),
+                    "is_anomaly": bool(is_anomaly),
+                    "explanation": text_explanation
+                }
+                
+                prediction_path = f"{parent_dir}anomaly_prediction.json"
+                save_json_data(prediction_details, prediction_path)
+                
+            except Exception as e:
+                logger.error(f"Failed to process {domain} for {application}: {e}")
+                continue
+
+    detection_results.success = True
+    logger.info(f"Anomaly detection completed. Analyzed {detection_results.total_domains_analyzed} domains, found {detection_results.anomalies_detected} anomalies")
+    
+    return detection_results.model_dump()
 
 
 def detect_anomalous_domain_with_custom_model(
@@ -623,18 +743,11 @@ def detect_anomalous_domain_with_custom_model(
     """
     logger = logging.getLogger(__name__)
     
-    # Initialize detection results tracking
-    detection_results = {
-        "model_used": str(custom_model_path.name),
-        "total_domains_analyzed": 0,
-        "anomalies_detected": 0,
-        "normal_domains": 0,
-        "applications_found": [],
-        "anomalous_domains": [],
-        "prob_cutoff_used": prob_cutoff,
-        "success": True,
-        "error_message": None
-    }
+    # Initialize detection results tracking using Pydantic model
+    detection_results = DetectionResults(
+        model_used=str(custom_model_path.name),
+        prob_cutoff_used=prob_cutoff
+    )
 
     # Load the individual custom model
     try:
@@ -647,9 +760,9 @@ def detect_anomalous_domain_with_custom_model(
     except Exception as e:
         logger.error(f"Failed to load custom model {custom_model_path}: {e}")
         logger.error("This may be due to version incompatibility. Try retraining the model.")
-        detection_results["success"] = False
-        detection_results["error_message"] = f"Failed to load model: {e}"
-        return detection_results
+        detection_results.success = False
+        detection_results.error_message = f"Failed to load model: {e}"
+        return detection_results.model_dump()
 
     # Convert single model to the expected format
     models = dict()
@@ -662,9 +775,9 @@ def detect_anomalous_domain_with_custom_model(
         apps.add(app)
     else:
         logger.error(f"Unexpected model format in {custom_model_path}")
-        detection_results["success"] = False
-        detection_results["error_message"] = "Unexpected model format"
-        return detection_results
+        detection_results.success = False
+        detection_results.error_message = "Unexpected model format"
+        return detection_results.model_dump()
 
     features_og, features_pd = convert_supply_chain_summaries_to_features(
         load_json_file(input_path)
@@ -675,8 +788,8 @@ def detect_anomalous_domain_with_custom_model(
         domain = observation_series.get("domain", "unknown")
         
         # Track applications found
-        if application not in detection_results["applications_found"]:
-            detection_results["applications_found"].append(application)
+        if application not in detection_results.applications_found:
+            detection_results.applications_found.append(application)
             
         if application not in models:
             logger.info(
@@ -687,7 +800,7 @@ def detect_anomalous_domain_with_custom_model(
                 "[x] Application found to test supply chain compromises against: "
                 + str(application)
             )
-            detection_results["total_domains_analyzed"] += 1
+            detection_results.total_domains_analyzed += 1
             observation_key = observation_series["key"]
             model = models[application]
 
@@ -696,8 +809,8 @@ def detect_anomalous_domain_with_custom_model(
             
             # Get classes from the final classifier in the pipeline
             try:
-                if hasattr(estimator, "named_steps") and "xgb_classifier" in estimator.named_steps:
-                    classes = estimator.named_steps["xgb_classifier"].classes_
+                if hasattr(estimator, "named_steps") and "xgb" in estimator.named_steps:
+                    classes = estimator.named_steps["xgb"].classes_
                 elif hasattr(estimator, "classes_"):
                     classes = estimator.classes_
                 else:
@@ -724,25 +837,25 @@ def detect_anomalous_domain_with_custom_model(
             # Try to get features using XGBoost feature selector first, then fall back to RF if needed
             if (
                 hasattr(estimator, "named_steps")
-                and "xgb_feat" in estimator.named_steps
+                and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["xgb_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             elif (
-                hasattr(estimator, "named_steps") and "rf_feat" in estimator.named_steps
+                hasattr(estimator, "named_steps") and "feat_sel" in estimator.named_steps
             ):
-                features_scaled = estimator["rf_feat"].transform(
+                features_scaled = estimator["feat_sel"].transform(
                     estimator["ct"].transform(features_pd)
                 )
             else:
                 # Try accessing as dictionary for backward compatibility
-                if "xgb_feat" in estimator:
-                    features_scaled = estimator["xgb_feat"].transform(
+                if "feat_sel" in estimator:
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
                 else:
-                    features_scaled = estimator["rf_feat"].transform(
+                    features_scaled = estimator["feat_sel"].transform(
                         estimator["ct"].transform(features_pd)
                     )
 
@@ -752,24 +865,7 @@ def detect_anomalous_domain_with_custom_model(
                 observation_index, predicted_class_index
             ]
             
-            # Check if this is an anomaly based on probability cutoff
-            is_anomaly = predicted_class_proba >= prob_cutoff
-            if is_anomaly:
-                detection_results["anomalies_detected"] += 1
-                anomaly_info = {
-                    "domain": domain,
-                    "application": application,
-                    "observation_key": observation_key,
-                    "predicted_class": predicted_class_name,
-                    "probability": float(predicted_class_proba),
-                    "prediction_index": observation_index
-                }
-                detection_results["anomalous_domains"].append(anomaly_info)
-                logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (probability: {predicted_class_proba:.3f})")
-            else:
-                detection_results["normal_domains"] += 1
-                logger.info(f"✅ Normal behavior: {domain} for {application} (probability: {predicted_class_proba:.3f})")
-
+            # Create output directory
             obs_file_dir = (
                 str(observation_index)
                 + "_"
@@ -779,10 +875,68 @@ def detect_anomalous_domain_with_custom_model(
             )
             parent_dir = f"{app_prediction_dir}/{obs_file_dir}/"
             safe_create_path(parent_dir)
+            
+            # Generate text explanation using SHAP
+            try:
+                explainer = ModelExplainer(estimator, selected_feature_names, logger)
+                
+                # Convert observation to dict for the explainer
+                observation_dict = observation_series.to_dict()
+                
+                # Generate text explanation
+                text_explanation = explainer.generate_text_explanation(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    observation_data=observation_dict,
+                    predicted_class=predicted_class_name,
+                    predicted_proba=predicted_class_proba,
+                    top_n_features=constants.TOP_FEATURES_COUNT
+                )
+                
+                # Save SHAP waterfall plot
+                shap_plot_path = f"{parent_dir}shap_explanation.png"
+                explainer.save_shap_plot(
+                    features_scaled=features_scaled,
+                    observation_index=observation_index,
+                    predicted_class_index=predicted_class_index,
+                    save_path=shap_plot_path,
+                    max_display=20
+                )
+                
+                # Save text explanation
+                explanation_path = f"{parent_dir}explanation.txt"
+                with open(explanation_path, 'w') as f:
+                    f.write(text_explanation)
+                    
+                logger.info(f"Generated explanation for {domain}: {text_explanation.split('.')[0]}")
+                
+            except Exception as e:
+                logger.error(f"Failed to generate explanation: {e}")
+                text_explanation = f"Unable to generate detailed explanation: {e}"
+            
+            # Check if this is an anomaly based on probability cutoff
+            is_anomaly = bool(predicted_class_proba >= prob_cutoff)
+            if is_anomaly:
+                detection_results.anomalies_detected += 1
+                anomaly_info = AnomalyInfo(
+                    domain=domain,
+                    application=application,
+                    observation_key=observation_key,
+                    predicted_class=predicted_class_name,
+                    probability=predicted_class_proba,
+                    prediction_index=observation_index,
+                    explanation=text_explanation
+                )
+                detection_results.anomalous_domains.append(anomaly_info)
+                logger.warning(f"🚨 ANOMALY DETECTED: {domain} for {application} (probability: {predicted_class_proba:.3f})")
+                logger.warning(f"   Explanation: {text_explanation.split('.')[0]}")
+            else:
+                detection_results.normal_domains += 1
+                logger.info(f"✅ Normal behavior: {domain} for {application} (probability: {predicted_class_proba:.3f})")
 
             full_predictions = sorted(
                 [
-                    {"class": str(c), "probability": round(float(100.0 * p), 4)}
+                    PredictionClass(class_name=c, probability=100.0 * p).model_dump(by_alias=True)
                     for p, c in zip(predictions[observation_index], classes)
                 ],
                 key=lambda x: x["probability"],
@@ -790,10 +944,42 @@ def detect_anomalous_domain_with_custom_model(
             )
             full_predictions_path = f"{parent_dir}full_predictions.json"
             save_json_data(full_predictions, full_predictions_path)
+            
+            # Save explanation to JSON as well
+            explanation_json = ExplanationJson(
+                domain=domain,
+                application=application,
+                predicted_class=predicted_class_name,
+                probability=predicted_class_proba,
+                is_anomaly=is_anomaly,
+                explanation=text_explanation,
+                top_features=[]
+            )
+            
+            # Try to get top features for JSON
+            try:
+                shap_values, _ = explainer.calculate_shap_values(
+                    features_scaled, observation_index, predicted_class_index
+                )
+                top_features = explainer.get_top_features(shap_values, top_n=constants.TOP_FEATURES_COUNT)
+                for feature_name, shap_value, feature_idx in top_features:
+                    feature_value = features_scaled[observation_index, feature_idx]
+                    explanation_json.top_features.append(
+                        TopFeature(
+                            feature=feature_name,
+                            shap_value=shap_value,
+                            feature_value=feature_value
+                        )
+                    )
+            except:
+                pass
+                
+            explanation_json_path = f"{parent_dir}explanation.json"
+            save_json_data(explanation_json.model_dump(), explanation_json_path)
 
     # Return detection results summary
-    logger.info(f"Detection completed: {detection_results['total_domains_analyzed']} domains analyzed, "
-                f"{detection_results['anomalies_detected']} anomalies detected, "
-                f"{detection_results['normal_domains']} normal domains")
+    logger.info(f"Detection completed: {detection_results.total_domains_analyzed} domains analyzed, "
+                f"{detection_results.anomalies_detected} anomalies detected, "
+                f"{detection_results.normal_domains} normal domains")
     
-    return detection_results
+    return detection_results.model_dump()

@@ -151,16 +151,22 @@ class TestModelTrainer:
         assert trainer.n_features == 100
         assert trainer.min_transactions == 25
 
-    def test_get_pipeline_estimator(self):
-        """Test pipeline estimator creation"""
+    def test_get_available_transformers(self):
+        """Test getting available transformers based on data columns"""
         trainer = ModelTrainer(n_features=30)
-        pipeline = trainer.get_pipeline_estimator(n_estimators=50, feature_count=25)
-
-        assert pipeline is not None
-        assert len(pipeline.steps) == 3
-        assert pipeline.steps[0][0] == "ct"  # ColumnTransformer
-        assert pipeline.steps[1][0] == "xgb_feat"  # XGBoost feature selector
-        assert pipeline.steps[2][0] == "xgb"  # XGBoost classifier
+        
+        # Create test data with specific columns
+        test_data = pd.DataFrame({
+            'transactions': [100],
+            'avg_time_taken_ms': [150],
+            'http_methods': [['GET', 'POST']]
+        })
+        
+        transformers = trainer.get_available_transformers(test_data)
+        
+        assert len(transformers) == 2  # One for numeric, one for array features
+        assert transformers[0][0] == "min_max_scaler"
+        assert transformers[1][0] == "multi_hot_encoder"
 
     def test_convert_features_to_pd(self, mock_app_features):
         """Test conversion of features to pandas DataFrame"""
@@ -181,7 +187,7 @@ class TestModelTrainer:
         assert "avg_time_taken_ms" in features_df.columns
 
     def test_train_model_success(self, mock_app_features):
-        """Test successful model training"""
+        """Test successful model training with ensemble anomaly detection"""
         trainer = ModelTrainer(n_features=20, min_transactions=50)
 
         # Create training data with sufficient transactions
@@ -192,10 +198,11 @@ class TestModelTrainer:
 
         assert model_info is not None
         assert model_info["key"] == "TestApp"
-        assert "estimator" in model_info
+        assert "ensemble_detector" in model_info
+        assert "feature_transformer" in model_info
         assert "features" in model_info
-        assert "selected_features" in model_info
-        assert len(model_info["selected_features"]) > 0
+        assert "model_type" in model_info
+        assert model_info["model_type"] == "ensemble_anomaly"
 
     def test_train_model_insufficient_transactions(self, mock_app_features):
         """Test model training with insufficient transactions"""
@@ -220,12 +227,13 @@ class TestModelTrainer:
         """Test model saving functionality"""
         trainer = ModelTrainer(n_features=10, min_transactions=50)
 
-        # Create a simple model info structure
+        # Create a simple model info structure for ensemble model
         model_info = {
             "key": "TestApp",
-            "estimator": "mock_estimator",
+            "ensemble_detector": "mock_ensemble_detector",
+            "feature_transformer": "mock_transformer",
             "features": ["feature1", "feature2"],
-            "selected_features": ["feature1"],
+            "model_type": "ensemble_anomaly",
         }
 
         trainer.save_model(model_info, temp_files["model_output"])
@@ -247,9 +255,9 @@ class TestModelTrainer:
 
         # Create multiple individual models
         models = [
-            {"key": "App1", "estimator": "estimator1", "features": ["f1"], "selected_features": ["f1"]},
-            {"key": "App2", "estimator": "estimator2", "features": ["f2"], "selected_features": ["f2"]},
-            {"key": "App3", "estimator": "estimator3", "features": ["f3"], "selected_features": ["f3"]},
+            {"key": "App1", "ensemble_detector": "detector1", "feature_transformer": "transformer1", "features": ["f1"], "model_type": "ensemble_anomaly"},
+            {"key": "App2", "ensemble_detector": "detector2", "feature_transformer": "transformer2", "features": ["f2"], "model_type": "ensemble_anomaly"},
+            {"key": "App3", "ensemble_detector": "detector3", "feature_transformer": "transformer3", "features": ["f3"], "model_type": "ensemble_anomaly"},
         ]
         
         # Save each model individually
@@ -519,7 +527,9 @@ class TestIntegrationScenarios:
 
         assert len(model) == 1
         assert model[0]["key"] == "TestApp"
-        assert "estimator" in model[0]
+        assert "ensemble_detector" in model[0]
+        assert "model_type" in model[0]
+        assert model[0]["model_type"] == "ensemble_anomaly"
 
     def test_multiple_model_training_workflow(self, temp_files, mock_app_features):
         """Test workflow of training multiple individual models"""

@@ -7,11 +7,13 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
-# Make MultiHotEncoder available in __main__ context for pickle loading
-import __main__
 from beam import constants
 from beam.detector import features, utils
 from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
+
+# Make MultiHotEncoder available in __main__ module for pickle loading
+import __main__
+__main__.MultiHotEncoder = MultiHotEncoder
 from beam.detector.security_report import generate_security_report
 from beam.enrich import enrich_events
 from beam.parser import har
@@ -168,7 +170,7 @@ def run_detection_analysis(features_output_path: Path, temp_demo_dir: Path) -> P
     else:
         summaries = summaries_data
 
-    security_report = generate_security_report(summaries)
+    security_report = generate_security_report(summaries, prediction_dir)
 
     # Save security report
     file_name = "beacon_demo"
@@ -207,8 +209,8 @@ def display_demo_results(
     else:
         summaries = summaries_data
 
-    analyzer = SecurityAnalysisReport()
-    analysis = analyzer.analyze_security_features(summaries)
+    analyzer = SecurityAnalysisReport(prediction_dir)
+    analysis = analyzer.analyze_security_features(summaries, prediction_dir)
 
     # Show key findings
     print("🔍 NETWORK TRAFFIC ANALYSIS:")
@@ -221,62 +223,127 @@ def display_demo_results(
     insights = analysis["security_insights"]
     critical_insights = [i for i in insights if i["severity"] in ["HIGH", "MEDIUM"]]
 
-    display_security_insights(critical_insights)
+    display_security_insights(critical_insights, prediction_dir)
     display_overall_assessment(analysis)
     display_available_reports(
         security_report_path, features_output_path, prediction_dir
     )
 
 
-def display_security_insights(critical_insights: list) -> None:
+def get_risk_level_from_probability(probability: float) -> tuple[str, str]:
+    """
+    Determine risk level and emoji based on ML model probability.
+    
+    Args:
+        probability: ML model probability (0.0 to 1.0)
+        
+    Returns:
+        Tuple of (risk_level, emoji)
+    """
+    if probability >= 0.95:
+        return "CRITICAL", "🔥"
+    elif probability >= 0.85:
+        return "HIGH", "🔥"
+    elif probability >= 0.70:
+        return "MEDIUM", "⚠️"
+    elif probability >= 0.50:
+        return "LOW", "💛"
+    else:
+        return "MINIMAL", "✅"
+
+
+def get_prediction_probability(prediction_dir: Path, domain: str) -> float:
+    """
+    Extract prediction probability from prediction directory.
+    
+    Args:
+        prediction_dir: Directory containing prediction outputs
+        domain: Domain to look for
+        
+    Returns:
+        Prediction probability (0.0 to 1.0)
+    """
+    if not prediction_dir or not prediction_dir.exists():
+        return 0.0
+        
+    # Search for prediction files containing the domain
+    for subdir in prediction_dir.iterdir():
+        if subdir.is_dir() and domain in subdir.name:
+            explanation_json = subdir / 'explanation.json'
+            if explanation_json.exists():
+                try:
+                    import json
+                    with open(explanation_json, 'r') as f:
+                        data = json.load(f)
+                        return float(data.get('probability', 0.0))
+                except Exception:
+                    pass
+    return 0.0
+
+
+def display_security_insights(critical_insights: list, prediction_dir: Path = None) -> None:
     """
     Display security insights and supply chain compromise details.
 
     Args:
         critical_insights: List of critical security insights
+        prediction_dir: Directory containing prediction outputs with explanations
     """
     print("🚨 SECURITY INSIGHTS DETECTED:")
     if critical_insights:
-        # Check if we have the specific supply chain compromise
-        supply_chain_compromise = None
+        # Find the highest severity insight
+        highest_severity_insight = None
+        highest_probability = 0.0
+        
         for insight in critical_insights:
-            if "xqpt5z.dagmawi.io" in insight["domain"]:
-                supply_chain_compromise = insight
-                break
+            # Get prediction probability for this domain
+            probability = get_prediction_probability(prediction_dir, insight["domain"])
+            if probability > highest_probability:
+                highest_probability = probability
+                highest_severity_insight = insight
 
-        # If we found the supply chain compromise, explain it clearly
-        if supply_chain_compromise:
+        # Display the most critical finding with dynamic risk level
+        if highest_severity_insight:
+            risk_level, emoji = get_risk_level_from_probability(highest_probability)
             print()
-            print("🔥 CRITICAL SUPPLY CHAIN COMPROMISE DETECTED!")
+            print(f"{emoji} {risk_level} RISK SUPPLY CHAIN COMPROMISE DETECTED!")
             print("=" * 60)
             print("📋 WHAT HAPPENED:")
             print(
                 "   The Box application is communicating with an unauthorized server:"
             )
-            print(f"   • Suspicious domain: {supply_chain_compromise['domain']}")
+            print(f"   • Suspicious domain: {highest_severity_insight['domain']}")
             print("   • Expected behavior: Box should only talk to *.box.com servers")
             print("   • Actual behavior: Box is sending data to an unknown domain")
             print()
             print("🔍 WHAT OUR ANALYSIS FOUND:")
-            print("   • Regular, automated communication pattern (every 5 seconds)")
-            print("   • Not normal user behavior - this is programmatic")
-            print("   • High automation score (22.2) indicates malicious bot activity")
+            # Show the ML model explanation directly from the insights
+            details = highest_severity_insight.get("details", "")
+            if details:
+                # Split the details into lines and format for display
+                lines = details.split('\n')
+                for line in lines:
+                    if line.strip():
+                        print(f"   {line}")
+            else:
+                print("   • Analysis details not available")
             print()
             print("⚠️  WHAT THIS MEANS:")
             print("   This is likely malicious code injected into the Box application")
             print("   that is stealing data or establishing a backdoor connection.")
             print("   This type of attack is called a 'supply chain compromise'")
+            
             print("   where legitimate software is modified to include malicious code.")
             print("=" * 60)
             print()
-
-        # Show all insights
-        for insight in critical_insights:
-            severity_emoji = "🔥" if insight["severity"] == "HIGH" else "⚠️"
-            print(f"   {severity_emoji} [{insight['severity']}] {insight['type']}")
-            print(f"      Domain: {insight['domain']}")
-            print(f"      Technical details: {insight['details']}")
-            print()
+        else:
+            # Show all insights if no specific supply chain compromise found
+            for insight in critical_insights:
+                severity_emoji = "🔥" if insight["severity"] == "HIGH" else "⚠️"
+                print(f"   {severity_emoji} [{insight['severity']}] {insight['type']}")
+                print(f"      Domain: {insight['domain']}")
+                print(f"      Technical details: {insight['details']}")
+                print()
     else:
         print("   ✅ No critical security issues detected")
 
@@ -290,7 +357,7 @@ def display_overall_assessment(analysis: dict) -> None:
     """
     # Show overall assessment
     risk_level = analysis["risk_assessment"]["overall_risk_level"]
-    risk_emoji = {"HIGH": "🔥", "MEDIUM": "⚠️", "LOW": "💛", "MINIMAL": "✅"}.get(
+    risk_emoji = {"CRITICAL": "🔥", "HIGH": "🔥", "MEDIUM": "⚠️", "LOW": "💛", "MINIMAL": "✅"}.get(
         risk_level, "❓"
     )
 

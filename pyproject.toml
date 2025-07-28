@@ -59,7 +59,7 @@ dependencies = [
     "rsa==4.9",
     "scikit-learn==1.6.1",
     "scipy==1.15.1",
-    "shap>=0.44.1",
+    "shap==0.46.0",
     "six==1.17.0",
     "slicer==0.0.8",
     "SQLAlchemy-Utils==0.41.2",
@@ -75,7 +75,7 @@ dependencies = [
     "urllib3==2.5.0",
     "user-agents==2.2.0",
     "art==6.4",
-    "xgboost==2.1.1",
+    "xgboost==3.0.2",
     "path>=17.1.0",
 ]
 

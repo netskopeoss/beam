@@ -34,6 +34,29 @@ services:
       - beam-network
     command: ["tail", "-f", "/dev/null"]  # Keep container running
 
+  # Model training container with TensorFlow support
+  beam-trainer:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.trainer
+    container_name: beam-trainer
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./src:/app/src
+    networks:
+      - beam-network
+    environment:
+      - PYTHONPATH=/app/src
+      - TF_CPP_MIN_LOG_LEVEL=3
+      - CUDA_VISIBLE_DEVICES=""
+      - TF_ENABLE_ONEDNN_OPTS=0
+      - TF_CPP_MIN_VLOG_LEVEL=3
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    profiles:
+      - training
+
   # Optional: Llama model service for local LLM (if not using Gemini)
   llama-model:
     image: ollama/ollama:latest

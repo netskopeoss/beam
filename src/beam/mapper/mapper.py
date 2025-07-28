@@ -356,10 +356,36 @@ def query_user_agent_mapper(
             for hit in mapper.hits:
                 if hit not in session:
                     session.add(hit)
+
+                app_name = hit.application.name
+                name_map = {
+                    "Asana": [
+                        "Asana", "Asana Desktop", "Asana Desktop Official",
+                        "Asana Mobile App", "Asana Mobile App", "Asana App"
+                    ],
+                    "Kandji": [
+                        "Kandji Daemon", "Kandji Self Service", "Kandji Menu",
+                        "Kandji Library Manager"
+                    ],
+                    "Todoist": [
+                        "Todoist", "TodoistWidgets"
+                    ],
+                    "Canva": [
+                        "Canva", "Canva Editor", "Canva editor"
+                    ],
+                }
+
+                # If the assignment is one of the values in the array,
+                # substitute it with the value in the key
+                for k in name_map:
+                    if app_name in name_map[k]:
+                        app_name = k
+                        break
+
                 hits.append(
                     {
                         "user_agent_string": hit.user_agent_string,
-                        "application": hit.application.name,
+                        "application": app_name,
                         "vendor": hit.application.vendor,
                         "version": hit.version,
                         "description": hit.application.description,

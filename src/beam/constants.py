@@ -51,6 +51,7 @@ PROJECT_DIR = get_project_root()
 DATA_DIR = PROJECT_DIR / "data"
 MODEL_DIRECTORY = PROJECT_DIR / "models"
 PREDICTIONS_DIRECTORY = PROJECT_DIR / "predictions"
+LOG_DIR = PROJECT_DIR / "logs"
 
 LOG_CONFIG = PROJECT_DIR / "src" / "beam" / "logging.conf"
 DB_PATH = DATA_DIR / "mapper" / "user_agent_mapping.db"
@@ -74,3 +75,6 @@ USE_LOCAL_LLM = environ.get("USE_LOCAL_LLM", "false").lower() == "true"
 
 MIN_APP_TRANSACTIONS = 100
 MIN_DOMAIN_TRANSACTION = 5
+
+# SHAP explanation configuration
+TOP_FEATURES_COUNT = int(environ.get("BEAM_TOP_FEATURES_COUNT", "20"))

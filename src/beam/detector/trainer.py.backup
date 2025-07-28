@@ -231,24 +231,16 @@ class ModelTrainer:
         self, training_data: List[Dict[str, Any]], app_name: str
     ) -> Optional[Dict[str, Any]]:
         """
-        Train an anomaly detection model for a specific app using ensemble methods.
-        
-        This method learns the normal behavior patterns of an application and creates
-        an anomaly detector that can identify deviations from these patterns, which
-        could indicate supply chain compromises.
-        
-        IMPORTANT: The training data is assumed to be clean (no anomalies/compromises).
-        The contamination rate is set to near-zero (0.01%) to ensure the model doesn't
-        falsely flag training samples as anomalous.
+        Train a model for a specific app.
 
         Args:
-            training_data (List[Dict[str, Any]]): List of feature dictionaries representing normal app behavior.
+            training_data (List[Dict[str, Any]]): List of feature dictionaries for training.
             app_name (str): Name of the app to train the model for.
 
         Returns:
-            Dict[str, Any]: Trained anomaly detection model information.
+            Dict[str, Any]: Trained model information.
         """
-        self.logger.info("Training anomaly detection model for application: %s", app_name)
+        self.logger.info("Training model for application: %s", app_name)
 
         # Add the app name to each training sample
         for item in training_data:
@@ -267,8 +259,44 @@ class ModelTrainer:
             )
             return None
 
-        # Convert to pandas DataFrame - no need for synthetic negatives!
-        X, _ = self.convert_features_to_pd(training_data)
+        # Convert to pandas DataFrame
+        X, y = self.convert_features_to_pd(training_data)
+
+        # For binary classification, we need numeric labels (0 or 1), not string labels
+        # Since we have only one class in training data, we need to create a synthetic negative class
+        # We'll add some negative examples with '0' label
+        self.logger.info(
+            f"Creating binary classification dataset with target class '{app_name}'"
+        )
+
+        # Create synthetic negative examples by copying the first few examples and changing their labels
+        negative_samples = []
+        if len(training_data) > 0:
+            # Use a small number of samples from the training data as templates
+            for i in range(min(5, len(training_data))):
+                neg_sample = training_data[i].copy()
+                neg_sample["application"] = (
+                    "not_" + app_name
+                )  # This will be encoded as 0
+                negative_samples.append(neg_sample)
+
+            # Add the negative samples to the training data
+            combined_data = training_data + negative_samples
+
+            # Re-convert to DataFrame with the combined data
+            X, y = self.convert_features_to_pd(combined_data)
+
+            # Encode labels as 0 and 1
+            y_encoded = np.zeros(len(y), dtype=int)
+            y_encoded[y == app_name] = 1  # Set positive class to 1
+            y = y_encoded
+
+            self.logger.info(
+                f"Created dataset with {len(training_data)} positive examples and {len(negative_samples)} synthetic negative examples"
+            )
+        else:
+            self.logger.error("No positive examples available for training")
+            return None
 
         # Get transformers for available columns
         transformers = self.get_available_transformers(X)
@@ -280,56 +308,54 @@ class ModelTrainer:
         ct = ColumnTransformer(transformers=transformers, remainder="drop")
         X_transformed = ct.fit_transform(X)
 
-        # Log dataset information
+        # Now we can accurately determine the number of transformed features
         transformed_feature_count = X_transformed.shape[1]
         self.logger.info(
             f"Dataset has {X.shape[1]} raw features, which transform to {transformed_feature_count} features"
         )
+
+        # Use a substantial portion of the available features while still being safe
+        # Use up to 90% of available features with a higher maximum limit of 30
+        safe_max_features = min(30, int(transformed_feature_count * 0.9))
+        safe_max_features = max(
+            5, safe_max_features
+        )  # Ensure at least 5 features are selected
         self.logger.info(
-            f"Training on {len(training_data)} samples of normal {app_name} behavior"
+            f"Setting max_features to {safe_max_features} (out of {transformed_feature_count} available)"
         )
 
-        # Initialize ensemble anomaly detector
-        # Set contamination to minimum value since training data is assumed clean
-        # Using 0.0001 (0.01%) instead of 0 to avoid numerical issues in some algorithms
-        contamination_rate = 0.0001  # 0.01% - essentially zero contamination
-        ensemble_detector = EnsembleAnomalyDetector(
-            contamination=contamination_rate,
-            isolation_forest_params={
-                "n_estimators": 100,
-                "contamination": contamination_rate,
-                "random_state": 42,
-                "n_jobs": -1,
-            },
-            one_class_svm_params={
-                "nu": contamination_rate,
-                "gamma": "scale",
-                "kernel": "rbf"
-            },
-            use_adaptive_threshold=True  # Ensure no training samples are classified as anomalies
-        )
-        
-        # Train the ensemble on normal behavior
-        ensemble_detector.fit(X_transformed)
+        # Now create the full pipeline with our safe max_features value
+        estimator = self.get_pipeline_estimator(feature_count=safe_max_features, X=X)
+        estimator.fit(X, y)
 
         # Get feature names
-        feature_names = self.get_feature_names(ct=ct)
+        feature_names = self.get_feature_names(ct=estimator.named_steps["ct"])
+        selected_feat_ind = estimator.named_steps["feat_sel"].get_support()
+        
+        # Ensure the feature names and selection mask have the same length
+        if len(feature_names) != len(selected_feat_ind):
+            self.logger.warning(
+                f"Feature names ({len(feature_names)}) and selection mask ({len(selected_feat_ind)}) "
+                f"have different lengths. Using first {min(len(feature_names), len(selected_feat_ind))} features."
+            )
+            min_length = min(len(feature_names), len(selected_feat_ind))
+            feature_names = feature_names[:min_length]
+            selected_feat_ind = selected_feat_ind[:min_length]
+        
+        selected_features = np.array(feature_names)[selected_feat_ind]
 
         # Create model information dictionary
         model_info = {
             "key": app_name,
-            "model_type": "ensemble_anomaly",
-            "ensemble_detector": ensemble_detector,
-            "feature_transformer": ct,
+            "estimator": estimator,
             "features": feature_names,
-            "n_training_samples": len(training_data),
-            "contamination": contamination_rate
+            "selected_features": selected_features,
         }
 
         self.logger.info(
-            "Anomaly detection model training completed for %s with %d training samples",
+            "Model training completed for %s with %d selected features",
             app_name,
-            len(training_data)
+            len(selected_features),
         )
 
         return model_info
@@ -464,7 +490,7 @@ class ModelTrainer:
 
     def add_app_model(
         self, input_path: str, app_name: str, model_output_path: str
-    ) -> Optional[str]:
+    ) -> None:
         """
         Process input data to create and save a new app model.
 
@@ -474,7 +500,7 @@ class ModelTrainer:
             model_output_path (str): Path to save the model.
 
         Returns:
-            Optional[str]: Path to the saved model file, or None if training failed.
+            None
         """
         self.logger.info(
             "Creating app model for %s using data from %s", app_name, input_path
@@ -498,10 +524,8 @@ class ModelTrainer:
             # Save model
             self.save_model(model_info, model_output_path)
             self.logger.info("App model for %s created successfully", app_name)
-            return model_output_path
         else:
             self.logger.error("Failed to create app model for %s", app_name)
-            return None
 
 
     def extract_features_for_training(
@@ -619,7 +643,7 @@ def train_custom_app_model(
     output_model_path: str,
     n_features: int = 50,
     min_transactions: int = 50,
-) -> str:
+) -> None:
     """
     Train a custom application model from extracted features.
 
@@ -631,7 +655,7 @@ def train_custom_app_model(
         min_transactions (int): Minimum transactions required.
 
     Returns:
-        str: Path to the saved model file.
+        None
     """
     logger = logging.getLogger(__name__)
     logger.info("Training custom model for %s", app_name)
@@ -640,12 +664,10 @@ def train_custom_app_model(
     trainer = ModelTrainer(n_features=n_features, min_transactions=min_transactions)
 
     # Train and save model
-    model_path = trainer.add_app_model(
+    trainer.add_app_model(
         input_path=features_path, app_name=app_name, model_output_path=output_model_path
     )
 
-    if model_path:
-        logger.info(
-            "Custom model for %s trained and saved to %s", app_name, model_path
-        )
-    return model_path
+    logger.info(
+        "Custom model for %s trained and saved to %s", app_name, output_model_path
+    )

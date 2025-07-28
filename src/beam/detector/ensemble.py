@@ -200,6 +200,7 @@ class EnsembleAnomalyDetector:
         isolation_forest_params: Optional[Dict] = None,
         one_class_svm_params: Optional[Dict] = None,
         autoencoder_params: Optional[Dict] = None,
+        use_adaptive_threshold: bool = False,
     ):
         """
         Initialize the ensemble anomaly detector.
@@ -209,8 +210,11 @@ class EnsembleAnomalyDetector:
             isolation_forest_params (dict): Parameters for Isolation Forest
             one_class_svm_params (dict): Parameters for One-Class SVM
             autoencoder_params (dict): Parameters for Autoencoder
+            use_adaptive_threshold (bool): If True, use adaptive threshold based on training data
         """
         self.contamination = contamination
+        self.use_adaptive_threshold = use_adaptive_threshold
+        self.adaptive_threshold = None
         self.logger = logging.getLogger(__name__)
 
         # Default parameters
@@ -237,10 +241,19 @@ class EnsembleAnomalyDetector:
         self.one_class_svm = Pipeline(
             [("scaler", StandardScaler()), ("svm", OneClassSVM(**one_class_svm_params))]
         )
-        self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
-
-        # Ensemble weights (can be learned or set manually)
-        self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
+        
+        # Initialize autoencoder only if TensorFlow is available
+        if HAS_TENSORFLOW:
+            self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
+            # Ensemble weights (can be learned or set manually)
+            self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
+        else:
+            self.autoencoder = None
+            # Adjust weights when autoencoder is not available
+            self.weights = np.array([0.5, 0.5])  # IF, SVM only
+            self.logger.warning(
+                "TensorFlow not available. Ensemble will use only Isolation Forest and One-Class SVM."
+            )
         self.is_fitted = False
 
     def fit(
@@ -269,7 +282,7 @@ class EnsembleAnomalyDetector:
         self.one_class_svm.fit(X)
 
         # Fit Autoencoder (if TensorFlow is available)
-        if HAS_TENSORFLOW:
+        if HAS_TENSORFLOW and self.autoencoder is not None:
             self.logger.info("Training Autoencoder...")
             try:
                 self.autoencoder.fit(X)
@@ -277,14 +290,23 @@ class EnsembleAnomalyDetector:
                 self.logger.warning(
                     f"Autoencoder training failed: {e}. Continuing with other models."
                 )
-                self.weights = np.array(
-                    [0.6, 0.4, 0.0]
-                )  # Disable autoencoder if it fails
+                # Already adjusted weights in __init__ if no TensorFlow
         else:
             self.logger.info("TensorFlow not available, skipping autoencoder training")
-            self.weights = np.array([0.6, 0.4, 0.0])  # Disable autoencoder
 
+        # Mark as fitted before computing adaptive threshold
         self.is_fitted = True
+        
+        # If using adaptive threshold, compute it based on training data scores
+        if self.use_adaptive_threshold:
+            self.logger.info("Computing adaptive threshold based on training data")
+            train_scores = self.decision_function(X)
+            # Set threshold to be much more lenient than the minimum training score
+            # This ensures no training samples are classified as anomalies
+            # Use a large margin to account for any numerical variations
+            self.adaptive_threshold = np.min(train_scores) - abs(np.min(train_scores)) * 0.1 - 10.0
+            self.logger.info(f"Adaptive threshold set to: {self.adaptive_threshold}")
+        
         self.logger.info("Ensemble training completed")
         return self
 
@@ -312,18 +334,21 @@ class EnsembleAnomalyDetector:
         svm_pred = self.one_class_svm.predict(X)
         predictions.append(svm_pred)
 
-        # Autoencoder (if successfully trained)
-        if self.weights[2] > 0:
+        # Autoencoder (if available and trained)
+        if HAS_TENSORFLOW and self.autoencoder is not None:
             try:
                 ae_pred = self.autoencoder.predict(X)
                 predictions.append(ae_pred)
             except Exception as e:
                 self.logger.warning(f"Autoencoder prediction failed: {e}")
-                predictions.append(np.ones(len(X)))  # Default to normal
-        else:
-            predictions.append(np.ones(len(X)))  # Default to normal
+                # Don't append anything if autoencoder fails
 
-        # Weighted ensemble voting
+        # If using adaptive threshold, use decision scores instead of votes
+        if self.use_adaptive_threshold and self.adaptive_threshold is not None:
+            scores = self.decision_function(X)
+            return np.where(scores > self.adaptive_threshold, 1, -1)
+        
+        # Otherwise use weighted ensemble voting
         predictions = np.array(predictions)
         weighted_scores = np.average(predictions, axis=0, weights=self.weights)
 
@@ -354,22 +379,32 @@ class EnsembleAnomalyDetector:
         svm_scores = self.one_class_svm.decision_function(X)
         scores.append(svm_scores)
 
-        # Autoencoder (if successfully trained)
-        if self.weights[2] > 0:
+        # Autoencoder (if available and trained)
+        if HAS_TENSORFLOW and self.autoencoder is not None:
             try:
                 ae_scores = self.autoencoder.decision_function(X)
                 scores.append(ae_scores)
             except Exception as e:
                 self.logger.warning(f"Autoencoder scoring failed: {e}")
-                scores.append(np.zeros(len(X)))  # Neutral scores
-        else:
-            scores.append(np.zeros(len(X)))  # Neutral scores
+                # Don't append anything if autoencoder fails
 
         # Weighted ensemble scoring
         scores = np.array(scores)
         weighted_scores = np.average(scores, axis=0, weights=self.weights)
 
         return weighted_scores
+
+    def predict_anomaly_scores(self, X: np.ndarray) -> np.ndarray:
+        """
+        Alias for decision_function to match expected interface.
+        
+        Args:
+            X (np.ndarray): Data to score
+            
+        Returns:
+            np.ndarray: Anomaly scores (lower = more anomalous)
+        """
+        return self.decision_function(X)
 
     def save_model(self, model_path: str) -> None:
         """
