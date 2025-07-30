@@ -202,7 +202,15 @@ def enrich_events(
         llm_selection = remote_llm_type.capitalize()  # e.g., "gemini" -> "Gemini"
     else:
         llm_selection = "Llama"  # Default to local
-    logger.info(f"Using LLM: {llm_selection} (use_local_llm={use_local_llm}, remote_llm_type={remote_llm_type})")
+    
+    # Log LLM selection prominently
+    logger.info("=" * 60)
+    logger.info(f"🤖 LLM CONFIGURATION: Using {llm_selection} for user agent mapping")
+    if llm_selection == "Llama":
+        logger.info("🏠 Local LLM (Llama) selected - no API calls will be made to external services")
+    else:
+        logger.info(f"☁️  Remote LLM ({llm_selection}) selected - API calls will be made to external services")
+    logger.info("=" * 60)
     
     hits, misses = query_user_agent_mapper(
         user_agents=unique_ua_list,
