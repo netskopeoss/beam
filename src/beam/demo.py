@@ -119,6 +119,7 @@ def process_demo_data(
         key_domains_file_path=str(constants.KEY_DOMAINS_FILE),
         llm_api_key=constants.GEMINI_API_KEY,
         use_local_llm=constants.USE_LOCAL_LLM,
+        remote_llm_type=constants.REMOTE_LLM_TYPE,
     )
     utils.save_json_data(enriched_events, str(enriched_output_path))
     print("   ✓ Enriched events with application mapping")

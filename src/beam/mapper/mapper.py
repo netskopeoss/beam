@@ -64,7 +64,13 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
     logger.info(f"Mapping {len(user_agents)} user agents...")
     
     # Choose LLM selection based on configuration
-    llm_selection = "Llama" if USE_LOCAL_LLM else "Gemini"
+    from beam.constants import REMOTE_LLM_TYPE
+    if USE_LOCAL_LLM:
+        llm_selection = "Llama"
+    elif REMOTE_LLM_TYPE:
+        llm_selection = REMOTE_LLM_TYPE.capitalize()
+    else:
+        llm_selection = "Llama"  # Default to local
     
     hits, misses = query_user_agent_mapper(
         user_agents=user_agents,
@@ -305,7 +311,7 @@ def query_user_agent_mapper(
     db_path: str,
     logger: logging.Logger,
     llm_api_key: str = None,
-    llm_selection: str = "Gemini",
+    llm_selection: str = "Llama",
     delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
@@ -317,7 +323,7 @@ def query_user_agent_mapper(
             Defaults to DB_PATH.
         logger (logging.Logger): The logger used for logging progress and errors.
         llm_api_key (str, optional): An API key for LLM usage. Defaults to None.
-        llm_selection (str, optional): The LLM to use. Defaults to "Gemini".
+        llm_selection (str, optional): The LLM to use. Defaults to "Llama".
 
     Returns:
         Hits: Dictionary of mapped user agents

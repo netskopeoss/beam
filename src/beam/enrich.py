@@ -167,7 +167,8 @@ def enrich_events(
     cloud_domains_file_path: str,
     key_domains_file_path: str,
     llm_api_key: str,
-    use_local_llm: bool = False,
+    use_local_llm: bool = True,  # Default to local LLM
+    remote_llm_type: str = None,
 ) -> dict:
     """
     Take in a parsed Zeek JSON file and enrich it with application information.
@@ -178,7 +179,8 @@ def enrich_events(
         cloud_domains_file_path (str): The path to the file containing cloud domains.
         key_domains_file_path (str): The path to the file containing key domains.
         llm_api_key (str): The API key for the language model.
-        use_local_llm (bool): Whether to use local Llama model instead of Gemini.
+        use_local_llm (bool): Whether to use local Llama model (default: True).
+        remote_llm_type (str): Type of remote LLM to use if not using local (e.g., 'gemini').
 
     Returns:
         dict: The enriched events.
@@ -194,8 +196,13 @@ def enrich_events(
     unique_ua_list = list(dict.fromkeys(full_ua_list).keys())
 
     # Choose LLM selection based on configuration
-    llm_selection = "Llama" if use_local_llm else "Gemini"
-    logger.info(f"Using LLM: {llm_selection} (use_local_llm={use_local_llm})")
+    if use_local_llm:
+        llm_selection = "Llama"
+    elif remote_llm_type:
+        llm_selection = remote_llm_type.capitalize()  # e.g., "gemini" -> "Gemini"
+    else:
+        llm_selection = "Llama"  # Default to local
+    logger.info(f"Using LLM: {llm_selection} (use_local_llm={use_local_llm}, remote_llm_type={remote_llm_type})")
     
     hits, misses = query_user_agent_mapper(
         user_agents=unique_ua_list,
