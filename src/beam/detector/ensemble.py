@@ -35,19 +35,13 @@ from sklearn.svm import OneClassSVM
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-# Make TensorFlow optional
-try:
-    import tensorflow as tf
-    from tensorflow.keras import layers, models, optimizers
-    from tensorflow.keras.callbacks import EarlyStopping
-
-    HAS_TENSORFLOW = True
-except ImportError:
-    HAS_TENSORFLOW = False
+# TensorFlow disabled for now to avoid CUDA warnings
+HAS_TENSORFLOW = False
 
 from .utils import safe_create_path
 
 
+# AutoencoderAnomalyDetector removed - TensorFlow disabled
 class AutoencoderAnomalyDetector:
     """
     Autoencoder-based anomaly detection for network traffic patterns.
