@@ -7,12 +7,13 @@ import shutil
 from pathlib import Path
 from typing import Optional
 
+# Make MultiHotEncoder available in __main__ module for pickle loading
+import __main__
+
 from beam import constants
 from beam.detector import features, utils
 from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
 
-# Make MultiHotEncoder available in __main__ module for pickle loading
-import __main__
 __main__.MultiHotEncoder = MultiHotEncoder
 from beam.detector.security_report import generate_security_report
 from beam.enrich import enrich_events
@@ -216,7 +217,7 @@ def display_demo_results(
     # Show key findings
     print("🔍 NETWORK TRAFFIC ANALYSIS:")
     print(f"   • Applications detected: {len(summaries)}")
-    print("   • Security features extracted: ~240+ per application")
+    print("   • Security features extracted: ~185 per application")
     print("   • Analysis techniques: Protocol, Header, Supply Chain, Behavioral")
     print()
 
@@ -234,10 +235,10 @@ def display_demo_results(
 def get_risk_level_from_probability(probability: float) -> tuple[str, str]:
     """
     Determine risk level and emoji based on ML model probability.
-    
+
     Args:
         probability: ML model probability (0.0 to 1.0)
-        
+
     Returns:
         Tuple of (risk_level, emoji)
     """
@@ -256,33 +257,36 @@ def get_risk_level_from_probability(probability: float) -> tuple[str, str]:
 def get_prediction_probability(prediction_dir: Path, domain: str) -> float:
     """
     Extract prediction probability from prediction directory.
-    
+
     Args:
         prediction_dir: Directory containing prediction outputs
         domain: Domain to look for
-        
+
     Returns:
         Prediction probability (0.0 to 1.0)
     """
     if not prediction_dir or not prediction_dir.exists():
         return 0.0
-        
+
     # Search for prediction files containing the domain
     for subdir in prediction_dir.iterdir():
         if subdir.is_dir() and domain in subdir.name:
-            explanation_json = subdir / 'explanation.json'
+            explanation_json = subdir / "explanation.json"
             if explanation_json.exists():
                 try:
                     import json
-                    with open(explanation_json, 'r') as f:
+
+                    with open(explanation_json, "r") as f:
                         data = json.load(f)
-                        return float(data.get('probability', 0.0))
+                        return float(data.get("probability", 0.0))
                 except Exception:
                     pass
     return 0.0
 
 
-def display_security_insights(critical_insights: list, prediction_dir: Path = None) -> None:
+def display_security_insights(
+    critical_insights: list, prediction_dir: Path = None
+) -> None:
     """
     Display security insights and supply chain compromise details.
 
@@ -295,7 +299,7 @@ def display_security_insights(critical_insights: list, prediction_dir: Path = No
         # Find the highest severity insight
         highest_severity_insight = None
         highest_probability = 0.0
-        
+
         for insight in critical_insights:
             # Get prediction probability for this domain
             probability = get_prediction_probability(prediction_dir, insight["domain"])
@@ -322,7 +326,7 @@ def display_security_insights(critical_insights: list, prediction_dir: Path = No
             details = highest_severity_insight.get("details", "")
             if details:
                 # Split the details into lines and format for display
-                lines = details.split('\n')
+                lines = details.split("\n")
                 for line in lines:
                     if line.strip():
                         print(f"   {line}")
@@ -333,7 +337,7 @@ def display_security_insights(critical_insights: list, prediction_dir: Path = No
             print("   This is likely malicious code injected into the Box application")
             print("   that is stealing data or establishing a backdoor connection.")
             print("   This type of attack is called a 'supply chain compromise'")
-            
+
             print("   where legitimate software is modified to include malicious code.")
             print("=" * 60)
             print()
@@ -358,9 +362,13 @@ def display_overall_assessment(analysis: dict) -> None:
     """
     # Show overall assessment
     risk_level = analysis["risk_assessment"]["overall_risk_level"]
-    risk_emoji = {"CRITICAL": "🔥", "HIGH": "🔥", "MEDIUM": "⚠️", "LOW": "💛", "MINIMAL": "✅"}.get(
-        risk_level, "❓"
-    )
+    risk_emoji = {
+        "CRITICAL": "🔥",
+        "HIGH": "🔥",
+        "MEDIUM": "⚠️",
+        "LOW": "💛",
+        "MINIMAL": "✅",
+    }.get(risk_level, "❓")
 
     print("📈 OVERALL SECURITY ASSESSMENT:")
     print(f"   🎯 Risk Level: {risk_emoji} {risk_level}")
@@ -390,17 +398,26 @@ def display_available_reports(
         features_output_path: Path to the features data
         prediction_dir: Directory containing predictions
     """
+
     # Convert container paths to host paths for user-friendly display
     def convert_container_path_to_host_path(container_path: str) -> str:
         """Convert container path to host filesystem path for user-friendly console output."""
         if container_path.startswith("/app/"):
-            return "./demo_results/" + container_path.split("/")[-1]  # Put demo files in demo_results/
+            return (
+                "./demo_results/" + container_path.split("/")[-1]
+            )  # Put demo files in demo_results/
         return container_path
-    
+
     print("📄 DETAILED REPORTS AVAILABLE:")
-    print(f"   • Security Analysis: {convert_container_path_to_host_path(str(security_report_path))}")
-    print(f"   • Feature Data: {convert_container_path_to_host_path(str(features_output_path))}")
-    print(f"   • Predictions: {convert_container_path_to_host_path(str(prediction_dir))}")
+    print(
+        f"   • Security Analysis: {convert_container_path_to_host_path(str(security_report_path))}"
+    )
+    print(
+        f"   • Feature Data: {convert_container_path_to_host_path(str(features_output_path))}"
+    )
+    print(
+        f"   • Predictions: {convert_container_path_to_host_path(str(prediction_dir))}"
+    )
     print()
 
     # Demo conclusion
@@ -449,27 +466,27 @@ def setup_demo_logging():
     """Setup logging for demo with custom log path if specified."""
     import os
     from pathlib import Path
-    
-    custom_log_path = os.environ.get('BEAM_LOG_PATH')
-    
+
+    custom_log_path = os.environ.get("BEAM_LOG_PATH")
+
     if custom_log_path:
         # Create the directory if it doesn't exist
         log_dir = Path(custom_log_path).parent
         log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Setup logging programmatically (file only)
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            handlers=[
-                logging.FileHandler(custom_log_path)
-            ],
-            force=True  # Override any existing configuration
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[logging.FileHandler(custom_log_path)],
+            force=True,  # Override any existing configuration
         )
     else:
         # Use the default logging configuration
         import logging.config as log_config
+
         from beam.constants import LOG_CONFIG
+
         log_config.fileConfig(LOG_CONFIG)
 
 
@@ -485,7 +502,7 @@ def run_demo(
     """
     # Setup logging if not already configured
     setup_demo_logging()
-    
+
     if logger is None:
         logger = logging.getLogger(__name__)
 
@@ -590,4 +607,5 @@ def suggest_training_workflow(unsupported_apps: list) -> None:
     )
     print("   3. Once trained, re-run BEAM for detection")
     print()
+    print("📚 See models/custom_models/README.md for detailed training instructions")
     print("📚 See models/custom_models/README.md for detailed training instructions")
