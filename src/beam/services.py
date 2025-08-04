@@ -154,7 +154,7 @@ class ServiceManager:
             True if all services are running, False otherwise
         """
         if services is None:
-            services = ["database", "zeek-processor"]
+            services = ["zeek-processor", "llama-model"]
         
         all_running = True
         
