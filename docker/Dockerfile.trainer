@@ -40,10 +40,14 @@ RUN mkdir -p /app/models/custom_models \
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
 ENV PATH="/app/.venv/bin:$PATH"
+
+# Suppress TensorFlow and CUDA warnings
 ENV TF_CPP_MIN_LOG_LEVEL=3
-ENV CUDA_VISIBLE_DEVICES=""
+ENV CUDA_VISIBLE_DEVICES=-1
 ENV TF_ENABLE_ONEDNN_OPTS=0
 ENV TF_CPP_MIN_VLOG_LEVEL=3
+ENV AUTOGRAPH_VERBOSITY=0
+ENV TF_DETERMINISTIC_OPS=1
 
 # Expose port for potential web interface (optional)
 EXPOSE 8888

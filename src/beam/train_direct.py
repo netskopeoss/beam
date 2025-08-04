@@ -6,15 +6,29 @@ docker-compose.yml access.
 """
 
 import os
-# Suppress TensorFlow warnings before importing anything else
+import sys
+from pathlib import Path
+
+# Redirect STDERR to log file BEFORE any other imports
+def redirect_stderr_early():
+    """Redirect stderr to log file before TensorFlow loads."""
+    # Use a fixed path that we know exists in the container
+    log_dir = Path("/app/logs")
+    log_dir.mkdir(exist_ok=True)
+    
+    stderr_log = log_dir / "beam_stderr.log"
+    sys.stderr = open(stderr_log, 'a', buffering=1)
+
+# Redirect STDERR first
+redirect_stderr_early()
+
+# NOW suppress TensorFlow warnings and import other modules
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import argparse
 import logging
-import sys
 import warnings
-from pathlib import Path
 
 # Suppress warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)

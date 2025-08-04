@@ -64,7 +64,13 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
     logger.info(f"Mapping {len(user_agents)} user agents...")
     
     # Choose LLM selection based on configuration
-    llm_selection = "Llama" if USE_LOCAL_LLM else "Gemini"
+    from beam.constants import REMOTE_LLM_TYPE
+    if USE_LOCAL_LLM:
+        llm_selection = "Llama"
+    elif REMOTE_LLM_TYPE:
+        llm_selection = REMOTE_LLM_TYPE.capitalize()
+    else:
+        llm_selection = "Llama"  # Default to local
     
     hits, misses = query_user_agent_mapper(
         user_agents=user_agents,
@@ -169,19 +175,30 @@ class UserAgentMapper(DataSource):
             session=session, user_agents=self.query_input
         )
         # Update the hits and misses lists
+        total_user_agents = len(self.query_input)
+        
         if len(hits) > 0:
-            self.logger.info(f"Found {len(hits)} user agents in the datastore.")
+            self.logger.info(f"💾 DATABASE HITS: Found {len(hits)} of {total_user_agents} user agents in local database")
+            # Log some examples of found user agents (first few)
+            for i, hit in enumerate(hits[:3]):
+                self.logger.info(f"   ✓ Found in DB: {hit.user_agent_string[:80]}{'...' if len(hit.user_agent_string) > 80 else ''}")
+            if len(hits) > 3:
+                self.logger.info(f"   ... and {len(hits) - 3} more user agents found in database")
             self.hits.extend(hits)
-        elif len(hits) == 0:
-            self.logger.info("No user agents were found in the datastore.")
+        else:
+            self.logger.info(f"💾 DATABASE HITS: No user agents found in local database (0 of {total_user_agents})")
 
         if len(misses) > 0:
-            self.logger.info(
-                f"Found {len(misses)} user agents missing from the datastore."
-            )
+            self.logger.info(f"❓ DATABASE MISSES: {len(misses)} of {total_user_agents} user agents NOT found in database - will query LLM")
+            # Log some examples of missed user agents (first few)
+            for i, miss in enumerate(misses[:3]):
+                miss_str = miss[:80] + '...' if len(miss) > 80 else miss
+                self.logger.info(f"   ❓ Not in DB: {miss_str}")
+            if len(misses) > 3:
+                self.logger.info(f"   ... and {len(misses) - 3} more user agents need LLM lookup")
             self.misses.extend(misses)
         else:
-            self.logger.info("Nothing left to search after querying the datastore.")
+            self.logger.info(f"✅ DATABASE COMPLETE: All {total_user_agents} user agents found in database - no LLM queries needed")
 
     def search_llm(self) -> None:
         """
@@ -198,15 +215,17 @@ class UserAgentMapper(DataSource):
             None
         """
         if self.misses_found:
-            self.logger.info(
-                f"Checking LLM source {self.llm_selection} for a total of {len(self.misses)} user agents."
-            )
+            self.logger.info("=" * 50)
+            self.logger.info(f"🤖 LLM QUERY: Sending {len(self.misses)} user agents to {self.llm_selection}")
+            
             if self.llm_selection == "Llama":
+                self.logger.info("🏠 Querying local Llama model...")
                 self.llm = query_llama(
                     user_agents=self.misses,
                     logger=self.logger,
                 )
             elif self.llm_api_key and self.llm_selection == "Gemini":
+                self.logger.info("☁️  Querying remote Gemini API...")
                 self.llm = query_gemini(
                     user_agents=self.misses,
                     api_key=self.llm_api_key,
@@ -214,33 +233,34 @@ class UserAgentMapper(DataSource):
                 )
             else:
                 if self.llm_selection == "Gemini":
-                    self.logger.info("No LLM API key was provided for Gemini, skipping LLM check.")
+                    self.logger.warning("❌ No LLM API key was provided for Gemini, skipping LLM check.")
                 else:
-                    self.logger.info("Unknown LLM selection, skipping LLM check.")
+                    self.logger.warning(f"❌ Unknown LLM selection '{self.llm_selection}', skipping LLM check.")
                 return
 
             if self.llm.hits_found:
-                self.logger.info(
-                    f"{self.llm_selection} was able to map {len(self.llm.hits)} user agents."
-                )
+                self.logger.info(f"✅ LLM SUCCESS: {self.llm_selection} successfully mapped {len(self.llm.hits)} user agents")
+                # Log some examples of LLM-resolved user agents
+                for i, hit in enumerate(self.llm.hits[:2]):
+                    ua_str = hit.user_agent_string[:60] + '...' if len(hit.user_agent_string) > 60 else hit.user_agent_string
+                    self.logger.info(f"   🤖 LLM mapped: {ua_str} → {hit.application.name}")
+                if len(self.llm.hits) > 2:
+                    self.logger.info(f"   ... and {len(self.llm.hits) - 2} more mappings from {self.llm_selection}")
                 self.hits.extend(self.llm.hits)
             else:
-                self.logger.info(
-                    f"{self.llm_selection} was unable to map any user agents."
-                )
+                self.logger.info(f"❌ LLM NO RESULTS: {self.llm_selection} was unable to map any user agents")
 
             if self.llm.misses_found:
                 # We need to reset the misses list to the new misses
                 # Some of the old misses may be hits now
                 self.misses = self.llm.misses
+                self.logger.info(f"⚠️  LLM REMAINING: {len(self.misses)} user agents still unresolved after {self.llm_selection}")
             else:
-                self.logger.info("Nothing left to search after querying the LLM.")
+                self.logger.info(f"🎉 LLM COMPLETE: All user agents resolved by {self.llm_selection}")
                 return
-            self.logger.info(
-                f"A total of {len(self.misses)} misses exist after checking {self.llm_selection}."
-            )
+            self.logger.info("=" * 50)
         else:
-            self.logger.info("Skipping the LLM check because 0 misses are left.")
+            self.logger.info("✅ SKIPPING LLM: All user agents found in database, no LLM queries needed")
 
     def search_api(self) -> None:
         """
@@ -305,7 +325,7 @@ def query_user_agent_mapper(
     db_path: str,
     logger: logging.Logger,
     llm_api_key: str = None,
-    llm_selection: str = "Gemini",
+    llm_selection: str = "Llama",
     delay: int = 0,
 ) -> Tuple[List[Dict[str, str]], List[str]]:
     """
@@ -317,7 +337,7 @@ def query_user_agent_mapper(
             Defaults to DB_PATH.
         logger (logging.Logger): The logger used for logging progress and errors.
         llm_api_key (str, optional): An API key for LLM usage. Defaults to None.
-        llm_selection (str, optional): The LLM to use. Defaults to "Gemini".
+        llm_selection (str, optional): The LLM to use. Defaults to "Llama".
 
     Returns:
         Hits: Dictionary of mapped user agents
