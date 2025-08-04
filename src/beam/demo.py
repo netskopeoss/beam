@@ -9,7 +9,6 @@ from typing import Optional
 
 # Make MultiHotEncoder available in __main__ module for pickle loading
 import __main__
-
 from beam import constants
 from beam.detector import features, utils
 from beam.detector.detect import MultiHotEncoder, detect_anomalous_domain
@@ -607,5 +606,4 @@ def suggest_training_workflow(unsupported_apps: list) -> None:
     )
     print("   3. Once trained, re-run BEAM for detection")
     print()
-    print("📚 See models/custom_models/README.md for detailed training instructions")
     print("📚 See models/custom_models/README.md for detailed training instructions")
