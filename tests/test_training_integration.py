@@ -194,8 +194,10 @@ class TestEndToEndTrainingWorkflow:
     @patch("beam.run.discover_apps_in_traffic")
     @patch("beam.run.extract_app_features")
     @patch("beam.run.train_custom_app_model")
+    @patch("beam.detector.features.aggregate_app_traffic")
     def test_process_training_data_complete_workflow(
         self,
+        mock_aggregate_traffic,
         mock_train_custom,
         mock_extract_features,
         mock_discover,
@@ -213,7 +215,8 @@ class TestEndToEndTrainingWorkflow:
         mock_enrich_events.return_value = temp_workspace["files"]["enriched_events"]
         mock_discover.return_value = {"TestApp": 150}  # Sufficient transactions
         mock_extract_features.return_value = temp_workspace["files"]["app_features"]
-        mock_train_custom.return_value = None
+        mock_train_custom.return_value = temp_workspace["files"]["custom_model"]
+        mock_aggregate_traffic.return_value = None  # Mock the traffic aggregation
 
         # Create mock logger
         import logging
@@ -232,7 +235,7 @@ class TestEndToEndTrainingWorkflow:
         mock_parse_input.assert_called_once()
         mock_enrich_events.assert_called_once()
         mock_discover.assert_called()  # Called twice (eligible apps + all apps for reporting)
-        mock_extract_features.assert_called_once()
+        mock_aggregate_traffic.assert_called_once()
         mock_train_custom.assert_called_once()
 
     @patch("beam.run.parse_input_file")
@@ -240,8 +243,10 @@ class TestEndToEndTrainingWorkflow:
     @patch("beam.run.discover_apps_in_traffic")
     @patch("beam.run.extract_app_features")
     @patch("beam.run.train_custom_app_model")
+    @patch("beam.detector.features.aggregate_app_traffic")
     def test_process_training_data_no_pretrained_model(
         self,
+        mock_aggregate_traffic,
         mock_train_custom,
         mock_extract_features,
         mock_discover,
@@ -258,7 +263,8 @@ class TestEndToEndTrainingWorkflow:
         mock_enrich_events.return_value = temp_workspace["files"]["enriched_events"]
         mock_discover.return_value = {"TestApp": 150}  # Sufficient transactions
         mock_extract_features.return_value = temp_workspace["files"]["app_features"]
-        mock_train_custom.return_value = None
+        mock_train_custom.return_value = temp_workspace["files"]["custom_model"]
+        mock_aggregate_traffic.return_value = None  # Mock the traffic aggregation
 
         import logging
 
@@ -275,7 +281,7 @@ class TestEndToEndTrainingWorkflow:
         # Verify steps were called but no merge occurred
         mock_parse_input.assert_called_once()
         mock_enrich_events.assert_called_once()
-        mock_extract_features.assert_called_once()
+        mock_aggregate_traffic.assert_called_once()
         mock_train_custom.assert_called_once()
 
     def test_full_model_training_pipeline(
