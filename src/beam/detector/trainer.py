@@ -305,7 +305,12 @@ class ModelTrainer:
                 "nu": contamination_rate,
                 "gamma": "scale",
                 "kernel": "rbf"
-            }
+            },
+            autoencoder_params={
+                "encoding_dim": min(32, X_transformed.shape[1] // 2),
+                "contamination": 0.001,  # Very low contamination for training
+            },
+            use_adaptive_threshold=True  # Use adaptive threshold to prevent false positives on training data
         )
         
         # Train the ensemble on normal behavior
@@ -427,7 +432,7 @@ class ModelTrainer:
                 one_class_svm_params={"nu": 0.1, "gamma": "scale", "kernel": "rbf"},
                 autoencoder_params={
                     "encoding_dim": min(32, X_transformed.shape[1] // 2),
-                    "contamination": 0.1,
+                    "contamination": 0.01,  # Reduced from 0.1 to 0.01 for less sensitivity
                 },
             )
 

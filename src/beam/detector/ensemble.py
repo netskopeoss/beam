@@ -35,8 +35,14 @@ from sklearn.svm import OneClassSVM
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-# TensorFlow disabled for now to avoid CUDA warnings
-HAS_TENSORFLOW = False
+# TensorFlow support for autoencoder
+try:
+    import tensorflow as tf
+    from tensorflow.keras import layers, models, optimizers
+    from tensorflow.keras.callbacks import EarlyStopping
+    HAS_TENSORFLOW = True
+except ImportError:
+    HAS_TENSORFLOW = False
 
 from .utils import safe_create_path
 
@@ -228,7 +234,9 @@ class EnsembleAnomalyDetector:
             }
 
         if autoencoder_params is None:
-            autoencoder_params = {"encoding_dim": 32, "contamination": contamination}
+            # Use a lower contamination for autoencoder to reduce false positives
+            # 0.01 = 1% expected anomalies (more reasonable than 10%)
+            autoencoder_params = {"encoding_dim": 32, "contamination": 0.01}
 
         # Initialize models
         self.isolation_forest = IsolationForest(**isolation_forest_params)
@@ -237,25 +245,17 @@ class EnsembleAnomalyDetector:
         )
         
         # Initialize autoencoder only if TensorFlow is available
-        # COMMENTED OUT: Temporarily disable autoencoder for testing with small datasets
-        # if HAS_TENSORFLOW:
-        #     self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
-        #     # Ensemble weights (can be learned or set manually)
-        #     self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
-        # else:
-        #     self.autoencoder = None
-        #     # Adjust weights when autoencoder is not available
-        #     self.weights = np.array([0.5, 0.5])  # IF, SVM only
-        #     self.logger.warning(
-        #         "TensorFlow not available. Ensemble will use only Isolation Forest and One-Class SVM."
-        #     )
-        
-        # Temporarily disable autoencoder for better performance with small training datasets
-        self.autoencoder = None
-        self.weights = np.array([0.5, 0.5])  # IF, SVM only
-        self.logger.info(
-            "Autoencoder disabled for testing. Ensemble will use only Isolation Forest and One-Class SVM."
-        )
+        if HAS_TENSORFLOW:
+            self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
+            # Ensemble weights (can be learned or set manually)
+            self.weights = np.array([0.4, 0.3, 0.3])  # IF, SVM, Autoencoder
+        else:
+            self.autoencoder = None
+            # Adjust weights when autoencoder is not available
+            self.weights = np.array([0.5, 0.5])  # IF, SVM only
+            self.logger.warning(
+                "TensorFlow not available. Ensemble will use only Isolation Forest and One-Class SVM."
+            )
         self.is_fitted = False
 
     def fit(
@@ -284,20 +284,19 @@ class EnsembleAnomalyDetector:
         self.one_class_svm.fit(X)
 
         # Fit Autoencoder (if TensorFlow is available)
-        # COMMENTED OUT: Autoencoder training disabled for testing
-        # if HAS_TENSORFLOW and self.autoencoder is not None:
-        #     self.logger.info("Training Autoencoder...")
-        #     try:
-        #         self.autoencoder.fit(X)
-        #     except Exception as e:
-        #         self.logger.warning(
-        #             f"Autoencoder training failed: {e}. Continuing with other models."
-        #         )
-        #         # Already adjusted weights in __init__ if no TensorFlow
-        # else:
-        #     self.logger.info("TensorFlow not available, skipping autoencoder training")
-        
-        self.logger.info("Autoencoder training skipped (disabled for testing)")
+        if HAS_TENSORFLOW and self.autoencoder is not None:
+            self.logger.info("Training Autoencoder...")
+            try:
+                self.autoencoder.fit(X)
+            except Exception as e:
+                self.logger.warning(
+                    f"Autoencoder training failed: {e}. Continuing with other models."
+                )
+                # Disable autoencoder if training fails
+                self.autoencoder = None
+                self.weights = np.array([0.5, 0.5])  # Revert to IF, SVM only
+        else:
+            self.logger.info("TensorFlow not available, skipping autoencoder training")
 
         # Mark as fitted before computing adaptive threshold
         self.is_fitted = True
@@ -340,7 +339,7 @@ class EnsembleAnomalyDetector:
         predictions.append(svm_pred)
 
         # Autoencoder (if available and trained)
-        if HAS_TENSORFLOW and self.autoencoder is not None:
+        if HAS_TENSORFLOW and self.autoencoder is not None and self.autoencoder.is_fitted:
             try:
                 ae_pred = self.autoencoder.predict(X)
                 predictions.append(ae_pred)
@@ -385,14 +384,13 @@ class EnsembleAnomalyDetector:
         scores.append(svm_scores)
 
         # Autoencoder (if available and trained)
-        # COMMENTED OUT: Autoencoder scoring disabled for testing
-        # if HAS_TENSORFLOW and self.autoencoder is not None:
-        #     try:
-        #         ae_scores = self.autoencoder.decision_function(X)
-        #         scores.append(ae_scores)
-        #     except Exception as e:
-        #         self.logger.warning(f"Autoencoder scoring failed: {e}")
-        #         # Don't append anything if autoencoder fails
+        if HAS_TENSORFLOW and self.autoencoder is not None and self.autoencoder.is_fitted:
+            try:
+                ae_scores = self.autoencoder.decision_function(X)
+                scores.append(ae_scores)
+            except Exception as e:
+                self.logger.warning(f"Autoencoder scoring failed: {e}")
+                # Don't append anything if autoencoder fails
 
         # Weighted ensemble scoring
         scores = np.array(scores)
@@ -434,7 +432,7 @@ class EnsembleAnomalyDetector:
             pickle.dump(ensemble_data, f)
 
         # Save autoencoder separately if trained
-        if self.weights[2] > 0 and self.autoencoder.is_fitted:
+        if len(self.weights) > 2 and self.weights[2] > 0 and self.autoencoder is not None and self.autoencoder.is_fitted:
             autoencoder_path = model_path.replace(".pkl", "_autoencoder.h5")
             self.autoencoder.autoencoder.save(autoencoder_path)
 
@@ -462,14 +460,15 @@ class EnsembleAnomalyDetector:
         # Load autoencoder if it exists
         autoencoder_path = model_path.replace(".pkl", "_autoencoder.h5")
         try:
-            if self.weights[2] > 0:
+            if len(self.weights) > 2 and self.weights[2] > 0:
                 self.autoencoder.autoencoder = tf.keras.models.load_model(
                     autoencoder_path
                 )
                 self.autoencoder.is_fitted = True
         except Exception as e:
             self.logger.warning(f"Could not load autoencoder: {e}")
-            self.weights[2] = 0  # Disable autoencoder
+            if len(self.weights) > 2:
+                self.weights[2] = 0  # Disable autoencoder
 
         self.logger.info(f"Ensemble model loaded from {model_path}")
         return self
