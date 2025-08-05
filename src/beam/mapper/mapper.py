@@ -37,7 +37,7 @@ from typing import Dict, List, Tuple
 from pydantic import ConfigDict
 from sqlalchemy.orm import Session
 
-from beam.constants import GEMINI_API_KEY, LLAMA_BASE_URL, USE_LOCAL_LLM
+from beam.constants import GEMINI_API_KEY, USE_LOCAL_LLM
 from beam.mapper.data_sources import APIDataSource, DataSource
 
 from .agent_parser import query_agent_parser

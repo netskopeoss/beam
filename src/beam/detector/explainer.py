@@ -24,7 +24,6 @@
 import logging
 from typing import Dict, List, Tuple, Any, Optional
 import numpy as np
-import pandas as pd
 import shap
 from numpy.typing import NDArray
 import matplotlib
@@ -953,10 +952,10 @@ class ModelExplainer:
                 # For features with units (bytes, milliseconds, etc.)
                 if "unit" in interp:
                     if "bytes" in interp["unit"]:
-                        interpretation = f"no data transfer detected"
+                        interpretation = "no data transfer detected"
                         context = f" ({feature_value:,.0f} {interp['unit']})"
                     elif "milliseconds" in interp["unit"] or "seconds" in interp["unit"]:
-                        interpretation = f"instantaneous or missing response time"
+                        interpretation = "instantaneous or missing response time"
                         context = f" ({feature_value:,.0f} {interp['unit']})"
                     else:
                         interpretation = f"zero {feature_name}"

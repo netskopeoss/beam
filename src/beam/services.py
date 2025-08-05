@@ -1,7 +1,6 @@
 """Service management for BEAM Docker services"""
 
 import logging
-import os
 import subprocess
 import time
 from pathlib import Path

@@ -44,7 +44,6 @@ from beam.detector.detect import (
 )
 from beam.detector.security_report import generate_security_report
 from beam.detector.trainer import (
-    extract_app_features,
     train_custom_app_model,
 )
 from beam.mapper.mapper import run_mapping_only

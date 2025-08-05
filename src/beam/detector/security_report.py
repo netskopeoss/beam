@@ -294,10 +294,10 @@ class SecurityAnalysisReport:
                                         "value": probability,
                                         "source": "ml_model"
                                     })
-                            except Exception as e:
+                            except Exception:
                                 # Continue if we can't parse this explanation
                                 continue
-            except Exception as e:
+            except Exception:
                 # If we can't access the prediction directory, return empty insights
                 pass
 

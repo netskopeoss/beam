@@ -57,7 +57,6 @@ def setup_logging():
 log_file, stderr_log_file = setup_logging()
 
 # Now import modules that might trigger TensorFlow
-from beam.constants import LOG_CONFIG
 from beam.run import MultiHotEncoder, run
 from beam.services import setup_environment
 
