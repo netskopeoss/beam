@@ -154,16 +154,18 @@ class TestModelTrainer:
     def test_get_available_transformers(self):
         """Test getting available transformers based on data columns"""
         trainer = ModelTrainer(n_features=30)
-        
+
         # Create test data with specific columns
-        test_data = pd.DataFrame({
-            'transactions': [100],
-            'avg_time_taken_ms': [150],
-            'http_methods': [['GET', 'POST']]
-        })
-        
+        test_data = pd.DataFrame(
+            {
+                "transactions": [100],
+                "avg_time_taken_ms": [150],
+                "http_methods": [["GET", "POST"]],
+            }
+        )
+
         transformers = trainer.get_available_transformers(test_data)
-        
+
         assert len(transformers) == 2  # One for numeric, one for array features
         assert transformers[0][0] == "min_max_scaler"
         assert transformers[1][0] == "multi_hot_encoder"
@@ -255,16 +257,36 @@ class TestModelTrainer:
 
         # Create multiple individual models
         models = [
-            {"key": "App1", "ensemble_detector": "detector1", "feature_transformer": "transformer1", "features": ["f1"], "model_type": "ensemble_anomaly"},
-            {"key": "App2", "ensemble_detector": "detector2", "feature_transformer": "transformer2", "features": ["f2"], "model_type": "ensemble_anomaly"},
-            {"key": "App3", "ensemble_detector": "detector3", "feature_transformer": "transformer3", "features": ["f3"], "model_type": "ensemble_anomaly"},
+            {
+                "key": "App1",
+                "ensemble_detector": "detector1",
+                "feature_transformer": "transformer1",
+                "features": ["f1"],
+                "model_type": "ensemble_anomaly",
+            },
+            {
+                "key": "App2",
+                "ensemble_detector": "detector2",
+                "feature_transformer": "transformer2",
+                "features": ["f2"],
+                "model_type": "ensemble_anomaly",
+            },
+            {
+                "key": "App3",
+                "ensemble_detector": "detector3",
+                "feature_transformer": "transformer3",
+                "features": ["f3"],
+                "model_type": "ensemble_anomaly",
+            },
         ]
-        
+
         # Save each model individually
         for i, model_info in enumerate(models):
-            model_path = os.path.join(os.path.dirname(temp_files["model_output"]), f"app{i+1}_model.pkl")
+            model_path = os.path.join(
+                os.path.dirname(temp_files["model_output"]), f"app{i + 1}_model.pkl"
+            )
             trainer.save_model(model_info, model_path)
-            
+
             # Verify each model was saved correctly
             assert os.path.exists(model_path)
             with open(model_path, "rb") as f:
@@ -274,8 +296,10 @@ class TestModelTrainer:
 
     def test_load_model_file_not_found(self, temp_files):
         """Test loading non-existent model file"""
-        non_existent_path = os.path.join(os.path.dirname(temp_files["model_output"]), "nonexistent.pkl")
-        
+        non_existent_path = os.path.join(
+            os.path.dirname(temp_files["model_output"]), "nonexistent.pkl"
+        )
+
         # Try to load non-existent file
         try:
             with open(non_existent_path, "rb") as f:
@@ -535,20 +559,24 @@ class TestIntegrationScenarios:
         """Test workflow of training multiple individual models"""
         # Create features for multiple apps
         apps = ["App1", "App2", "TestApp"]
-        
+
         for app_name in apps:
             # Modify features for each app
             app_specific_features = mock_app_features.copy()
             app_specific_features[0]["application"] = app_name
             app_specific_features[0]["key"] = f"{app_name}_1.0.0"
-            
+
             # Create features file for this app
-            features_path = os.path.join(os.path.dirname(temp_files["app_features"]), f"{app_name}_features.json")
+            features_path = os.path.join(
+                os.path.dirname(temp_files["app_features"]), f"{app_name}_features.json"
+            )
             with open(features_path, "w") as f:
                 json.dump(app_specific_features, f)
-            
+
             # Train model for this app
-            model_path = os.path.join(os.path.dirname(temp_files["model_output"]), f"{app_name}_model.pkl")
+            model_path = os.path.join(
+                os.path.dirname(temp_files["model_output"]), f"{app_name}_model.pkl"
+            )
             train_custom_app_model(
                 features_path,
                 app_name,
@@ -556,7 +584,7 @@ class TestIntegrationScenarios:
                 n_features=10,
                 min_transactions=50,
             )
-            
+
             # Verify model was created
             assert os.path.exists(model_path)
             with open(model_path, "rb") as f:

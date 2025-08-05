@@ -1,5 +1,7 @@
+import json
 import logging
 import sys
+from pathlib import Path
 from unittest import mock
 
 from beam import run
@@ -18,10 +20,14 @@ def make_logger():
 @mock.patch("beam.run.parse_input_file")
 @mock.patch("beam.run.enrich_events")
 @mock.patch("beam.run.discover_apps_in_traffic")
-@mock.patch("beam.run.extract_app_features")
 @mock.patch("beam.run.train_custom_app_model")
+@mock.patch("beam.detector.features.aggregate_app_traffic")
 def test_process_training_data_with_specific_app(
-    mock_train, mock_extract, mock_discover, mock_enrich, mock_parse
+    mock_aggregate_traffic,
+    mock_train,
+    mock_discover,
+    mock_enrich,
+    mock_parse,
 ):
     # Setup
     logger = make_logger()
@@ -35,8 +41,17 @@ def test_process_training_data_with_specific_app(
     mock_parse.return_value = (file_name, parsed_file_path)
     mock_enrich.return_value = enriched_events_path
     mock_discover.return_value = {"TestApp": 100}  # Sufficient transactions
-    mock_extract.return_value = None
     mock_train.return_value = None
+    
+    # Mock aggregate_app_traffic to create the expected file
+    def create_features_file(*args, **kwargs):
+        output_path = kwargs.get('output_path')
+        if output_path:
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w') as f:
+                json.dump([{"application": "TestApp", "transactions": 100}], f)
+    
+    mock_aggregate_traffic.side_effect = create_features_file
 
     run.process_training_data(
         input_file_path=input_file,
@@ -52,10 +67,14 @@ def test_process_training_data_with_specific_app(
 @mock.patch("beam.run.parse_input_file")
 @mock.patch("beam.run.enrich_events")
 @mock.patch("beam.run.discover_apps_in_traffic")
-@mock.patch("beam.run.extract_app_features")
 @mock.patch("beam.run.train_custom_app_model")
+@mock.patch("beam.detector.features.aggregate_app_traffic")
 def test_process_training_data_auto_discovery(
-    mock_train, mock_extract, mock_discover, mock_enrich, mock_parse
+    mock_aggregate_traffic,
+    mock_train,
+    mock_discover,
+    mock_enrich,
+    mock_parse,
 ):
     logger = make_logger()
     input_file = "dummy_input.pcap"
@@ -69,8 +88,18 @@ def test_process_training_data_auto_discovery(
     mock_enrich.return_value = enriched_events_path
     # Mock discovering multiple apps - both calls return the same for simplicity
     mock_discover.return_value = {"TestApp": 150, "AnotherApp": 120}
-    mock_extract.return_value = None
     mock_train.return_value = None
+    
+    # Mock aggregate_app_traffic to create the expected file
+    def create_features_file(*args, **kwargs):
+        output_path = kwargs.get('output_path')
+        if output_path:
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w') as f:
+                json.dump([{"application": "TestApp", "transactions": 150},
+                          {"application": "AnotherApp", "transactions": 120}], f)
+    
+    mock_aggregate_traffic.side_effect = create_features_file
 
     run.process_training_data(
         input_file_path=input_file,

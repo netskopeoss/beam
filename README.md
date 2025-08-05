@@ -27,48 +27,35 @@ This will:
 
 **What you'll see:** A real-world example of the Box cloud storage app infected with malware, and how BEAM's AI detects the hidden malicious communication.
 
+**Results from the Demo:** Check the `data/demo_temp` directory for the artifacts containing the results.
+
 ## 🔧 Installation & Setup
 
 ### Prerequisites
 1. **Python 3.12+** and **uv** (recommended) or pip
-2. **Docker Desktop** - For infrastructure services (database, optional Zeek processor)
-3. **Zeek** (optional) - Only needed for PCAP file processing
+2. **An app for running containers** - Docker Desktop or an alternative for running Zeek, TensorFlow, and Ollama
 
 ### Quick Installation
 
 ```bash
-# Clone the repository
 git clone git@github.com:netskopeoss/beam.git
 cd beam
-
-# Option 1: Install with uv (recommended)
 uv sync
-
-# Option 2: Install with pip
-pip install -e .
+uv pip install -e .
 ```
 
 ## 🛡️ Running BEAM
 
 BEAM uses a hybrid architecture: Python runs natively for performance while Docker handles infrastructure services automatically.
 
-### Run the Demo
-
-```bash
-# Interactive supply chain compromise detection demo
-uv run python -m beam demo
-```
-
 ### Run Detection on Your Data
 
 ```bash
-# Run detection with default settings
-uv run python -m beam
 
-# Run detection on a specific file
+# Run detection on a specific file and only use the pre-packaged models
 uv run python -m beam -i /path/to/traffic.har
 
-# Use custom trained models
+# Run detection on a specific file with custom trained models
 uv run python -m beam --use_custom_models -i /path/to/traffic.har
 ```
 
@@ -77,56 +64,22 @@ uv run python -m beam --use_custom_models -i /path/to/traffic.har
 BEAM automatically discovers applications in your traffic and trains models for any with sufficient data:
 
 ```bash
-# Train models for all apps found in data/input/
-uv run python -m beam --train
 
 # Train from a specific file (auto-discovers all apps)
 uv run python -m beam --train -i /path/to/traffic.har
 
-# Train from a directory of files
-uv run python -m beam --train -i /path/to/traffic_files/
-```
-
-## 🐳 Alternative: Docker-Only Approach
-
-If you prefer to run everything in Docker:
-
-```bash
-# Run the demo
-./beam.sh --demo
-
-# Run detection
-./beam.sh --use_custom_models --input /path/to/traffic.har
-
-# Train models
-./beam.sh --train --input /path/to/traffic.har
 ```
 
 ## ⚙️ Configuration
 
 ### Environment Variables
 
+By default, BEAM will use the local Llama container for mapping.
+
 ```bash
-# Use Google Gemini for LLM processing (default)
+# Use Google Gemini for mapping
 export GEMINI_API_KEY="your_api_key_here"
 
-# Or use local Llama model instead
-export USE_LOCAL_LLM=true
-
-# Set log level
-export LOG_LEVEL=INFO
-```
-
-### Local LLM Setup
-
-To use local Llama instead of Gemini:
-
-```bash
-# Start local LLM service
-docker-compose --profile local-llm up -d
-
-# Run BEAM with local LLM
-USE_LOCAL_LLM=true uv run python -m beam demo
 ```
 
 **For detailed instructions, data requirements, troubleshooting, and advanced configuration options, see the complete guide in [`models/custom_models/README.md`](models/custom_models/README.md).**

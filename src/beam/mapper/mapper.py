@@ -37,7 +37,7 @@ from typing import Dict, List, Tuple
 from pydantic import ConfigDict
 from sqlalchemy.orm import Session
 
-from beam.constants import GEMINI_API_KEY, LLAMA_BASE_URL, USE_LOCAL_LLM
+from beam.constants import GEMINI_API_KEY, USE_LOCAL_LLM
 from beam.mapper.data_sources import APIDataSource, DataSource
 
 from .agent_parser import query_agent_parser
@@ -62,16 +62,17 @@ def mass_mapping(user_agents: list, db_path: Path, logger: logging.Logger) -> No
         None
     """
     logger.info(f"Mapping {len(user_agents)} user agents...")
-    
+
     # Choose LLM selection based on configuration
     from beam.constants import REMOTE_LLM_TYPE
+
     if USE_LOCAL_LLM:
         llm_selection = "Llama"
     elif REMOTE_LLM_TYPE:
         llm_selection = REMOTE_LLM_TYPE.capitalize()
     else:
         llm_selection = "Llama"  # Default to local
-    
+
     hits, misses = query_user_agent_mapper(
         user_agents=user_agents,
         db_path=str(db_path),
@@ -176,29 +177,43 @@ class UserAgentMapper(DataSource):
         )
         # Update the hits and misses lists
         total_user_agents = len(self.query_input)
-        
+
         if len(hits) > 0:
-            self.logger.info(f"💾 DATABASE HITS: Found {len(hits)} of {total_user_agents} user agents in local database")
+            self.logger.info(
+                f"💾 DATABASE HITS: Found {len(hits)} of {total_user_agents} user agents in local database"
+            )
             # Log some examples of found user agents (first few)
             for i, hit in enumerate(hits[:3]):
-                self.logger.info(f"   ✓ Found in DB: {hit.user_agent_string[:80]}{'...' if len(hit.user_agent_string) > 80 else ''}")
+                self.logger.info(
+                    f"   ✓ Found in DB: {hit.user_agent_string[:80]}{'...' if len(hit.user_agent_string) > 80 else ''}"
+                )
             if len(hits) > 3:
-                self.logger.info(f"   ... and {len(hits) - 3} more user agents found in database")
+                self.logger.info(
+                    f"   ... and {len(hits) - 3} more user agents found in database"
+                )
             self.hits.extend(hits)
         else:
-            self.logger.info(f"💾 DATABASE HITS: No user agents found in local database (0 of {total_user_agents})")
+            self.logger.info(
+                f"💾 DATABASE HITS: No user agents found in local database (0 of {total_user_agents})"
+            )
 
         if len(misses) > 0:
-            self.logger.info(f"❓ DATABASE MISSES: {len(misses)} of {total_user_agents} user agents NOT found in database - will query LLM")
+            self.logger.info(
+                f"❓ DATABASE MISSES: {len(misses)} of {total_user_agents} user agents NOT found in database - will query LLM"
+            )
             # Log some examples of missed user agents (first few)
             for i, miss in enumerate(misses[:3]):
-                miss_str = miss[:80] + '...' if len(miss) > 80 else miss
+                miss_str = miss[:80] + "..." if len(miss) > 80 else miss
                 self.logger.info(f"   ❓ Not in DB: {miss_str}")
             if len(misses) > 3:
-                self.logger.info(f"   ... and {len(misses) - 3} more user agents need LLM lookup")
+                self.logger.info(
+                    f"   ... and {len(misses) - 3} more user agents need LLM lookup"
+                )
             self.misses.extend(misses)
         else:
-            self.logger.info(f"✅ DATABASE COMPLETE: All {total_user_agents} user agents found in database - no LLM queries needed")
+            self.logger.info(
+                f"✅ DATABASE COMPLETE: All {total_user_agents} user agents found in database - no LLM queries needed"
+            )
 
     def search_llm(self) -> None:
         """
@@ -216,8 +231,10 @@ class UserAgentMapper(DataSource):
         """
         if self.misses_found:
             self.logger.info("=" * 50)
-            self.logger.info(f"🤖 LLM QUERY: Sending {len(self.misses)} user agents to {self.llm_selection}")
-            
+            self.logger.info(
+                f"🤖 LLM QUERY: Sending {len(self.misses)} user agents to {self.llm_selection}"
+            )
+
             if self.llm_selection == "Llama":
                 self.logger.info("🏠 Querying local Llama model...")
                 self.llm = query_llama(
@@ -233,34 +250,56 @@ class UserAgentMapper(DataSource):
                 )
             else:
                 if self.llm_selection == "Gemini":
-                    self.logger.warning("❌ No LLM API key was provided for Gemini, skipping LLM check.")
+                    self.logger.warning(
+                        "❌ No LLM API key was provided for Gemini, skipping LLM check."
+                    )
                 else:
-                    self.logger.warning(f"❌ Unknown LLM selection '{self.llm_selection}', skipping LLM check.")
+                    self.logger.warning(
+                        f"❌ Unknown LLM selection '{self.llm_selection}', skipping LLM check."
+                    )
                 return
 
             if self.llm.hits_found:
-                self.logger.info(f"✅ LLM SUCCESS: {self.llm_selection} successfully mapped {len(self.llm.hits)} user agents")
+                self.logger.info(
+                    f"✅ LLM SUCCESS: {self.llm_selection} successfully mapped {len(self.llm.hits)} user agents"
+                )
                 # Log some examples of LLM-resolved user agents
                 for i, hit in enumerate(self.llm.hits[:2]):
-                    ua_str = hit.user_agent_string[:60] + '...' if len(hit.user_agent_string) > 60 else hit.user_agent_string
-                    self.logger.info(f"   🤖 LLM mapped: {ua_str} → {hit.application.name}")
+                    ua_str = (
+                        hit.user_agent_string[:60] + "..."
+                        if len(hit.user_agent_string) > 60
+                        else hit.user_agent_string
+                    )
+                    self.logger.info(
+                        f"   🤖 LLM mapped: {ua_str} → {hit.application.name}"
+                    )
                 if len(self.llm.hits) > 2:
-                    self.logger.info(f"   ... and {len(self.llm.hits) - 2} more mappings from {self.llm_selection}")
+                    self.logger.info(
+                        f"   ... and {len(self.llm.hits) - 2} more mappings from {self.llm_selection}"
+                    )
                 self.hits.extend(self.llm.hits)
             else:
-                self.logger.info(f"❌ LLM NO RESULTS: {self.llm_selection} was unable to map any user agents")
+                self.logger.info(
+                    f"❌ LLM NO RESULTS: {self.llm_selection} was unable to map any user agents"
+                )
 
             if self.llm.misses_found:
                 # We need to reset the misses list to the new misses
                 # Some of the old misses may be hits now
                 self.misses = self.llm.misses
-                self.logger.info(f"⚠️  LLM REMAINING: {len(self.misses)} user agents still unresolved after {self.llm_selection}")
+                self.logger.info(
+                    f"⚠️  LLM REMAINING: {len(self.misses)} user agents still unresolved after {self.llm_selection}"
+                )
             else:
-                self.logger.info(f"🎉 LLM COMPLETE: All user agents resolved by {self.llm_selection}")
+                self.logger.info(
+                    f"🎉 LLM COMPLETE: All user agents resolved by {self.llm_selection}"
+                )
                 return
             self.logger.info("=" * 50)
         else:
-            self.logger.info("✅ SKIPPING LLM: All user agents found in database, no LLM queries needed")
+            self.logger.info(
+                "✅ SKIPPING LLM: All user agents found in database, no LLM queries needed"
+            )
 
     def search_api(self) -> None:
         """
@@ -380,19 +419,21 @@ def query_user_agent_mapper(
                 app_name = hit.application.name
                 name_map = {
                     "Asana": [
-                        "Asana", "Asana Desktop", "Asana Desktop Official",
-                        "Asana Mobile App", "Asana Mobile App", "Asana App"
+                        "Asana",
+                        "Asana Desktop",
+                        "Asana Desktop Official",
+                        "Asana Mobile App",
+                        "Asana Mobile App",
+                        "Asana App",
                     ],
                     "Kandji": [
-                        "Kandji Daemon", "Kandji Self Service", "Kandji Menu",
-                        "Kandji Library Manager"
+                        "Kandji Daemon",
+                        "Kandji Self Service",
+                        "Kandji Menu",
+                        "Kandji Library Manager",
                     ],
-                    "Todoist": [
-                        "Todoist", "TodoistWidgets"
-                    ],
-                    "Canva": [
-                        "Canva", "Canva Editor", "Canva editor"
-                    ],
+                    "Todoist": ["Todoist", "TodoistWidgets"],
+                    "Canva": ["Canva", "Canva Editor", "Canva editor"],
                 }
 
                 # If the assignment is one of the values in the array,

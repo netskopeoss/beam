@@ -25,16 +25,14 @@
 # - Colin Estep
 # - Dagmawi Mulugeta
 
-import logging.config
+import logging
 from os import path, remove
 
-from beam.constants import LOG_CONFIG
 from beam.mapper.data_sources import Application, Mapping, OperatingSystem
 from beam.mapper.datastore import DataStoreHandler
 
 TEST_DB_PATH = "./test_datastore.db"
 
-logging.config.fileConfig(LOG_CONFIG)
 logger = logging.getLogger("test_datastore")
 
 chrome_dict = {

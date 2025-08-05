@@ -31,48 +31,47 @@ import os
 import sys
 from pathlib import Path
 
+from beam.constants import LOG_DIR
+from beam.run import MultiHotEncoder, run
+from beam.services import setup_environment
+
+
 def setup_logging():
     """Setup logging to file only and redirect stderr."""
-    # Import LOG_DIR here to avoid circular imports
-    from beam.constants import LOG_DIR
-    
+
     # Create logs directory if it doesn't exist
     LOG_DIR.mkdir(exist_ok=True)
-    
+
     # Set up file logging only
     log_file = LOG_DIR / "beam.log"
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.FileHandler(log_file)]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(log_file)],
     )
-    
+
     # Redirect stderr to log file for TensorFlow warnings
     stderr_log_file = LOG_DIR / "beam_stderr.log"
-    sys.stderr = open(stderr_log_file, 'a', buffering=1)
-    
+    sys.stderr = open(stderr_log_file, "a", buffering=1)
+
     return log_file, stderr_log_file
 
-# Set up logging early, before any imports that might use TensorFlow
-log_file, stderr_log_file = setup_logging()
-
-# Now import modules that might trigger TensorFlow
-from beam.constants import LOG_CONFIG
-from beam.run import MultiHotEncoder, run
-from beam.services import setup_environment
 
 def main():
     """Main entry point for BEAM."""
+
+    # log_file, stderr_log_file = setup_logging()
+
     logger = logging.getLogger("main")
-    
+
     # Set up Docker services before running BEAM
     if not setup_environment():
         print("❌ Failed to set up BEAM environment")
         sys.exit(1)
-    
+
     # Set up environment for native Python execution
     setup_native_environment()
-    
+
     # Run BEAM natively in Python
     try:
         _m = MultiHotEncoder()
@@ -86,25 +85,27 @@ def main():
         print(f"❌ BEAM failed: {e}")
         sys.exit(1)
 
+
 def setup_native_environment():
     """Set up environment variables for native Python execution."""
     # Set PYTHONPATH to include src directory if not already set
     current_dir = Path(__file__).parent.parent.parent  # Go up to project root
     src_dir = current_dir / "src"
-    
+
     if str(src_dir) not in sys.path:
         sys.path.insert(0, str(src_dir))
-    
+
     # Set default environment variables if not already set
     env_defaults = {
-        'GEMINI_API_KEY': os.environ.get('GEMINI_API_KEY', ''),
-        'LOG_LEVEL': os.environ.get('LOG_LEVEL', 'INFO'),
-        'USE_LOCAL_LLM': os.environ.get('USE_LOCAL_LLM', 'false'),
+        "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", ""),
+        "LOG_LEVEL": os.environ.get("LOG_LEVEL", "INFO"),
+        "USE_LOCAL_LLM": os.environ.get("USE_LOCAL_LLM", "false"),
     }
-    
+
     for key, value in env_defaults.items():
         if key not in os.environ:
             os.environ[key] = value
+
 
 if __name__ == "__main__":
     main()

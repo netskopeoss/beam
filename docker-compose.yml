@@ -8,19 +8,6 @@
 # Services will auto-start as needed.
 
 services:
-  # Database services container (required for hybrid architecture)
-  database:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.database
-    container_name: beam-database
-    volumes:
-      - ./data:/app/data
-      - db-data:/var/lib/beam
-    networks:
-      - beam-network
-    environment:
-      - PYTHONPATH=/app/src
 
   # Zeek network analysis container (required for PCAP processing)
   zeek-processor:
@@ -56,7 +43,7 @@ services:
       - TF_CPP_MIN_VLOG_LEVEL=3
     command: ["tail", "-f", "/dev/null"]  # Keep container running
 
-  # Optional: Llama model service for local LLM (if not using Gemini)
+  # Llama model service for local LLM (default)
   llama-model:
     image: ollama/ollama:latest
     container_name: beam-llama
@@ -69,11 +56,8 @@ services:
     networks:
       - beam-network
     restart: unless-stopped
-    profiles:
-      - local-llm
 
 volumes:
-  db-data:
   ollama-data:
 
 networks:

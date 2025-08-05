@@ -25,15 +25,13 @@
 # - Colin Estep
 # - Dagmawi Mulugeta
 
-import logging.config
+import logging
 from os import environ, path, remove
 
-from beam.constants import LOG_CONFIG
 from beam.mapper.mapper import query_user_agent_mapper
 
 TEST_DB_PATH = "./test_mapper.db"
 
-logging.config.fileConfig(LOG_CONFIG)
 logger = logging.getLogger("test_mapper")
 
 

@@ -71,7 +71,9 @@ DOMAIN_PREDICTIONS_DIR = PREDICTIONS_DIRECTORY / "anomalous_domains"
 
 GEMINI_API_KEY = environ["GEMINI_API_KEY"] if "GEMINI_API_KEY" in environ else ""
 LLAMA_BASE_URL = environ.get("LLAMA_BASE_URL", "http://localhost:11434")
-USE_LOCAL_LLM = environ.get("USE_LOCAL_LLM", "true").lower() == "true"  # Default to local LLM
+USE_LOCAL_LLM = (
+    environ.get("USE_LOCAL_LLM", "true").lower() == "true"
+)  # Default to local LLM
 REMOTE_LLM_TYPE = environ.get("REMOTE_LLM_TYPE", None)
 
 MIN_APP_TRANSACTIONS = 100

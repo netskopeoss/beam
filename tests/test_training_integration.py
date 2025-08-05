@@ -192,12 +192,12 @@ class TestEndToEndTrainingWorkflow:
     @patch("beam.run.parse_input_file")
     @patch("beam.run.enrich_events")
     @patch("beam.run.discover_apps_in_traffic")
-    @patch("beam.run.extract_app_features")
     @patch("beam.run.train_custom_app_model")
+    @patch("beam.detector.features.aggregate_app_traffic")
     def test_process_training_data_complete_workflow(
         self,
+        mock_aggregate_traffic,
         mock_train_custom,
-        mock_extract_features,
         mock_discover,
         mock_enrich_events,
         mock_parse_input,
@@ -212,8 +212,22 @@ class TestEndToEndTrainingWorkflow:
         )
         mock_enrich_events.return_value = temp_workspace["files"]["enriched_events"]
         mock_discover.return_value = {"TestApp": 150}  # Sufficient transactions
-        mock_extract_features.return_value = temp_workspace["files"]["app_features"]
-        mock_train_custom.return_value = None
+        mock_train_custom.return_value = temp_workspace["files"]["custom_model"]
+        # Mock aggregate_app_traffic to create the expected features file
+        def create_features_file(*args, **kwargs):
+            output_path = kwargs.get('output_path')
+            if output_path:
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                # Create minimal feature data for testing
+                test_features = [{
+                    "application": "TestApp",
+                    "transactions": 150,
+                    "domain": "api.testapp.com"
+                }]
+                with open(output_path, 'w') as f:
+                    json.dump(test_features, f)
+        
+        mock_aggregate_traffic.side_effect = create_features_file
 
         # Create mock logger
         import logging
@@ -232,18 +246,18 @@ class TestEndToEndTrainingWorkflow:
         mock_parse_input.assert_called_once()
         mock_enrich_events.assert_called_once()
         mock_discover.assert_called()  # Called twice (eligible apps + all apps for reporting)
-        mock_extract_features.assert_called_once()
+        mock_aggregate_traffic.assert_called_once()
         mock_train_custom.assert_called_once()
 
     @patch("beam.run.parse_input_file")
     @patch("beam.run.enrich_events")
     @patch("beam.run.discover_apps_in_traffic")
-    @patch("beam.run.extract_app_features")
     @patch("beam.run.train_custom_app_model")
+    @patch("beam.detector.features.aggregate_app_traffic")
     def test_process_training_data_no_pretrained_model(
         self,
+        mock_aggregate_traffic,
         mock_train_custom,
-        mock_extract_features,
         mock_discover,
         mock_enrich_events,
         mock_parse_input,
@@ -257,8 +271,22 @@ class TestEndToEndTrainingWorkflow:
         )
         mock_enrich_events.return_value = temp_workspace["files"]["enriched_events"]
         mock_discover.return_value = {"TestApp": 150}  # Sufficient transactions
-        mock_extract_features.return_value = temp_workspace["files"]["app_features"]
-        mock_train_custom.return_value = None
+        mock_train_custom.return_value = temp_workspace["files"]["custom_model"]
+        # Mock aggregate_app_traffic to create the expected features file
+        def create_features_file(*args, **kwargs):
+            output_path = kwargs.get('output_path')
+            if output_path:
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                # Create minimal feature data for testing
+                test_features = [{
+                    "application": "TestApp",
+                    "transactions": 150,
+                    "domain": "api.testapp.com"
+                }]
+                with open(output_path, 'w') as f:
+                    json.dump(test_features, f)
+        
+        mock_aggregate_traffic.side_effect = create_features_file
 
         import logging
 
@@ -275,7 +303,7 @@ class TestEndToEndTrainingWorkflow:
         # Verify steps were called but no merge occurred
         mock_parse_input.assert_called_once()
         mock_enrich_events.assert_called_once()
-        mock_extract_features.assert_called_once()
+        mock_aggregate_traffic.assert_called_once()
         mock_train_custom.assert_called_once()
 
     def test_full_model_training_pipeline(
@@ -342,9 +370,7 @@ class TestCommandLineIntegration:
 
     @patch("beam.run.run_training_in_container")
     @patch("argparse.ArgumentParser.parse_args")
-    def test_command_line_training_invocation(
-        self, mock_parse_args, mock_run_training
-    ):
+    def test_command_line_training_invocation(self, mock_parse_args, mock_run_training):
         """Test command-line training invocation"""
         # Mock command line arguments for training
         mock_args = MagicMock()
@@ -490,11 +516,8 @@ class TestErrorHandlingAndEdgeCases:
         ):
             with patch("beam.run.enrich_events", return_value="/enriched.json"):
                 with patch(
-                    "beam.run.extract_app_features", return_value="/features.json"
+                    "beam.detector.trainer.train_custom_app_model", side_effect=PermissionError()
                 ):
-                    with patch(
-                        "beam.run.train_custom_app_model", side_effect=PermissionError()
-                    ):
                         try:
                             run.process_training_data(
                                 input_file_path=temp_workspace["files"]["har_input"],
