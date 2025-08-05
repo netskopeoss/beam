@@ -71,17 +71,25 @@ class ModelTrainer:
     def get_available_transformers(self, X: pd.DataFrame) -> List[Tuple]:
         """Get transformers for columns that actually exist in the data."""
         transformers = []
-        
+
         # Filter feature fields to only include columns that actually exist in the data
-        available_numeric_fields = [col for col in self.numeric_feature_fields if col in X.columns]
-        available_array_fields = [col for col in self.array_feature_fields if col in X.columns]
-        
+        available_numeric_fields = [
+            col for col in self.numeric_feature_fields if col in X.columns
+        ]
+        available_array_fields = [
+            col for col in self.array_feature_fields if col in X.columns
+        ]
+
         # Create transformers only for columns that exist
         if available_numeric_fields:
-            transformers.append(("min_max_scaler", MinMaxScaler(), available_numeric_fields))
+            transformers.append(
+                ("min_max_scaler", MinMaxScaler(), available_numeric_fields)
+            )
         if available_array_fields:
-            transformers.append(("multi_hot_encoder", MultiHotEncoder(), available_array_fields))
-            
+            transformers.append(
+                ("multi_hot_encoder", MultiHotEncoder(), available_array_fields)
+            )
+
         return transformers
 
     def get_pipeline_estimator(
@@ -141,7 +149,7 @@ class ModelTrainer:
                 ("min_max_scaler", MinMaxScaler(), self.numeric_feature_fields),
                 ("multi_hot_encoder", MultiHotEncoder(), self.array_feature_fields),
             ]
-        
+
         steps = [
             (
                 "ct",
@@ -178,7 +186,9 @@ class ModelTrainer:
                     feature_names.append(c[:char_limit])
             elif name == "multi_hot_encoder":
                 for i, c in enumerate(columns):
-                    if hasattr(transformer, 'classes_') and i < len(transformer.classes_):
+                    if hasattr(transformer, "classes_") and i < len(
+                        transformer.classes_
+                    ):
                         for p in transformer.classes_[i]:
                             feature_names.append(f"{c}_{p}"[:char_limit])
             elif name == "remainder":
@@ -228,15 +238,18 @@ class ModelTrainer:
         return features_train, target_label
 
     def train_model(
-        self, training_data: List[Dict[str, Any]], app_name: str, all_domains: set = None
+        self,
+        training_data: List[Dict[str, Any]],
+        app_name: str,
+        all_domains: set = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Train an anomaly detection model for a specific app using ensemble methods.
-        
+
         This method learns the normal behavior patterns of an application and creates
         an anomaly detector that can identify deviations from these patterns, which
         could indicate supply chain compromises.
-        
+
         IMPORTANT: The training data is assumed to be clean (no anomalies/compromises).
         The contamination rate is set to near-zero (0.01%) to ensure the model doesn't
         falsely flag training samples as anomalous.
@@ -248,7 +261,9 @@ class ModelTrainer:
         Returns:
             Dict[str, Any]: Trained anomaly detection model information.
         """
-        self.logger.info("Training anomaly detection model for application: %s", app_name)
+        self.logger.info(
+            "Training anomaly detection model for application: %s", app_name
+        )
 
         # Add the app name to each training sample
         for item in training_data:
@@ -272,11 +287,11 @@ class ModelTrainer:
 
         # Get transformers for available columns
         transformers = self.get_available_transformers(X)
-        
+
         if not transformers:
             self.logger.error("No valid feature columns found for transformation")
             return None
-            
+
         ct = ColumnTransformer(transformers=transformers, remainder="drop")
         X_transformed = ct.fit_transform(X)
 
@@ -304,15 +319,15 @@ class ModelTrainer:
             one_class_svm_params={
                 "nu": contamination_rate,
                 "gamma": "scale",
-                "kernel": "rbf"
+                "kernel": "rbf",
             },
             autoencoder_params={
                 "encoding_dim": min(32, X_transformed.shape[1] // 2),
                 "contamination": 0.001,  # Very low contamination for training
             },
-            use_adaptive_threshold=True  # Use adaptive threshold to prevent false positives on training data
+            use_adaptive_threshold=True,  # Use adaptive threshold to prevent false positives on training data
         )
-        
+
         # Train the ensemble on normal behavior
         ensemble_detector.fit(X_transformed)
 
@@ -329,7 +344,9 @@ class ModelTrainer:
                 if domain:
                     domain_volumes[domain] = transactions
             domain_list = sorted(list(all_domains))
-            self.logger.info(f"Training includes {len(all_domains)} total domains for {app_name}: {domain_list}")
+            self.logger.info(
+                f"Training includes {len(all_domains)} total domains for {app_name}: {domain_list}"
+            )
             self.logger.info(f"Domain volumes: {domain_volumes}")
         else:
             training_domains = set()
@@ -340,7 +357,9 @@ class ModelTrainer:
                     training_domains.add(domain)
                     domain_volumes[domain] = transactions
             domain_list = sorted(list(training_domains))
-            self.logger.info(f"Training includes {len(training_domains)} domains for {app_name}: {domain_list}")
+            self.logger.info(
+                f"Training includes {len(training_domains)} domains for {app_name}: {domain_list}"
+            )
             self.logger.info(f"Domain volumes: {domain_volumes}")
 
         # Create model information dictionary
@@ -358,7 +377,7 @@ class ModelTrainer:
         self.logger.info(
             "Anomaly detection model training completed for %s with %d training samples",
             app_name,
-            len(training_data)
+            len(training_data),
         )
 
         return model_info
@@ -523,7 +542,7 @@ class ModelTrainer:
         # Extract ALL domains for this app (including those filtered out during training)
         all_domains_for_app = set()
         training_data = []
-        
+
         for item in all_feature_data:
             if item.get("application") == app_name:
                 domain = item.get("domain", "")
@@ -533,7 +552,9 @@ class ModelTrainer:
                 if item.get("transactions", 0) >= self.min_transactions:
                     training_data.append(item)
 
-        self.logger.info(f"Found {len(all_domains_for_app)} total domains for {app_name}, {len(training_data)} meet training criteria")
+        self.logger.info(
+            f"Found {len(all_domains_for_app)} total domains for {app_name}, {len(training_data)} meet training criteria"
+        )
 
         # Train model
         model_info = self.train_model(training_data, app_name, all_domains_for_app)
@@ -546,7 +567,6 @@ class ModelTrainer:
         else:
             self.logger.error("Failed to create app model for %s", app_name)
             return None
-
 
     def extract_features_for_training(
         self, events_data: List[Dict[str, Any]], app_name: str
@@ -689,7 +709,5 @@ def train_custom_app_model(
     )
 
     if model_path:
-        logger.info(
-            "Custom model for %s trained and saved to %s", app_name, model_path
-        )
+        logger.info("Custom model for %s trained and saved to %s", app_name, model_path)
     return model_path

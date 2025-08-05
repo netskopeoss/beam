@@ -108,11 +108,11 @@ def convert_response_to_json(response_text: str) -> List[Dict]:
     try:
         # Try to find and parse different JSON formats that Llama might return
         json_objects = []
-        
+
         # Look for JSON arrays first (preferred format)
-        array_start = response_text.find('[')
+        array_start = response_text.find("[")
         if array_start != -1:
-            array_end = response_text.rfind(']') + 1
+            array_end = response_text.rfind("]") + 1
             if array_end > array_start:
                 try:
                     array_str = response_text[array_start:array_end]
@@ -123,34 +123,40 @@ def convert_response_to_json(response_text: str) -> List[Dict]:
                             if "user_agent_string" in obj and "application" in obj:
                                 app_name = obj["application"].get("name", "unknown")
                                 user_agent = obj["user_agent_string"]
-                                logger.info(f"Llama mapped '{user_agent}' to application '{app_name}'")
+                                logger.info(
+                                    f"Llama mapped '{user_agent}' to application '{app_name}'"
+                                )
                         return json_objects
                 except JSONDecodeError:
                     logger.warning("Failed to parse JSON array, trying object format")
-        
+
         # Look for JSON object with mapping_results key
-        obj_start = response_text.find('{')
+        obj_start = response_text.find("{")
         if obj_start != -1:
-            obj_end = response_text.rfind('}') + 1
+            obj_end = response_text.rfind("}") + 1
             if obj_end > obj_start:
                 try:
                     obj_str = response_text[obj_start:obj_end]
                     json_data = json.loads(obj_str)
-                    
+
                     # Check if it has mapping_results key
                     if "mapping_results" in json_data:
                         return json_data["mapping_results"]
-                    
+
                     # If it's a single mapping object, wrap it in a list
                     if "user_agent_string" in json_data:
-                        app_name = json_data.get("application", {}).get("name", "unknown")
+                        app_name = json_data.get("application", {}).get(
+                            "name", "unknown"
+                        )
                         user_agent = json_data["user_agent_string"]
-                        logger.info(f"Llama mapped '{user_agent}' to application '{app_name}'")
+                        logger.info(
+                            f"Llama mapped '{user_agent}' to application '{app_name}'"
+                        )
                         return [json_data]
-                        
+
                 except JSONDecodeError:
                     logger.warning("Failed to parse JSON object")
-        
+
         # If we get here, no valid JSON was found
         raise JSONDecodeError("No valid JSON found in response", response_text, 0)
     except JSONDecodeError as e:
@@ -217,7 +223,10 @@ def process_response(response_text: str, logger: logging.Logger) -> List[Mapping
             if json_data:
                 mappings = []
                 for record in json_data:
-                    if "user_agent_string" in record.keys() and "application" in record.keys():
+                    if (
+                        "user_agent_string" in record.keys()
+                        and "application" in record.keys()
+                    ):
                         mapping = convert_json_to_mappings(record)
                         if mapping:
                             mappings.append(mapping)
@@ -254,9 +263,9 @@ class LlamaWorker(LLMWorker):
             "model": self.llm_model_name,
             "prompt": prompt,
             "stream": False,
-            "options": LLAMA_SETTINGS  # Use the global Llama settings
+            "options": LLAMA_SETTINGS,  # Use the global Llama settings
         }
-        
+
         try:
             response = requests.post(url, json=payload, timeout=300)
             response.raise_for_status()
@@ -287,7 +296,7 @@ class LlamaWorker(LLMWorker):
         except Exception as e:
             self.logger.error(f"Encountered an error from Llama: {e}")
             return
-        
+
         query_stop = time.perf_counter()
         query_time = query_stop - query_start
         self.logger.info(f"Worker {self.index} completed in {query_time} seconds.")
@@ -302,7 +311,7 @@ class LlamaWorker(LLMWorker):
         self.logger.info(
             f"A prompt was launched with {len(self.query_input)} user agents."
         )
-        
+
         query_start = time.perf_counter()
         try:
             response_text = self.__send_request__(self.full_prompt)
@@ -311,7 +320,7 @@ class LlamaWorker(LLMWorker):
         except Exception as e:
             self.logger.error(f"Encountered an error from Llama: {e}")
             return
-        
+
         query_stop = time.perf_counter()
         query_time = query_stop - query_start
         self.logger.info(f"Worker {self.index} completed in {query_time} seconds.")
@@ -351,7 +360,7 @@ class LlamaWorkProcessor(LLMWorkProcessor):
         """
         self.logger.info("Aggregating the results from the LLM workers.")
         for worker in self.workers:
-            if hasattr(worker, 'response') and worker.response:
+            if hasattr(worker, "response") and worker.response:
                 mappings = process_response(worker.response, self.logger)
                 self.results.extend(mappings)
             else:
@@ -384,7 +393,7 @@ def query_llama(
     # Use environment variable if base_url is not specified
     if base_url is None:
         base_url = constants.LLAMA_BASE_URL
-        
+
     llama_processor = LlamaWorkProcessor(
         query_input=user_agents,
         prompt_string=LLAMA_PROMPT,  # Use our custom Llama prompt

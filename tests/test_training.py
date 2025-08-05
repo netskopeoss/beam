@@ -22,7 +22,12 @@ def make_logger():
 @mock.patch("beam.run.train_custom_app_model")
 @mock.patch("beam.detector.features.aggregate_app_traffic")
 def test_process_training_data_with_specific_app(
-    mock_aggregate_traffic, mock_train, mock_extract, mock_discover, mock_enrich, mock_parse
+    mock_aggregate_traffic,
+    mock_train,
+    mock_extract,
+    mock_discover,
+    mock_enrich,
+    mock_parse,
 ):
     # Setup
     logger = make_logger()
@@ -58,7 +63,12 @@ def test_process_training_data_with_specific_app(
 @mock.patch("beam.run.train_custom_app_model")
 @mock.patch("beam.detector.features.aggregate_app_traffic")
 def test_process_training_data_auto_discovery(
-    mock_aggregate_traffic, mock_train, mock_extract, mock_discover, mock_enrich, mock_parse
+    mock_aggregate_traffic,
+    mock_train,
+    mock_extract,
+    mock_discover,
+    mock_enrich,
+    mock_parse,
 ):
     logger = make_logger()
     input_file = "dummy_input.pcap"

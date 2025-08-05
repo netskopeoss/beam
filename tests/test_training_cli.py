@@ -203,9 +203,7 @@ class TestTrainingWorkflowErrorHandling:
 
     @patch("beam.run.run_training_in_container")
     @patch("beam.run.glob.glob")
-    def test_training_with_invalid_input_directory(
-        self, mock_glob, mock_run_training
-    ):
+    def test_training_with_invalid_input_directory(self, mock_glob, mock_run_training):
         """Test training with non-existent input directory"""
         # Mock files found (even though directory doesn't exist)
         mock_glob.return_value = ["/nonexistent/test.har"]
@@ -339,7 +337,7 @@ class TestModelOutputHandling:
         for path in invalid_paths:
             # In actual implementation, these might be validated
             # For now, we just test the concept
-            assert path != ""  or path == ""  # Tautology for placeholder
+            assert path != "" or path == ""  # Tautology for placeholder
 
 
 class TestResourceManagementAndCleanup:
@@ -347,9 +345,7 @@ class TestResourceManagementAndCleanup:
 
     @patch("beam.run.run_training_in_container")
     @patch("beam.run.glob.glob")
-    def test_temporary_file_cleanup(
-        self, mock_glob, mock_run_training, temp_workspace
-    ):
+    def test_temporary_file_cleanup(self, mock_glob, mock_run_training, temp_workspace):
         """Test that temporary files are cleaned up properly"""
         mock_glob.return_value = [temp_workspace["har_file"]]
 

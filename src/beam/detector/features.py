@@ -96,17 +96,21 @@ def get_numeric_stats(events: List, field: str) -> Dict:
     # Distribution shape measures
     # Suppress warnings about precision loss for nearly identical data
     import warnings
+
     with warnings.catch_warnings(record=True) as caught_warnings:
-        warnings.filterwarnings('always', category=RuntimeWarning, message='Precision loss occurred')
+        warnings.filterwarnings(
+            "always", category=RuntimeWarning, message="Precision loss occurred"
+        )
         shape_stats = {
             f"cv_{field}": cv,
             f"skewness_{field}": stats.skew(values_array) if len(values) > 2 else 0,
             f"kurtosis_{field}": stats.kurtosis(values_array) if len(values) > 3 else 0,
         }
-        
+
         # Log any precision loss warnings with explanation
         if caught_warnings:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.info(
                 f"Precision loss warning detected when calculating statistics for field '{field}'. "

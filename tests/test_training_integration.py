@@ -348,9 +348,7 @@ class TestCommandLineIntegration:
 
     @patch("beam.run.run_training_in_container")
     @patch("argparse.ArgumentParser.parse_args")
-    def test_command_line_training_invocation(
-        self, mock_parse_args, mock_run_training
-    ):
+    def test_command_line_training_invocation(self, mock_parse_args, mock_run_training):
         """Test command-line training invocation"""
         # Mock command line arguments for training
         mock_args = MagicMock()

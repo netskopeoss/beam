@@ -40,6 +40,7 @@ try:
     import tensorflow as tf
     from tensorflow.keras import layers, models, optimizers
     from tensorflow.keras.callbacks import EarlyStopping
+
     HAS_TENSORFLOW = True
 except ImportError:
     HAS_TENSORFLOW = False
@@ -68,10 +69,11 @@ class AutoencoderAnomalyDetector:
 
         # Set random seeds for full reproducibility across the entire ensemble
         import random
+
         random.seed(42)  # Python's built-in random module
         np.random.seed(42)  # NumPy random operations (used by scikit-learn)
         tf.random.set_seed(42)  # TensorFlow operations
-        
+
         self.encoding_dim = encoding_dim
         self.contamination = contamination
         self.autoencoder = None
@@ -222,9 +224,10 @@ class EnsembleAnomalyDetector:
         self.use_adaptive_threshold = use_adaptive_threshold
         self.adaptive_threshold = None
         self.logger = logging.getLogger(__name__)
-        
+
         # Set random seeds for full reproducibility across the entire ensemble
         import random
+
         random.seed(42)  # Python's built-in random module
         np.random.seed(42)  # NumPy random operations (used by scikit-learn)
 
@@ -254,7 +257,7 @@ class EnsembleAnomalyDetector:
         self.one_class_svm = Pipeline(
             [("scaler", StandardScaler()), ("svm", OneClassSVM(**one_class_svm_params))]
         )
-        
+
         # Initialize autoencoder only if TensorFlow is available
         if HAS_TENSORFLOW:
             self.autoencoder = AutoencoderAnomalyDetector(**autoencoder_params)
@@ -311,7 +314,7 @@ class EnsembleAnomalyDetector:
 
         # Mark as fitted before computing adaptive threshold
         self.is_fitted = True
-        
+
         # If using adaptive threshold, compute it based on training data scores
         if self.use_adaptive_threshold:
             self.logger.info("Computing adaptive threshold based on training data")
@@ -319,9 +322,11 @@ class EnsembleAnomalyDetector:
             # Set threshold to be much more lenient than the minimum training score
             # This ensures no training samples are classified as anomalies
             # Use a large margin to account for any numerical variations
-            self.adaptive_threshold = np.min(train_scores) - abs(np.min(train_scores)) * 0.1 - 10.0
+            self.adaptive_threshold = (
+                np.min(train_scores) - abs(np.min(train_scores)) * 0.1 - 10.0
+            )
             self.logger.info(f"Adaptive threshold set to: {self.adaptive_threshold}")
-        
+
         self.logger.info("Ensemble training completed")
         return self
 
@@ -350,7 +355,11 @@ class EnsembleAnomalyDetector:
         predictions.append(svm_pred)
 
         # Autoencoder (if available and trained)
-        if HAS_TENSORFLOW and self.autoencoder is not None and self.autoencoder.is_fitted:
+        if (
+            HAS_TENSORFLOW
+            and self.autoencoder is not None
+            and self.autoencoder.is_fitted
+        ):
             try:
                 ae_pred = self.autoencoder.predict(X)
                 predictions.append(ae_pred)
@@ -362,7 +371,7 @@ class EnsembleAnomalyDetector:
         if self.use_adaptive_threshold and self.adaptive_threshold is not None:
             scores = self.decision_function(X)
             return np.where(scores > self.adaptive_threshold, 1, -1)
-        
+
         # Otherwise use weighted ensemble voting
         predictions = np.array(predictions)
         weighted_scores = np.average(predictions, axis=0, weights=self.weights)
@@ -395,7 +404,11 @@ class EnsembleAnomalyDetector:
         scores.append(svm_scores)
 
         # Autoencoder (if available and trained)
-        if HAS_TENSORFLOW and self.autoencoder is not None and self.autoencoder.is_fitted:
+        if (
+            HAS_TENSORFLOW
+            and self.autoencoder is not None
+            and self.autoencoder.is_fitted
+        ):
             try:
                 ae_scores = self.autoencoder.decision_function(X)
                 scores.append(ae_scores)
@@ -412,10 +425,10 @@ class EnsembleAnomalyDetector:
     def predict_anomaly_scores(self, X: np.ndarray) -> np.ndarray:
         """
         Alias for decision_function to match expected interface.
-        
+
         Args:
             X (np.ndarray): Data to score
-            
+
         Returns:
             np.ndarray: Anomaly scores (lower = more anomalous)
         """
@@ -445,7 +458,12 @@ class EnsembleAnomalyDetector:
             pickle.dump(ensemble_data, f)
 
         # Save autoencoder separately if trained
-        if len(self.weights) > 2 and self.weights[2] > 0 and self.autoencoder is not None and self.autoencoder.is_fitted:
+        if (
+            len(self.weights) > 2
+            and self.weights[2] > 0
+            and self.autoencoder is not None
+            and self.autoencoder.is_fitted
+        ):
             autoencoder_path = model_path.replace(".pkl", "_autoencoder.h5")
             self.autoencoder.autoencoder.save(autoencoder_path)
 
