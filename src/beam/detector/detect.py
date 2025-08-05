@@ -683,9 +683,9 @@ def detect_anomalous_domain_with_anomaly_model(
                     anomaly_score = raw_anomaly_score
                     logger.info(f"Domain {domain}: raw_score={raw_anomaly_score:.4f}, no volume info, final_score={anomaly_score:.4f}")
                 
-                # For custom models (ensemble_anomaly), use volume-adjusted score for decision
-                # Negative scores indicate anomalies, positive scores indicate normal behavior
-                is_anomaly = (anomaly_score < 0.0)
+                # For custom models (ensemble_anomaly), use the ensemble's prediction
+                # The ensemble already considers adaptive thresholds and multiple algorithms
+                is_anomaly = (anomaly_prediction == -1)
                 
                 # Create output directory
                 obs_file_dir = (

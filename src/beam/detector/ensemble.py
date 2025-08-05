@@ -66,6 +66,12 @@ class AutoencoderAnomalyDetector:
                 "TensorFlow is required for AutoencoderAnomalyDetector but is not installed"
             )
 
+        # Set random seeds for full reproducibility across the entire ensemble
+        import random
+        random.seed(42)  # Python's built-in random module
+        np.random.seed(42)  # NumPy random operations (used by scikit-learn)
+        tf.random.set_seed(42)  # TensorFlow operations
+        
         self.encoding_dim = encoding_dim
         self.contamination = contamination
         self.autoencoder = None
@@ -216,6 +222,11 @@ class EnsembleAnomalyDetector:
         self.use_adaptive_threshold = use_adaptive_threshold
         self.adaptive_threshold = None
         self.logger = logging.getLogger(__name__)
+        
+        # Set random seeds for full reproducibility across the entire ensemble
+        import random
+        random.seed(42)  # Python's built-in random module
+        np.random.seed(42)  # NumPy random operations (used by scikit-learn)
 
         # Default parameters
         if isolation_forest_params is None:
@@ -426,6 +437,8 @@ class EnsembleAnomalyDetector:
             "weights": self.weights,
             "contamination": self.contamination,
             "is_fitted": self.is_fitted,
+            "use_adaptive_threshold": self.use_adaptive_threshold,
+            "adaptive_threshold": self.adaptive_threshold,
         }
 
         with open(model_path, "wb") as f:
@@ -456,6 +469,9 @@ class EnsembleAnomalyDetector:
         self.weights = ensemble_data["weights"]
         self.contamination = ensemble_data["contamination"]
         self.is_fitted = ensemble_data["is_fitted"]
+        # Load adaptive threshold settings (with backward compatibility)
+        self.use_adaptive_threshold = ensemble_data.get("use_adaptive_threshold", False)
+        self.adaptive_threshold = ensemble_data.get("adaptive_threshold", None)
 
         # Load autoencoder if it exists
         autoencoder_path = model_path.replace(".pkl", "_autoencoder.h5")
