@@ -26,9 +26,23 @@
 # - Dagmawi Mulugeta
 
 import sys
+import logging.config
+from pathlib import Path
 
-from beam.constants import PROJECT_DIR
+import pytest
+
+from beam.constants import PROJECT_DIR, LOG_DIR, LOG_CONFIG
 
 root_dir = PROJECT_DIR / "src" / "beam"
 
 sys.path.insert(0, root_dir)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_logging():
+    """Ensure logs directory exists before configuring logging."""
+    LOG_DIR.mkdir(exist_ok=True)
+    
+    # Configure logging for tests
+    if LOG_CONFIG.exists():
+        logging.config.fileConfig(LOG_CONFIG)

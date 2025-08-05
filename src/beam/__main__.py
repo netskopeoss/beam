@@ -31,11 +31,13 @@ import os
 import sys
 from pathlib import Path
 
+from beam.constants import LOG_DIR
+from beam.run import MultiHotEncoder, run
+from beam.services import setup_environment
+
 
 def setup_logging():
     """Setup logging to file only and redirect stderr."""
-    # Import LOG_DIR here to avoid circular imports
-    from beam.constants import LOG_DIR
 
     # Create logs directory if it doesn't exist
     LOG_DIR.mkdir(exist_ok=True)
@@ -55,16 +57,11 @@ def setup_logging():
     return log_file, stderr_log_file
 
 
-# Set up logging early, before any imports that might use TensorFlow
-log_file, stderr_log_file = setup_logging()
-
-# Now import modules that might trigger TensorFlow
-from beam.run import MultiHotEncoder, run
-from beam.services import setup_environment
-
-
 def main():
     """Main entry point for BEAM."""
+
+    # log_file, stderr_log_file = setup_logging()
+
     logger = logging.getLogger("main")
 
     # Set up Docker services before running BEAM

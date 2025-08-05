@@ -34,8 +34,8 @@ from os import path
 from pathlib import Path
 from typing import Optional, Tuple
 
-
 from beam import constants, enrich
+from beam.demo import run_demo
 from beam.detector import features, utils
 from beam.detector.detect import (
     MultiHotEncoder,
@@ -43,9 +43,7 @@ from beam.detector.detect import (
     detect_anomalous_domain_with_anomaly_model,
 )
 from beam.detector.security_report import generate_security_report
-from beam.detector.trainer import (
-    train_custom_app_model,
-)
+from beam.detector.trainer import train_custom_app_model
 from beam.mapper.mapper import run_mapping_only
 from beam.parser import har, zeek
 
@@ -604,9 +602,9 @@ def run_training_in_container(
     Run model training inside Docker container with TensorFlow support.
     This function is transparent to the user - they just run the normal training command.
     """
+    import os
     import subprocess
     import sys
-    import os
     from pathlib import Path
 
     if logger is None:
@@ -736,9 +734,9 @@ def run_detection_in_container(
     """
     Run BEAM detection inside Docker container with TensorFlow support for custom models.
     """
+    import os
     import subprocess
     import sys
-    import os
     from pathlib import Path
 
     if logger is None:
@@ -1091,8 +1089,6 @@ def run(logger: logging.Logger) -> None:
     # Handle demo mode
     if args.get("mode") == "demo":
         logger.info("Running BEAM in demo mode...")
-        from beam.demo import run_demo
-
         run_demo(logger, preserve_results=True)
         return
 
