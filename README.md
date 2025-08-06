@@ -14,6 +14,7 @@ cd beam
 
 # Install with uv (recommended)
 uv sync
+uv pip install -e .
 
 # Run the interactive demo (one command!)
 uv run python -m beam demo
@@ -34,15 +35,6 @@ This will:
 ### Prerequisites
 1. **Python 3.12+** and **uv** (recommended) or pip
 2. **An app for running containers** - Docker Desktop or an alternative for running Zeek, TensorFlow, and Ollama
-
-### Quick Installation
-
-```bash
-git clone git@github.com:netskopeoss/beam.git
-cd beam
-uv sync
-uv pip install -e .
-```
 
 ## 🛡️ Running BEAM
 
