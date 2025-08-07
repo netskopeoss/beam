@@ -87,7 +87,7 @@ BEAM generates multiple files and provides the following output:
 
 ### Sample Console Output
  Below is an example of the output generated from our sample HAR file:
-![Console screenshot showing BEAM's output](https://github.com/netskopeoss/beam/blob/7040781dddfc1aca5d7c1d6dfcc132139cace731/beam_sample_console_screenshot.jpg)
+![Console screenshot showing BEAM's output](https://github.com/netskopeoss/beam/blob/289231879cde1d283e5cb004eecb959df306739a/beam_sample_console_screenshot.jpg)
 
 In the screenshot above, you can see that the HAR file primarily contained traffic from Chrome and Box. The traffic from Box was compared against BEAM’s models. For the first two observations, the traffic was as expected, however for the last session, BEAM flagged it as “Potential supply chain compromise found”.
 
