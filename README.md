@@ -14,6 +14,7 @@ cd beam
 
 # Install with uv (recommended)
 uv sync
+uv pip install -e .
 
 # Run the interactive demo (one command!)
 uv run python -m beam demo
@@ -34,15 +35,6 @@ This will:
 ### Prerequisites
 1. **Python 3.12+** and **uv** (recommended) or pip
 2. **An app for running containers** - Docker Desktop or an alternative for running Zeek, TensorFlow, and Ollama
-
-### Quick Installation
-
-```bash
-git clone git@github.com:netskopeoss/beam.git
-cd beam
-uv sync
-uv pip install -e .
-```
 
 ## 🛡️ Running BEAM
 
@@ -95,7 +87,7 @@ BEAM generates multiple files and provides the following output:
 
 ### Sample Console Output
  Below is an example of the output generated from our sample HAR file:
-![Console screenshot showing BEAM's output](https://github.com/netskopeoss/beam/blob/7040781dddfc1aca5d7c1d6dfcc132139cace731/beam_sample_console_screenshot.jpg)
+![Console screenshot showing BEAM's output](https://github.com/netskopeoss/beam/blob/289231879cde1d283e5cb004eecb959df306739a/beam_sample_console_screenshot.jpg)
 
 In the screenshot above, you can see that the HAR file primarily contained traffic from Chrome and Box. The traffic from Box was compared against BEAM’s models. For the first two observations, the traffic was as expected, however for the last session, BEAM flagged it as “Potential supply chain compromise found”.
 
@@ -103,7 +95,7 @@ BEAM determined that there was a 95% possibility of a compromise here because th
 
 ### Sample SHAP Waterfall plot
 
-![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/97bdd3bce1b3f613fc07808608298a9529eb32f4/sample_shap_waterfall.jpg)
+![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/689ac9c96f9e4523c21b63d02f7300d15cd2cf0d/sample_shap_waterfall.jpg)
 
 BEAM provides a SHAP Waterfall plot for each session analyzed, as shown above. The plot shows the reasoning behind the prediction via an impact breakdown of the evidence provided by each feature on the model’s output. In this particular case, the plot above shows the following reasons that this session was indicative of a compromise:
 - not using the content type ‘application/json’
