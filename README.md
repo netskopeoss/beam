@@ -95,7 +95,7 @@ BEAM determined that there was a 95% possibility of a compromise here because th
 
 ### Sample SHAP Waterfall plot
 
-![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/97bdd3bce1b3f613fc07808608298a9529eb32f4/sample_shap_waterfall.jpg)
+![SHAP Waterfall plot showing features for Box compromise](https://github.com/netskopeoss/beam/blob/689ac9c96f9e4523c21b63d02f7300d15cd2cf0d/sample_shap_waterfall.jpg)
 
 BEAM provides a SHAP Waterfall plot for each session analyzed, as shown above. The plot shows the reasoning behind the prediction via an impact breakdown of the evidence provided by each feature on the model’s output. In this particular case, the plot above shows the following reasons that this session was indicative of a compromise:
 - not using the content type ‘application/json’
