@@ -55,7 +55,7 @@ dependencies = [
     "pyparsing==3.2.1",
     "python-dateutil==2.9.0.post0",
     "pytz==2024.2",
-    "requests==2.32.4",
+    "requests==2.33.0",
     "rsa==4.9",
     "scikit-learn==1.6.1",
     "scipy==1.15.1",
