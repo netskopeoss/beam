@@ -36,7 +36,7 @@ dependencies = [
     "grpcio==1.70.0",
     "httpagentparser==1.9.5",
     "httplib2==0.22.0",
-    "idna==3.10",
+    "idna==3.15",
     "joblib==1.4.2",
     "kiwisolver==1.4.8",
     "llvmlite==0.44.0",
