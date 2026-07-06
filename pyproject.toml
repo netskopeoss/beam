@@ -95,7 +95,7 @@ dev = [
     "ptyprocess==0.7.0",
     "pure_eval==0.2.3",
     "Pygments==2.19.1",
-    "pytest==8.3.4",
+    "pytest==9.0.3",
     "ruff==0.9.3",
     "stack-data==0.6.3",
     "traitlets==5.14.3",
